@@ -3,6 +3,8 @@ import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import path from 'path';
 
+export const prerender = false;
+
 interface QuoteProduct {
   name: string;
   brand?: string;
