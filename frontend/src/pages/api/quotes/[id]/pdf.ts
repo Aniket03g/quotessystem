@@ -123,13 +123,29 @@ export const GET: APIRoute = async ({ params, request }) => {
 
     // Logo (if exists)
     try {
-      const logoPath = path.join(process.cwd(), 'dist', 'client', 'green-o-care-logo.png');
-      if (fs.existsSync(logoPath)) {
+      const logoFileName = 'green-o-care-logo.png';
+      const possiblePaths = [
+        path.join(process.cwd(), logoFileName),
+        path.join(process.cwd(), 'dist', 'client', logoFileName),
+        path.join(process.cwd(), 'public', logoFileName)
+      ];
+      
+      let logoPath = null;
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+          logoPath = p;
+          break;
+        }
+      }
+      
+      if (logoPath) {
         doc.image(logoPath, 50, 50, { width: 100 });
         doc.moveDown(2);
+      } else {
+        console.error('Logo not found in any of these paths:', possiblePaths);
       }
     } catch (error) {
-      console.error('Logo not found, skipping', error);
+      console.error('Logo error:', error);
     }
 
     // Company Header

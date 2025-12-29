@@ -24,8 +24,9 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
-# Copy logo files for PDF generation
-COPY --from=builder /app/*.png ./
+# Copy logo files for PDF generation to multiple locations
+COPY --from=builder /app/public/*.png ./
+COPY --from=builder /app/public/*.png ./dist/client/ 2>/dev/null || true
 
 # Install only production dependencies
 RUN npm ci --only=production
