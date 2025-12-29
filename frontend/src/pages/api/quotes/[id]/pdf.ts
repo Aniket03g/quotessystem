@@ -119,6 +119,17 @@ export const GET: APIRoute = async ({ params, request }) => {
 
     // --- PDF CONTENT GENERATION ---
 
+    // Logo (if exists)
+    try {
+      const logoPath = path.join(process.cwd(), 'dist', 'client', 'green-o-care-logo.png');
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, 50, 50, { width: 100 });
+        doc.moveDown(2);
+      }
+    } catch (error) {
+      console.error('Logo not found, skipping', error);
+    }
+
     // Company Header
     doc.fontSize(24)
        .fillColor('#2563eb')

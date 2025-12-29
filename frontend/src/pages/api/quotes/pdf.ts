@@ -50,12 +50,12 @@ export const POST: APIRoute = async ({ request }) => {
     try {
       const selectedLogo = quoteData.logo || 'greenocare';
       const logoFileName = selectedLogo === 'grove' ? 'grove_logo.png' : 'green-o-care-logo.png';
-      const logoPath = path.join(process.cwd(), logoFileName);
+      const logoPath = path.join(process.cwd(), 'dist', 'client', logoFileName);
       if (fs.existsSync(logoPath)) {
         doc.image(logoPath, 50, 35, { width: 130 });
       }
     } catch (error) {
-      console.error('Logo not found, skipping');
+      console.error('Logo not found, skipping', error);
     }
     
     // Company Name
