@@ -16,7 +16,9 @@ RUN go mod download
 COPY . .
 
 # Build the application with SQLite support
-RUN CGO_ENABLED=1 go build -tags "sqlite_omit_load_extension" -o main .
+# Set build flags for musl libc compatibility
+ENV CGO_CFLAGS="-D_LARGEFILE64_SOURCE"
+RUN CGO_ENABLED=1 go build -o main .
 
 # Production stage
 FROM alpine:latest
