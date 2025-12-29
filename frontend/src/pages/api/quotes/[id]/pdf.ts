@@ -78,8 +78,10 @@ async function fetchLinkedProducts(quoteId: string, token: string): Promise<Prod
 
 export const GET: APIRoute = async ({ params, request }) => {
   const quoteId = params.id;
+  console.log('[PDF API] GET /api/quotes/[id]/pdf - Quote ID:', quoteId);
   
   if (!quoteId) {
+    console.error('[PDF API] ERROR: No quote ID provided');
     return new Response('Quote ID required', { status: 400 });
   }
 
@@ -124,28 +126,36 @@ export const GET: APIRoute = async ({ params, request }) => {
     // Logo (if exists)
     try {
       const logoFileName = 'green-o-care-logo.png';
+      console.log('[PDF API] Looking for logo:', logoFileName);
+      console.log('[PDF API] Current working directory:', process.cwd());
+      
       const possiblePaths = [
         path.join(process.cwd(), logoFileName),
         path.join(process.cwd(), 'dist', 'client', logoFileName),
         path.join(process.cwd(), 'public', logoFileName)
       ];
       
+      console.log('[PDF API] Checking paths:', possiblePaths);
+      
       let logoPath = null;
       for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
+        const exists = fs.existsSync(p);
+        console.log(`[PDF API] Path ${p}: ${exists ? 'EXISTS' : 'NOT FOUND'}`);
+        if (exists) {
           logoPath = p;
           break;
         }
       }
       
       if (logoPath) {
+        console.log('[PDF API] Using logo from:', logoPath);
         doc.image(logoPath, 50, 50, { width: 100 });
         doc.moveDown(2);
       } else {
-        console.error('Logo not found in any of these paths:', possiblePaths);
+        console.error('[PDF API] ERROR: Logo not found in any path!');
       }
     } catch (error) {
-      console.error('Logo error:', error);
+      console.error('[PDF API] Logo error:', error);
     }
 
     // Company Header

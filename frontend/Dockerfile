@@ -26,7 +26,9 @@ COPY --from=builder /app/package*.json ./
 
 # Copy logo files for PDF generation to multiple locations
 COPY --from=builder /app/public/*.png ./
-COPY --from=builder /app/public/*.png ./dist/client/ 2>/dev/null || true
+
+# Create client directory and copy logos there too
+RUN mkdir -p ./dist/client && cp *.png ./dist/client/ || true
 
 # Install only production dependencies
 RUN npm ci --only=production
