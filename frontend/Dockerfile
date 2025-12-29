@@ -1,4 +1,4 @@
-# Frontend Dockerfile for Astro application
+# Frontend Dockerfile for Astro static site
 FROM node:20-alpine AS builder
 
 WORKDIR /app
@@ -12,23 +12,20 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the static application
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+# Production stage - serve with nginx
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy built static files
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy built application
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 4321
 
-# Start the application
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
