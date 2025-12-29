@@ -1,6 +1,8 @@
 import { getToken, safeJsonParse, logout } from './api';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = typeof window !== 'undefined' 
+  ? `http://${window.location.hostname}:8080` 
+  : 'http://localhost:8080';
 
 /**
  * Quote details structure returned by this module
