@@ -224,8 +224,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
         // Store for PDF generation (same structure as download function)
         currentQuoteData = {
-          id: parseInt(quoteId),
-          subject: fields['Subject'] || `Quote #${quoteId}`,
+          id: parseInt(quoteId || '0'),
+          subject: fields['Subject'] || `Quote #${quoteId || 'Unknown'}`,
           date: fields['Quote Date'] || new Date().toISOString().split('T')[0],
           version: fields['Quote Version'] || '1.0',
           total: fields['Total Amount'] || 0,

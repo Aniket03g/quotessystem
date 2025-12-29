@@ -107,7 +107,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   </div>
 
   <script>
-    import { getToken, safeJsonParse } from '../lib/api';
+    import { getToken, logout, safeJsonParse } from '../lib/api';
     import { debounce } from '../utils/debounce';
 
     const API_BASE_URL = 'http://localhost:8080';

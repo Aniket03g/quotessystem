@@ -6,6 +6,8 @@ services:
       context: ./proxy
       dockerfile: Dockerfile
     container_name: grove-backend
+    env_file:
+      - ./proxy/.env
     ports:
       - "8080:8080"
     environment:
