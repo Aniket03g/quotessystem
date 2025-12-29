@@ -10,6 +10,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/node": "^8.0.0",
     "@types/pdfkit": "^0.17.4",
     "astro": "^4.0.0",
     "pdfkit": "^0.17.2"

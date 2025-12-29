@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import PDFDocument from 'pdfkit';
 
+export const prerender = false;
+
 const API_BASE_URL = 'http://localhost:8080';
 
 interface QuoteData {
