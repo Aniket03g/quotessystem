@@ -296,7 +296,7 @@
 
   <script>
     import { setToken, setUserInfo, safeJsonParse } from '../lib/api';
-    const API_BASE_URL = 'http://localhost:8080';
+    const API_BASE_URL = `http://${window.location.hostname}:8080`;
 
     const form = document.getElementById('signupForm') as HTMLFormElement;
     const errorDiv = document.getElementById('error') as HTMLDivElement;
