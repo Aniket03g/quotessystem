@@ -420,14 +420,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         }
 
         window.URL.revokeObjectURL(url);
-        console.log('=== PDF GENERATION SUCCESS ===');
       } catch (error) {
-        console.error('=== PDF GENERATION EXCEPTION ===');
-        console.error('Error type:', error?.constructor?.name);
-        console.error('Error message:', error instanceof Error ? error.message : String(error));
-        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-        console.error('Full error object:', error);
-        alert('Failed to generate PDF. Check browser console (F12) for details.');
+        console.error('Failed to generate PDF:', error);
+        alert('Failed to generate PDF. Please try again.');
       }
     }
 
