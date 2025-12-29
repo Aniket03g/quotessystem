@@ -344,32 +344,67 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
      * Generate PDF - reuses the same data already fetched
      */
     async function generatePDF(preview: boolean = false) {
+      console.log('=== PDF GENERATION START ===');
+      console.log('Preview mode:', preview);
+      
       if (!currentQuoteData) {
+        console.error('ERROR: Quote data not loaded');
         alert('Quote data not loaded');
         return;
       }
 
+      console.log('Quote data:', currentQuoteData);
+
       try {
         const logoSelect = document.getElementById('logoSelect') as HTMLSelectElement;
         const selectedLogo = logoSelect?.value || 'greenocare';
+        console.log('Selected logo:', selectedLogo);
 
+        const requestBody = {
+          ...currentQuoteData,
+          logo: selectedLogo
+        };
+        console.log('Request body:', requestBody);
+
+        console.log('Sending POST request to /api/quotes/pdf...');
         const response = await fetch('/api/quotes/pdf', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            ...currentQuoteData,
-            logo: selectedLogo
-          })
+          body: JSON.stringify(requestBody)
         });
 
+        console.log('Response status:', response.status, response.statusText);
+        console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+
         if (!response.ok) {
-          throw new Error('Failed to generate PDF');
+          const contentType = response.headers.get('content-type');
+          let errorDetails = `Status: ${response.status} ${response.statusText}`;
+          
+          if (contentType?.includes('application/json')) {
+            const errorData = await response.json();
+            console.error('ERROR Response (JSON):', errorData);
+            errorDetails += `\nDetails: ${JSON.stringify(errorData, null, 2)}`;
+          } else {
+            const errorText = await response.text();
+            console.error('ERROR Response (Text):', errorText);
+            errorDetails += `\nResponse: ${errorText}`;
+          }
+          
+          console.error('=== PDF GENERATION FAILED ===');
+          console.error(errorDetails);
+          alert('Failed to generate PDF:\n' + errorDetails);
+          throw new Error(errorDetails);
         }
 
+        console.log('Response OK, creating blob...');
+
         const blob = await response.blob();
+        console.log('Blob created, size:', blob.size, 'bytes, type:', blob.type);
+        
         const url = window.URL.createObjectURL(blob);
+        console.log('Object URL created:', url);
 
         if (preview) {
           // Open in new tab for preview
@@ -385,9 +420,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         }
 
         window.URL.revokeObjectURL(url);
+        console.log('=== PDF GENERATION SUCCESS ===');
       } catch (error) {
-        console.error('Failed to generate PDF:', error);
-        alert('Failed to generate PDF. Please try again.');
+        console.error('=== PDF GENERATION EXCEPTION ===');
+        console.error('Error type:', error?.constructor?.name);
+        console.error('Error message:', error instanceof Error ? error.message : String(error));
+        console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+        console.error('Full error object:', error);
+        alert('Failed to generate PDF. Check browser console (F12) for details.');
       }
     }
 
