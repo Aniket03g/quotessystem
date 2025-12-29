@@ -31,11 +31,8 @@ RUN apk add --no-cache ca-certificates sqlite-libs
 # Copy binary from builder
 COPY --from=builder /app/main .
 
-# Copy config directory if exists
-COPY --from=builder /app/config ./config 2>/dev/null || true
-
 # Create directories for persistent data
-RUN mkdir -p /app/data /app/logs
+RUN mkdir -p /app/data /app/logs /app/config
 
 # Expose port
 EXPOSE 8080
