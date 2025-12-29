@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8080';
+// Use environment variable if set, otherwise dynamically construct from current hostname
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 
+  (typeof window !== 'undefined' ? `http://${window.location.hostname}:8080` : 'http://localhost:8080');
 
 interface LoginResponse {
   token: string;
