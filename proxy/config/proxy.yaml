@@ -1,0 +1,29 @@
+# Generic NocoDB Proxy Configuration
+# This file defines the schema-driven configuration for the proxy
+nocodb:
+  base_id: "pbf7tt48gxdl50h"
+
+tables:
+  quotes:
+    name: "Quotes"
+    operations: [read, create, update, delete, link]
+
+  products:
+    name: "Products"
+    operations: [read]
+
+  accounts:
+    name: "Accounts"
+    operations: [read]
+
+  contacts:
+    name: "Contacts"
+    operations: [read]
+
+  accounts_quotes:
+    name: "Accounts Quotes"
+    operations: [read, create, link]
+
+  products_for_quotes:
+    name: "ProductsForQuotes"
+    operations: [read, create, link]

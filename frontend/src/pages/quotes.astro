@@ -1,0 +1,989 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Quotes - Grove Systems" currentPage="quotes">
+  <!-- Page Header -->
+  <div class="mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-slate-800">Quotes</h1>
+        <p class="text-sm text-slate-600 mt-1">Create and manage customer quotes</p>
+      </div>
+      <button id="createQuoteBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Create New Quote
+      </button>
+    </div>
+  </div>
+
+  <!-- Quotes Table Card -->
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+    <!-- Search Section -->
+    <div class="p-6 border-b border-slate-200">
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Search quotes..." 
+          class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          autocomplete="off"
+        />
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="py-12 text-center">
+      <svg class="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm text-slate-600">Loading quotes...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden mx-6 my-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-sm text-red-800" id="errorText"></p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div id="quotesTable" class="hidden overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Quote</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Total Amount</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="quotesBody" class="divide-y divide-slate-200"></tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden py-12 text-center">
+      <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      <p class="text-slate-600 font-medium mb-1">No quotes found</p>
+      <p class="text-sm text-slate-500">Click "Create New Quote" to get started</p>
+    </div>
+  </div>
+
+  <!-- Create Quote Modal -->
+  <div id="createQuoteModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <h2 class="text-xl font-semibold text-slate-800">Create New Quote</h2>
+        <button id="closeModalBtn" class="p-2 rounded-lg hover:bg-slate-100 transition-colors">
+          <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form id="createQuoteForm" class="p-6 space-y-6">
+        <!-- Account Selection -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Account *</label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="accountSearch" 
+              placeholder="Search for an account..." 
+              autocomplete="off"
+              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+            <input type="hidden" id="selectedAccountId" required />
+            <div id="accountDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div id="accountResults" class="py-1"></div>
+              <div id="accountLoading" class="hidden px-4 py-3 text-sm text-slate-500 text-center">
+                <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Searching...
+              </div>
+              <div id="accountEmpty" class="hidden px-4 py-3 text-sm text-slate-500 text-center">No accounts found</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quote Date -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Quote Date *</label>
+          <input type="date" id="quoteDate" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+        </div>
+
+        <!-- Valid Until -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Valid Until *</label>
+          <input type="date" id="validUntil" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" />
+        </div>
+
+        <!-- Products Section -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Products *</label>
+          <div id="productsContainer" class="space-y-3">
+            <div class="product-item flex gap-3">
+              <div class="flex-1 relative">
+                <input 
+                  type="text" 
+                  class="product-search w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                  placeholder="Search for a product..." 
+                  autocomplete="off"
+                  required
+                />
+                <input type="hidden" class="product-id" required />
+                <input type="hidden" class="product-name" />
+                <input type="hidden" class="product-price" />
+                <div class="product-dropdown hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div class="product-results py-1"></div>
+                  <div class="product-loading hidden px-4 py-3 text-sm text-slate-500 text-center">
+                    <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Searching...
+                  </div>
+                  <div class="product-empty hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
+                </div>
+              </div>
+              <input type="number" class="product-quantity w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Qty" min="1" value="1" required />
+              <button type="button" class="remove-product-btn p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <button type="button" id="addProductBtn" class="mt-3 inline-flex items-center gap-2 px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add Product
+          </button>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Notes</label>
+          <textarea id="notes" rows="3" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Additional notes or terms..."></textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex gap-3 pt-4 border-t border-slate-200">
+          <button type="button" id="cancelModalBtn" class="flex-1 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+            Create Quote
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <script>
+    import { getToken, logout, safeJsonParse, getUserInfo } from '../lib/api';
+    import { debounce } from '../utils/debounce';
+
+    const API_BASE_URL = 'http://localhost:8080';
+
+    /**
+     * Get the logged-in user's email from localStorage
+     */
+    function getUserEmail(): string | null {
+      return localStorage.getItem('user_email');
+    }
+
+    /**
+     * Get the logged-in user's role from localStorage
+     */
+    function getUserRole(): string | null {
+      const userInfo = getUserInfo();
+      return userInfo ? userInfo.role : null;
+    }
+    const token = getToken();
+
+    if (!token) {
+      window.location.href = '/login';
+    }
+
+    const loadingDiv = document.getElementById('loading') as HTMLDivElement;
+    const errorDiv = document.getElementById('error') as HTMLDivElement;
+    const quotesTable = document.getElementById('quotesTable') as HTMLDivElement;
+    const quotesBody = document.getElementById('quotesBody') as HTMLTableSectionElement;
+    const emptyState = document.getElementById('emptyState') as HTMLDivElement;
+    const createQuoteBtn = document.getElementById('createQuoteBtn') as HTMLButtonElement;
+    const createQuoteModal = document.getElementById('createQuoteModal') as HTMLDivElement;
+    const closeModalBtn = document.getElementById('closeModalBtn') as HTMLButtonElement;
+    const cancelModalBtn = document.getElementById('cancelModalBtn') as HTMLButtonElement;
+    const createQuoteForm = document.getElementById('createQuoteForm') as HTMLFormElement;
+    const accountSearch = document.getElementById('accountSearch') as HTMLInputElement;
+    const selectedAccountId = document.getElementById('selectedAccountId') as HTMLInputElement;
+    const accountDropdown = document.getElementById('accountDropdown') as HTMLDivElement;
+    const accountResults = document.getElementById('accountResults') as HTMLDivElement;
+    const accountLoading = document.getElementById('accountLoading') as HTMLDivElement;
+    const accountEmpty = document.getElementById('accountEmpty') as HTMLDivElement;
+    const productsContainer = document.getElementById('productsContainer') as HTMLDivElement;
+    const addProductBtn = document.getElementById('addProductBtn') as HTMLButtonElement;
+
+    let selectedAccountData: any = null;
+
+    async function loadQuotes() {
+      try {
+        const userEmail = getUserEmail();
+        const userRole = getUserRole();
+        
+        // Admin users see all quotes, regular users see only their own
+        let url = `${API_BASE_URL}/proxy/quotes/records`;
+        
+        if (userRole === 'admin') {
+          console.log('[QUOTES] Admin user detected - loading all quotes');
+        } else {
+          // Build query to filter by Quote Created By for non-admin users
+          const rawWhere = `(Quote Created By,eq,${userEmail})`;
+          const encodedWhere = encodeURIComponent(rawWhere);
+          url = `${url}?where=${encodedWhere}`;
+          console.log('[QUOTES] Loading quotes for user:', userEmail);
+        }
+        
+        console.log('[QUOTES] Query URL:', url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch quotes');
+        }
+
+        const data = await safeJsonParse(response);
+        const quotes = data.records || [];
+
+        loadingDiv.classList.add('hidden');
+
+        if (quotes.length === 0) {
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        quotesBody.innerHTML = quotes.map((record: any, index: number) => {
+          const fields = record.fields || {};
+          const quoteName = fields['Subject'] || '<span class="text-slate-400 italic">Untitled Quote</span>';
+          const date = fields['Quote Date'] || fields['Date'] || '<span class="text-slate-400 italic">N/A</span>';
+          const total = fields['Total Amount'] || fields['Total'] || 0;
+          const status = fields['Quote Status'] || fields['Status'] || 'Draft';
+
+          let statusClasses = 'bg-slate-100 text-slate-800';
+          if (status === 'Sent') statusClasses = 'bg-blue-100 text-blue-800';
+          if (status === 'Accepted') statusClasses = 'bg-emerald-100 text-emerald-800';
+          if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
+
+          return `
+            <tr class="cursor-pointer transition-colors hover:bg-slate-50 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}" onclick="window.location.href='/quote-detail?id=${record.id}'">
+              <td class="px-6 py-4 text-sm font-medium text-slate-900">${quoteName}</td>
+              <td class="px-6 py-4 text-sm text-slate-600">${date}</td>
+              <td class="px-6 py-4 text-sm text-slate-600">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+              <td class="px-6 py-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
+                  ${status}
+                </span>
+              </td>
+              <td class="px-6 py-4" onclick="event.stopPropagation()">
+                <div class="flex gap-2">
+                  <button class="view-quote-btn p-1.5 rounded-lg hover:bg-slate-100 transition-colors" data-quote-id="${record.id}" title="View Details">
+                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                  <button class="download-pdf-btn p-1.5 rounded-lg hover:bg-slate-100 transition-colors" data-quote-id="${record.id}" title="Download PDF">
+                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3 3m0 0l-3-3m3 3V10"></path>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        quotesTable.classList.remove('hidden');
+        
+        // Attach PDF download handlers
+        document.querySelectorAll('.download-pdf-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const quoteId = (btn as HTMLElement).getAttribute('data-quote-id');
+            if (quoteId) {
+              await downloadQuotePDF(quoteId);
+            }
+          });
+        });
+      } catch (error) {
+        loadingDiv.classList.add('hidden');
+        const errorText = errorDiv.querySelector('#errorText');
+        if (errorText) {
+          errorText.textContent = error instanceof Error ? error.message : 'Failed to load quotes';
+        }
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * Download quote as PDF
+     * Fetches quote details and sends to PDF generation API
+     */
+    async function downloadQuotePDF(quoteId: string) {
+      try {
+        // Fetch quote record to get basic details
+        const quoteResponse = await fetch(`${API_BASE_URL}/proxy/quotes/records/${quoteId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!quoteResponse.ok) {
+          throw new Error('Failed to fetch quote details');
+        }
+
+        const quoteData = await safeJsonParse(quoteResponse);
+        const fields = quoteData.fields || {};
+
+        // Fetch linked account
+        const accountResponse = await fetch(
+          `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}?fields=Account Name`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        let accountName = 'N/A';
+        if (accountResponse.ok) {
+          const accountData = await safeJsonParse(accountResponse);
+          const accounts = accountData.list || accountData.records || [];
+          if (accounts.length > 0) {
+            accountName = accounts[0].fields['Account Name'] || 'N/A';
+          }
+        }
+
+        // Fetch linked products
+        const productsResponse = await fetch(
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Product Name,Unit Price,Brand,HSN Code,Model,Tax,Description`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        let products: Array<{ name: string; price?: number; model?: string; tax?: string; hsnCode?: string }> = [];
+        if (productsResponse.ok) {
+          const productsData = await safeJsonParse(productsResponse);
+          const productRecords = productsData.list || productsData.records || [];
+          products = productRecords.map((record: any) => ({
+            name: record.fields['Product Name'] || 'Unnamed Product',
+            price: record.fields['Unit Price'] 
+              ? parseFloat(String(record.fields['Unit Price'])) 
+              : undefined,
+            model: record.fields['Model'] || undefined,
+            tax: record.fields['Tax'] || undefined,
+            hsnCode: record.fields['HSN Code'] || undefined
+          }));
+        }
+
+        // Prepare quote data for PDF generation
+        const pdfData = {
+          id: parseInt(quoteId),
+          subject: fields['Subject'] || `Quote #${quoteId}`,
+          date: fields['Quote Date'] || new Date().toISOString().split('T')[0],
+          version: fields['Quote Version'] || '1.0',
+          total: fields['Total Amount'] || 0,
+          account: {
+            name: accountName
+          },
+          products: products
+        };
+
+        // Call PDF generation API
+        const response = await fetch('/api/quotes/pdf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(pdfData)
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to generate PDF');
+        }
+
+        // Create blob from response
+        const blob = await response.blob();
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `quote-${quoteId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Cleanup
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error('Failed to download PDF:', error);
+        alert('Failed to download PDF. Please try again.');
+      }
+    }
+
+    /**
+     * Search accounts with debounce
+     */
+    async function searchAccounts(searchTerm: string) {
+      if (!searchTerm || searchTerm.length < 2) {
+        accountDropdown.classList.add('hidden');
+        return;
+      }
+
+      try {
+        accountLoading.classList.remove('hidden');
+        accountResults.innerHTML = '';
+        accountEmpty.classList.add('hidden');
+        accountDropdown.classList.remove('hidden');
+
+        const rawWhere = `(Account Name,like,%${searchTerm}%)`;
+        const encodedWhere = encodeURIComponent(rawWhere);
+        const queryString = `where=${encodedWhere}&pageSize=15`;
+
+        const response = await fetch(`${API_BASE_URL}/proxy/accounts/records?${queryString}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        accountLoading.classList.add('hidden');
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to search accounts');
+        }
+
+        const data = await safeJsonParse(response);
+        const accounts = data.records || [];
+
+        if (accounts.length === 0) {
+          accountEmpty.classList.remove('hidden');
+          return;
+        }
+
+        accountResults.innerHTML = accounts.map((acc: any) => {
+          const name = acc.fields?.['Account Name'] || 'Unnamed';
+          const owner = acc.fields?.['Account Owner'] || '';
+          const phone = acc.fields?.['Phone'] || '';
+          return `
+            <button type="button" class="account-option w-full px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0" data-id="${acc.id}" data-name="${name}">
+              <div class="text-sm font-medium text-slate-900">${name}</div>
+              ${owner || phone ? `<div class="text-xs text-slate-500 mt-0.5">${owner}${owner && phone ? ' • ' : ''}${phone}</div>` : ''}
+            </button>
+          `;
+        }).join('');
+
+        // Add click handlers to account options
+        accountResults.querySelectorAll('.account-option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            selectAccount(id!, name!);
+          });
+        });
+      } catch (error) {
+        console.error('Failed to search accounts:', error);
+        accountLoading.classList.add('hidden');
+        accountEmpty.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * Select an account from search results
+     */
+    function selectAccount(id: string, name: string) {
+      selectedAccountId.value = id;
+      accountSearch.value = name;
+      selectedAccountData = { id, name };
+      accountDropdown.classList.add('hidden');
+    }
+
+    /**
+     * Search products with debounce
+     */
+    async function searchProducts(searchTerm: string, productItem: HTMLElement) {
+      const dropdown = productItem.querySelector('.product-dropdown') as HTMLDivElement;
+      const results = productItem.querySelector('.product-results') as HTMLDivElement;
+      const loading = productItem.querySelector('.product-loading') as HTMLDivElement;
+      const empty = productItem.querySelector('.product-empty') as HTMLDivElement;
+
+      if (!searchTerm || searchTerm.length < 2) {
+        dropdown.classList.add('hidden');
+        return;
+      }
+
+      try {
+        loading.classList.remove('hidden');
+        results.innerHTML = '';
+        empty.classList.add('hidden');
+        dropdown.classList.remove('hidden');
+
+        const rawWhere = `(Product Name,like,%${searchTerm}%)`;
+        const encodedWhere = encodeURIComponent(rawWhere);
+        const queryString = `where=${encodedWhere}&pageSize=15`;
+
+        const response = await fetch(`${API_BASE_URL}/proxy/products/records?${queryString}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        loading.classList.add('hidden');
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to search products');
+        }
+
+        const data = await safeJsonParse(response);
+        const products = data.records || [];
+
+        if (products.length === 0) {
+          empty.classList.remove('hidden');
+          return;
+        }
+
+        results.innerHTML = products.map((prod: any) => {
+          const name = prod.fields?.['Product Name'] || 'Unnamed';
+          const brand = prod.fields?.['Brand'] || '';
+          const price = prod.fields?.['Unit Price'] || 0;
+          return `
+            <button type="button" class="product-option w-full px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0" data-id="${prod.id}" data-name="${name}" data-price="${price}">
+              <div class="text-sm font-medium text-slate-900">${name}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${brand ? brand + ' • ' : ''}₹${price}</div>
+            </button>
+          `;
+        }).join('');
+
+        // Add click handlers to product options
+        results.querySelectorAll('.product-option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const price = btn.getAttribute('data-price');
+            selectProduct(productItem, id!, name!, price!);
+          });
+        });
+      } catch (error) {
+        console.error('Failed to search products:', error);
+        loading.classList.add('hidden');
+        empty.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * Select a product from search results
+     */
+    function selectProduct(productItem: HTMLElement, id: string, name: string, price: string) {
+      const searchInput = productItem.querySelector('.product-search') as HTMLInputElement;
+      const idInput = productItem.querySelector('.product-id') as HTMLInputElement;
+      const nameInput = productItem.querySelector('.product-name') as HTMLInputElement;
+      const priceInput = productItem.querySelector('.product-price') as HTMLInputElement;
+      const dropdown = productItem.querySelector('.product-dropdown') as HTMLDivElement;
+
+      searchInput.value = `${name} - ₹${price}`;
+      idInput.value = id;
+      nameInput.value = name;
+      priceInput.value = price;
+      dropdown.classList.add('hidden');
+    }
+
+    /**
+     * Setup product search for a product item
+     */
+    function setupProductSearch(productItem: HTMLElement) {
+      const searchInput = productItem.querySelector('.product-search') as HTMLInputElement;
+      const dropdown = productItem.querySelector('.product-dropdown') as HTMLDivElement;
+
+      const debouncedProductSearch = debounce((searchTerm: string) => {
+        searchProducts(searchTerm, productItem);
+      }, 400);
+
+      searchInput.addEventListener('input', (e) => {
+        const searchTerm = (e.target as HTMLInputElement).value;
+        debouncedProductSearch(searchTerm);
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!productItem.contains(e.target as Node)) {
+          dropdown.classList.add('hidden');
+        }
+      });
+    }
+
+    /**
+     * Add a new product row
+     */
+    function addProductRow() {
+      const productItem = document.createElement('div');
+      productItem.className = 'product-item flex gap-3';
+      productItem.innerHTML = `
+        <div class="flex-1 relative">
+          <input 
+            type="text" 
+            class="product-search w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+            placeholder="Search for a product..." 
+            autocomplete="off"
+            required
+          />
+          <input type="hidden" class="product-id" required />
+          <input type="hidden" class="product-name" />
+          <input type="hidden" class="product-price" />
+          <div class="product-dropdown hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+            <div class="product-results py-1"></div>
+            <div class="product-loading hidden px-4 py-3 text-sm text-slate-500 text-center">
+              <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Searching...
+            </div>
+            <div class="product-empty hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
+          </div>
+        </div>
+        <input type="number" class="product-quantity w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Qty" min="1" value="1" required />
+        <button type="button" class="remove-product-btn p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
+      `;
+      productsContainer.appendChild(productItem);
+      setupProductSearch(productItem);
+
+      const removeBtn = productItem.querySelector('.remove-product-btn');
+      removeBtn?.addEventListener('click', () => {
+        if (productsContainer.querySelectorAll('.product-item').length > 1) {
+          productItem.remove();
+        }
+      });
+    }
+
+    /**
+     * Open the create quote modal
+     */
+    function openModal() {
+      createQuoteModal.classList.remove('hidden');
+      const today = new Date().toISOString().split('T')[0];
+      const validUntil = new Date();
+      validUntil.setDate(validUntil.getDate() + 30);
+      (document.getElementById('quoteDate') as HTMLInputElement).value = today;
+      (document.getElementById('validUntil') as HTMLInputElement).value = validUntil.toISOString().split('T')[0];
+    }
+
+    /**
+     * Close the create quote modal
+     */
+    function closeModal() {
+      createQuoteModal.classList.add('hidden');
+      createQuoteForm.reset();
+    }
+
+    /**
+     * Create a new quote record
+     * Returns the newly created quote ID
+     */
+    async function createQuote(params: {
+      accountName: string;
+      quoteDate: string;
+      validUntil: string;
+      totalAmount: number;
+      notes: string;
+    }): Promise<number> {
+      const userEmail = getUserEmail();
+      
+      const quotePayload = {
+        fields: {
+          'Subject': `Quote for ${params.accountName}`,
+          'Quote Status': 'Draft',
+          'Quote Version': '1.0',
+          'Quote Date': params.quoteDate,
+          'Valid Until': params.validUntil,
+          'Total Amount': params.totalAmount,
+          'Notes': params.notes || '',
+          'Quote Created By': userEmail || 'Unknown User'
+        }
+      };
+
+      console.log('[QUOTE] Creating quote with payload:', quotePayload);
+
+      const response = await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quotePayload)
+      });
+
+      if (response.status === 401) {
+        logout();
+        throw new Error('Unauthorized - please login again');
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[QUOTE] Failed to create quote:', errorText);
+        throw new Error(`Failed to create quote: ${errorText}`);
+      }
+
+      const result = await safeJsonParse(response);
+      console.log('[QUOTE] Create response:', JSON.stringify(result, null, 2));
+      
+      // Extract quote ID from response (NocoDB returns records array or direct object)
+      const quoteId = result.records ? result.records[0]?.id : result.id;
+      
+      if (!quoteId) {
+        console.error('[QUOTE] No quote ID in response:', result);
+        throw new Error('Failed to get quote ID from response');
+      }
+
+      console.log('[QUOTE] Quote created successfully with ID:', quoteId);
+      return quoteId;
+    }
+
+    /**
+     * Link an account to a quote using proxy link endpoint
+     * Uses NocoDB-style linking: POST /proxy/quotes/links/accounts_copy/{quote_id}
+     */
+    async function linkAccountToQuote(quoteId: number, accountId: number): Promise<void> {
+      console.log(`[QUOTE] Linking account ${accountId} to quote ${quoteId}`);
+      console.log(`[QUOTE] Link URL: ${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`);
+      console.log(`[QUOTE] Link body:`, JSON.stringify([{ id: accountId }]));
+
+      const response = await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify([{ id: accountId }])
+      });
+
+      console.log(`[QUOTE] Link account response status: ${response.status}`);
+
+      if (response.status === 401) {
+        logout();
+        throw new Error('Unauthorized - please login again');
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[QUOTE] Failed to link account:`, errorText);
+        throw new Error(`Failed to link account (${response.status}): ${errorText}`);
+      }
+
+      const linkResult = await safeJsonParse(response);
+      console.log('[QUOTE] Account linked successfully:', linkResult);
+    }
+
+    /**
+     * Link products to a quote using proxy link endpoint
+     * Uses NocoDB-style linking: POST /proxy/quotes/links/products/{quote_id}
+     */
+    async function linkProductsToQuote(quoteId: number, productIds: number[]): Promise<void> {
+      console.log(`[QUOTE] Linking ${productIds.length} products to quote ${quoteId}`);
+
+      // Build array of product IDs for linking
+      const productLinks = productIds.map(id => ({ id }));
+      console.log(`[QUOTE] Link URL: ${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`);
+      console.log(`[QUOTE] Link body:`, JSON.stringify(productLinks));
+
+      const response = await fetch(`${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productLinks)
+      });
+
+      console.log(`[QUOTE] Link products response status: ${response.status}`);
+
+      if (response.status === 401) {
+        logout();
+        throw new Error('Unauthorized - please login again');
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`[QUOTE] Failed to link products:`, errorText);
+        throw new Error(`Failed to link products (${response.status}): ${errorText}`);
+      }
+
+      const linkResult = await safeJsonParse(response);
+      console.log('[QUOTE] Products linked successfully:', linkResult);
+    }
+
+    /**
+     * Handle form submission
+     */
+    async function handleCreateQuote(e: Event) {
+      e.preventDefault();
+
+      const accountId = selectedAccountId.value;
+      const accountName = selectedAccountData?.name || '';
+      const quoteDate = (document.getElementById('quoteDate') as HTMLInputElement).value;
+      const validUntil = (document.getElementById('validUntil') as HTMLInputElement).value;
+      const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
+
+      const productItems = productsContainer.querySelectorAll('.product-item');
+      const productIds: number[] = [];
+      let totalAmount = 0;
+
+      productItems.forEach(item => {
+        const idInput = item.querySelector('.product-id') as HTMLInputElement;
+        const priceInput = item.querySelector('.product-price') as HTMLInputElement;
+        const quantity = parseInt((item.querySelector('.product-quantity') as HTMLInputElement).value);
+        
+        const productId = parseInt(idInput.value);
+        const price = parseFloat(priceInput.value || '0');
+        
+        if (productId && quantity > 0) {
+          productIds.push(productId);
+          totalAmount += price * quantity;
+        }
+      });
+
+      try {
+        // Step 1: Create the quote record
+        const quoteId = await createQuote({
+          accountName,
+          quoteDate,
+          validUntil,
+          totalAmount,
+          notes
+        });
+
+        // Step 2: Link the account to the quote using proxy link endpoint
+        await linkAccountToQuote(quoteId, parseInt(accountId));
+
+        // Step 3: Link products to the quote using proxy link endpoint
+        if (productIds.length > 0) {
+          await linkProductsToQuote(quoteId, productIds);
+        }
+
+        console.log('[QUOTE] Quote creation and linking completed successfully');
+        closeModal();
+        loadQuotes();
+      } catch (error) {
+        console.error('[QUOTE ERROR]', error);
+        alert(error instanceof Error ? error.message : 'Failed to create quote');
+      }
+    }
+
+    // Debounced account search
+    const debouncedAccountSearch = debounce((searchTerm: string) => {
+      searchAccounts(searchTerm);
+    }, 400);
+
+    // Event listeners
+    createQuoteBtn.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelModalBtn.addEventListener('click', closeModal);
+    createQuoteForm.addEventListener('submit', handleCreateQuote);
+    addProductBtn.addEventListener('click', addProductRow);
+
+    // Account search input
+    accountSearch.addEventListener('input', (e) => {
+      const searchTerm = (e.target as HTMLInputElement).value;
+      debouncedAccountSearch(searchTerm);
+    });
+
+    // Close account dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!accountSearch.parentElement?.contains(e.target as Node)) {
+        accountDropdown.classList.add('hidden');
+      }
+    });
+
+    // Setup initial product search
+    const initialProductItem = productsContainer.querySelector('.product-item') as HTMLElement;
+    if (initialProductItem) {
+      setupProductSearch(initialProductItem);
+    }
+
+    // Setup remove button for initial product row
+    const initialRemoveBtn = productsContainer.querySelector('.remove-product-btn');
+    initialRemoveBtn?.addEventListener('click', (e) => {
+      const productItem = (e.target as HTMLElement).closest('.product-item');
+      if (productsContainer.querySelectorAll('.product-item').length > 1) {
+        productItem?.remove();
+      }
+    });
+
+    // Close modal on outside click
+    createQuoteModal.addEventListener('click', (e) => {
+      if (e.target === createQuoteModal) {
+        closeModal();
+      }
+    });
+
+    // Initial load
+    loadQuotes();
+  </script>
+</DashboardLayout>

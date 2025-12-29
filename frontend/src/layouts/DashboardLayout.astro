@@ -1,0 +1,242 @@
+---
+interface Props {
+  title: string;
+  currentPage?: string;
+}
+
+const { title, currentPage } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 font-sans antialiased">
+  <div class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="hidden lg:flex lg:flex-col w-64 bg-white border-r border-slate-200 transition-all duration-300">
+      <!-- Logo -->
+      <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
+        <img src="/grove_logo.png" alt="Grove Systems" class="w-10 h-10 object-contain" />
+        <div>
+          <h1 class="text-lg font-semibold text-slate-800">Grove Systems</h1>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <a href="/accounts" class={`nav-link ${currentPage === 'accounts' ? 'active' : ''}`}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          <span>Accounts</span>
+        </a>
+
+        <a href="/contacts" class={`nav-link ${currentPage === 'contacts' ? 'active' : ''}`}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          <span>Contacts</span>
+        </a>
+
+        <a href="/products" class={`nav-link ${currentPage === 'products' ? 'active' : ''}`}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+          </svg>
+          <span>Products</span>
+        </a>
+
+        <a href="/quotes" class={`nav-link ${currentPage === 'quotes' ? 'active' : ''}`}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          <span>Quotes</span>
+        </a>
+      </nav>
+
+      <!-- User Profile -->
+      <div class="px-3 py-4 border-t border-slate-200">
+        <div class="flex items-center gap-3 px-3 py-2 rounded-xl mb-2">
+          <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+            <span id="userInitials">GS</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-slate-800 truncate" id="userName">Loading...</p>
+            <p class="text-xs text-slate-500 truncate" id="userEmail">...</p>
+          </div>
+        </div>
+        <button id="logoutBtn" class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Top Header -->
+      <header class="bg-white border-b border-slate-200 px-6 py-4">
+        <div class="flex items-center justify-between">
+          <!-- Mobile Menu Button -->
+          <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors">
+            <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+
+          <!-- Search Bar (Desktop) -->
+          <div class="hidden md:flex items-center flex-1 max-w-md ml-4">
+            <div class="relative w-full">
+              <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+            </div>
+          </div>
+
+          <!-- Right Side Actions -->
+          <div class="flex items-center gap-3 ml-auto">
+            <!-- Notifications -->
+            <button class="relative p-2 rounded-lg hover:bg-slate-100 transition-colors">
+              <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+              </svg>
+              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            <!-- User Avatar (Mobile) -->
+            <div class="lg:hidden w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+              GS
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="flex-1 overflow-y-auto bg-slate-50 p-6">
+        <slot />
+      </main>
+    </div>
+  </div>
+
+  <!-- Mobile Sidebar Overlay -->
+  <div id="mobileOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden hidden"></div>
+  
+  <!-- Mobile Sidebar -->
+  <aside id="mobileSidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 lg:hidden transform -translate-x-full transition-transform duration-300">
+    <!-- Same content as desktop sidebar -->
+    <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-200">
+      <img src="/grove_logo.png" alt="Grove Systems" class="w-10 h-10 object-contain" />
+      <div>
+        <h1 class="text-lg font-semibold text-slate-800">Grove Systems</h1>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <a href="/accounts" class={`nav-link ${currentPage === 'accounts' ? 'active' : ''}`}>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <span>Accounts</span>
+      </a>
+
+      <a href="/contacts" class={`nav-link ${currentPage === 'contacts' ? 'active' : ''}`}>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        <span>Contacts</span>
+      </a>
+
+      <a href="/products" class={`nav-link ${currentPage === 'products' ? 'active' : ''}`}>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+        </svg>
+        <span>Products</span>
+      </a>
+
+      <a href="/quotes" class={`nav-link ${currentPage === 'quotes' ? 'active' : ''}`}>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <span>Quotes</span>
+      </a>
+    </nav>
+  </aside>
+
+  <style>
+    .nav-link {
+      @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200;
+    }
+
+    .nav-link.active {
+      @apply bg-blue-50 text-blue-700 hover:bg-blue-100;
+    }
+
+    .nav-link svg {
+      @apply flex-shrink-0;
+    }
+  </style>
+
+  <script>
+    import { logout } from '../lib/api';
+
+    // Load user info from localStorage
+    function loadUserInfo() {
+      const userId = localStorage.getItem('user_id');
+      const role = localStorage.getItem('role');
+      
+      // Try to get email from token or use a default
+      const userEmail = localStorage.getItem('user_email') || 'user@example.com';
+      
+      // Get initials from email
+      const emailParts = userEmail.split('@')[0];
+      const initials = emailParts.substring(0, 2).toUpperCase();
+      
+      // Update UI
+      const userInitialsEl = document.getElementById('userInitials');
+      const userNameEl = document.getElementById('userName');
+      const userEmailEl = document.getElementById('userEmail');
+      
+      if (userInitialsEl) userInitialsEl.textContent = initials;
+      if (userNameEl) userNameEl.textContent = emailParts;
+      if (userEmailEl) userEmailEl.textContent = userEmail;
+    }
+
+    // Logout functionality
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn?.addEventListener('click', () => {
+      if (confirm('Are you sure you want to logout?')) {
+        logout();
+      }
+    });
+
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileSidebar = document.getElementById('mobileSidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+
+    function toggleMobileMenu() {
+      mobileSidebar?.classList.toggle('-translate-x-full');
+      mobileOverlay?.classList.toggle('hidden');
+    }
+
+    mobileMenuBtn?.addEventListener('click', toggleMobileMenu);
+    mobileOverlay?.addEventListener('click', toggleMobileMenu);
+
+    // Load user info on page load
+    loadUserInfo();
+  </script>
+</body>
+</html>

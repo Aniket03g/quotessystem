@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    container_name: grove-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - NOCODB_URL=${NOCODB_URL}
+      - NOCODB_TOKEN=${NOCODB_TOKEN}
+      - NOCODB_BASE_ID=${NOCODB_BASE_ID}
+      - JWT_SECRET=${JWT_SECRET}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=${GOOGLE_CALLBACK_URL}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GITHUB_CALLBACK_URL=${GITHUB_CALLBACK_URL}
+      - DATABASE_PATH=/app/data/users.db
+      - LOG_DIR=/app/logs
+      - PROXY_CONFIG_PATH=/app/config/proxy.yaml
+    volumes:
+      # Persistent SQLite database
+      - ./data/db:/app/data
+      # Persistent logs
+      - ./data/logs:/app/logs
+      # Config files (optional)
+      - ./proxy/config:/app/config:ro
+    restart: unless-stopped
+    networks:
+      - grove-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: grove-frontend
+    ports:
+      - "4321:4321"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - grove-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:4321"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  grove-network:
+    driver: bridge
+
+volumes:
+  db-data:
+  log-data:

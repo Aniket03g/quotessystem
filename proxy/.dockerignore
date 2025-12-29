@@ -1,0 +1,12 @@
+.git
+.gitignore
+.env
+.env.local
+*.log
+*.db
+*.db-shm
+*.db-wal
+.DS_Store
+tmp/
+logs/
+data/
