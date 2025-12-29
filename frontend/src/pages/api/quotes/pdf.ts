@@ -27,10 +27,8 @@ interface QuoteData {
 }
 
 export const POST: APIRoute = async ({ request }) => {
-  console.log('[PDF API] POST /api/quotes/pdf - Request received');
   try {
     const quoteData: QuoteData = await request.json();
-    console.log('[PDF API] Quote data:', { id: quoteData.id, subject: quoteData.subject, logo: quoteData.logo });
 
     const doc = new PDFDocument({ 
       size: 'A4', 
