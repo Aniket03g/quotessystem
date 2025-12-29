@@ -1,5 +1,7 @@
 import type { APIRoute } from 'astro';
 import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
 
 export const prerender = false;
 
