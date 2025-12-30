@@ -121,13 +121,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   <script>
     import { getToken, logout, safeJsonParse } from '../lib/api';
 
-    const API_BASE_URL = 'http://localhost:8080';
-
+    const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
+     
     const token = getToken();
-    if (!token) {
+    if (!token) { 
       window.location.href = '/login';
     }
-
+    
     // Get quote ID from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
     const quoteId = urlParams.get('id');
