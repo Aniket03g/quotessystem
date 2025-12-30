@@ -9,7 +9,7 @@ interface QuoteProduct {
   name: string;
   brand?: string;
   price?: number;
-  model?: string;
+  productCode?: string;
   tax?: string;
   hsnCode?: string;
   warranty?: number;
@@ -172,7 +172,7 @@ export const POST: APIRoute = async ({ request }) => {
     const headerTextY = tableTop + 14;
     doc.text('S.No.', cols.sno + 4, headerTextY, { width: colWidths.sno - 8, align: 'center' });
     doc.text('Product Details', cols.product + 4, headerTextY, { width: colWidths.product - 8, align: 'left' });
-    doc.text('Model/Part Code', cols.model + 4, headerTextY, { width: colWidths.model - 8, align: 'center' });
+    doc.text('Product Code', cols.model + 4, headerTextY, { width: colWidths.model - 8, align: 'center' });
     doc.text('Warranty (yrs)', cols.warranty + 4, headerTextY, { width: colWidths.warranty - 8, align: 'center' });
     doc.text('Unit Price', cols.unitPrice + 4, headerTextY, { width: colWidths.unitPrice - 8, align: 'center' });
     doc.text('Qty', cols.qty + 4, headerTextY, { width: colWidths.qty - 8, align: 'center' });
@@ -226,31 +226,42 @@ export const POST: APIRoute = async ({ request }) => {
       doc.text((index + 1).toString(), cols.sno + 4, textY + 8, { width: colWidths.sno - 8, align: 'center' });
       
       // Product Details
-      doc.font('Helvetica-Bold').fontSize(10);
+      doc.fontSize(10)
+         .font('Helvetica-Bold');
       let productY = textY;
       doc.text(product.name, cols.product + 4, productY, { width: colWidths.product - 8 });
       productY += doc.heightOfString(product.name, { width: colWidths.product - 8 }) + 1;
       
       // Brand (if exists)
       if (product.brand) {
+        doc.fontSize(9)
+           .font('Helvetica');
         doc.text(product.brand, cols.product + 4, productY, { width: colWidths.product - 8 });
         productY += doc.heightOfString(product.brand, { width: colWidths.product - 8 }) + 1;
       }
       
       // HSN Code
-      doc.font('Helvetica').fontSize(9).fillColor('#646464');
+      doc.fontSize(9)
+         .fillColor('#646464');
       doc.text(`HSN: ${product.hsnCode || 'N/A'}`, cols.product + 4, productY, { width: colWidths.product - 8 });
       
-      // Model/Part Code - centered
-      doc.fontSize(9).fillColor('#000000').font('Helvetica');
-      const modelText = product.model || '-';
-      doc.text(modelText, cols.model + 4, textY + 8, { width: colWidths.model - 8, align: 'center' });
+      // Product Code - centered
+      doc.fontSize(9)
+         .fillColor('#000000')
+         .font('Helvetica');
+      const productCodeText = product.productCode || '-';
+      doc.text(productCodeText, cols.model + 4, textY + 8, { width: colWidths.model - 8, align: 'center' });
       
       // Warranty - centered (all numbers at same Y position)
-      doc.fontSize(10).fillColor('#000000').font('Helvetica');
+      doc.fontSize(10)
+         .fillColor('#000000')
+         .font('Helvetica');
       doc.text((product.warranty || 1).toString(), cols.warranty + 4, textY + 8, { width: colWidths.warranty - 8, align: 'center' });
       
       // Unit Price - right aligned (same Y as other numbers)
+      doc.fontSize(10)
+         .fillColor('#000000')
+         .font('Helvetica');
       doc.fontSize(10).fillColor('#000000').font('Helvetica');
       const priceText = `Rs. ${price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       doc.text(priceText, cols.unitPrice + 4, textY + 8, { width: colWidths.unitPrice - 8, align: 'right' });

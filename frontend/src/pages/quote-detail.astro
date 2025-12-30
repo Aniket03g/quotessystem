@@ -196,7 +196,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
         // Fetch linked products using same route as PDF generation
         const productsResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Product Name,Unit Price,Brand,HSN Code,Model,Tax,Description`,
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Product Name,Unit Price,Brand,HSN Code,Model,Product Code,Tax,Description`,
           {
             method: 'GET',
             headers: {
@@ -217,6 +217,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               ? parseFloat(String(record.fields['Unit Price'])) 
               : undefined,
             model: record.fields['Model'] || undefined,
+            productCode: record.fields['Product Code'] || undefined,
             tax: record.fields['Tax'] || undefined,
             hsnCode: record.fields['HSN Code'] || undefined,
             description: record.fields['Description'] || undefined
@@ -301,7 +302,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                 <tr>
                   <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Brand</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Model</th>
+                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product Code</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">HSN Code</th>
                   <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Unit Price</th>
                   <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Tax</th>
@@ -311,7 +312,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                 ${products.map((product: any) => {
                   const name = product.fields['Product Name'] || 'Unnamed Product';
                   const brand = product.fields['Brand'] || '-';
-                  const model = product.fields['Model'] || '-';
+                  const productCode = product.fields['Product Code'] || '-';
                   const code = product.fields['HSN Code'] || '-';
                   const price = product.fields['Unit Price'] || 0;
                   const tax = product.fields['Tax'] || '-';
@@ -319,7 +320,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                     <tr>
                       <td class="px-4 py-3 text-sm text-slate-900">${name}</td>
                       <td class="px-4 py-3 text-sm text-slate-600">${brand}</td>
-                      <td class="px-4 py-3 text-sm text-slate-600">${model}</td>
+                      <td class="px-4 py-3 text-sm text-slate-600">${productCode}</td>
                       <td class="px-4 py-3 text-sm text-slate-600">${code}</td>
                       <td class="px-4 py-3 text-sm text-slate-900 text-right">₹${Number(price).toLocaleString('en-IN')}</td>
                       <td class="px-4 py-3 text-sm text-slate-600">${tax}</td>
