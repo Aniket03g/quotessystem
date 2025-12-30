@@ -32,7 +32,7 @@ func Initialize(logDir string) error {
 	// Create log file with timestamp
 	timestamp := time.Now().Format("2006-01-02")
 	logFileName := filepath.Join(logDir, fmt.Sprintf("app-%s.log", timestamp))
-	
+
 	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open log file: %v", err)
@@ -48,9 +48,9 @@ func Initialize(logDir string) error {
 		logFile:     logFile,
 	}
 
-	globalLogger.Info("Logger initialized successfully")
-	globalLogger.Info("Log directory: %s", logDir)
-	globalLogger.Info("Log file: %s", logFileName)
+	Info("Logger initialized successfully")
+	Info("Log directory: %s", logDir)
+	Info("Log file: %s", logFileName)
 
 	return nil
 }
@@ -77,7 +77,7 @@ func Error(format string, v ...interface{}) {
 func Fatal(format string, v ...interface{}) {
 	if globalLogger != nil {
 		globalLogger.errorLogger.Output(2, fmt.Sprintf(format, v...))
-		globalLogger.Close()
+		Close()
 	} else {
 		log.Printf("[FATAL] "+format, v...)
 	}
@@ -107,7 +107,7 @@ func RotateLogs() error {
 	// Create new log file
 	timestamp := time.Now().Format("2006-01-02")
 	logFileName := filepath.Join(globalLogger.logDir, fmt.Sprintf("app-%s.log", timestamp))
-	
+
 	logFile, err := os.OpenFile(logFileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to open new log file: %v", err)

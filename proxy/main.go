@@ -13,6 +13,7 @@ import (
 	"github.com/grove/generic-proxy/internal/config"
 	"github.com/grove/generic-proxy/internal/db"
 	"github.com/grove/generic-proxy/internal/introspect"
+	"github.com/grove/generic-proxy/internal/logger"
 	"github.com/grove/generic-proxy/internal/middleware"
 	"github.com/grove/generic-proxy/internal/proxy"
 	"github.com/grove/generic-proxy/internal/utils"
@@ -57,9 +58,17 @@ func main() {
 		logDir = "./logs"
 	}
 
-	// Create logger package import will be added
-	log.Println("[STARTUP] Initializing Generic Proxy Server with OAuth...")
-	log.Printf("[STARTUP] Log directory: %s", logDir)
+	// Initialize the logger package
+	if err := logger.Initialize(logDir); err != nil {
+		log.Fatalf("[STARTUP FATAL] Failed to initialize logger: %v", err)
+	}
+	defer logger.Close()
+
+	// Start automatic log rotation
+	logger.StartAutoRotation()
+
+	logger.Info("[STARTUP] Initializing Generic Proxy Server with OAuth...")
+	logger.Info("[STARTUP] Log directory: %s", logDir)
 
 	// Load environment configuration
 	cfg := config.Load()
@@ -202,8 +211,12 @@ func main() {
 	)
 	mux.Handle("/proxy/", protectedHandler)
 
-	// Apply CORS middleware (outermost layer to prevent duplicates)
-	handler := middleware.CORSMiddleware(mux)
+	// Apply middleware chain (order matters: logging -> error handling -> CORS)
+	handler := middleware.RequestLoggerMiddleware(
+		middleware.ErrorLoggerMiddleware(
+			middleware.CORSMiddleware(mux),
+		),
+	)
 
 	// Start server
 	addr := ":" + cfg.Port
