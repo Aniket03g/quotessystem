@@ -53,6 +53,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               <option value="grove">Grove Systems</option>
             </select>
           </div>
+          <button id="editQuoteBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Edit Products
+          </button>
           <button id="previewPdfBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -103,9 +109,85 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       </div>
     </div>
 
+    <!-- Edit Mode Panel (shown when editing) -->
+    <div id="editModePanel" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-6 mb-6">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h3 class="text-lg font-semibold text-slate-800 mb-1">Edit Quote</h3>
+          <p class="text-sm text-slate-600">Make changes to products and quote status</p>
+        </div>
+        <div class="flex gap-2">
+          <button id="cancelEditBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Cancel
+          </button>
+          <button id="saveEditBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+      <!-- Quote Status Section -->
+      <div class="bg-white rounded-xl p-4 mb-4 border border-slate-200">
+        <label class="block text-sm font-medium text-slate-700 mb-2">Quote Status</label>
+        <select id="editQuoteStatus" class="w-full max-w-xs px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+          <option value="Draft">Draft</option>
+          <option value="Sent">Sent</option>
+          <option value="Approved">Approved</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Final">Final</option>
+        </select>
+      </div>
+
+      <!-- Add Product Section -->
+      <div class="bg-white rounded-xl p-4 border border-slate-200">
+        <label class="block text-sm font-medium text-slate-700 mb-3">
+          <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Add Product to Quote
+        </label>
+        <div class="flex gap-3">
+          <div class="flex-1 relative">
+            <input 
+              type="text" 
+              id="newProductSearch" 
+              placeholder="Search by product name or code..." 
+              autocomplete="off"
+              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            />
+            <div id="newProductDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div id="newProductResults" class="py-1"></div>
+              <div id="newProductLoading" class="hidden px-4 py-3 text-sm text-slate-500 text-center">
+                <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Searching...
+              </div>
+              <div id="newProductEmpty" class="hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
+            </div>
+          </div>
+          <button id="addProductToQuoteBtn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Products Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <h2 class="text-lg font-semibold text-slate-800 mb-4">Products</h2>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-slate-800">Products</h2>
+      </div>
       <div id="productsContainer">
         <div class="text-sm text-slate-500">Loading products...</div>
       </div>
@@ -120,6 +202,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
   <script>
     import { getToken, logout, safeJsonParse } from '../lib/api';
+    import { debounce } from '../utils/debounce';
 
     const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
      
@@ -143,6 +226,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
     // Store quote data for PDF generation
     let currentQuoteData: any = null;
+    
+    // Edit mode state
+    let isEditMode = false;
+    let currentProducts: any[] = [];
+    let selectedNewProduct: { id: string; name: string; price: string } | null = null;
+    let originalQuoteStatus = '';
+    let currentQuoteFields: any = {};
 
     /**
      * Fetch quote details - same method as PDF download
@@ -194,9 +284,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         }
 
-        // Fetch linked products using same route as PDF generation
+        // Fetch linked products with Id field for unlinking
         const productsResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Product Name,Unit Price,Brand,HSN Code,Model,Product Code,Tax,Description`,
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Unit Price,Quantity,Brand,HSN Code,Model,Product Code,Tax,Description`,
           {
             method: 'GET',
             headers: {
@@ -211,6 +301,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         if (productsResponse.ok) {
           const productsData = await safeJsonParse(productsResponse);
           productRecords = productsData.list || productsData.records || [];
+          // Store full records with NocoDB IDs for unlinking
           products = productRecords.map((record: any) => ({
             name: record.fields['Product Name'] || 'Unnamed Product',
             price: record.fields['Unit Price'] 
@@ -251,6 +342,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
 
     function displayQuoteDetails(fields: any, accountData: any, products: any[]) {
+      // Store current quote fields
+      currentQuoteFields = fields;
+      
       // Header
       (document.getElementById('quoteSubject') as HTMLHeadingElement).textContent = fields['Subject'] || 'Untitled Quote';
       (document.getElementById('quoteDate') as HTMLSpanElement).textContent = `Date: ${fields['Quote Date'] || 'N/A'}`;
@@ -258,13 +352,15 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       // Status
       const status = fields['Quote Status'] || 'Draft';
+      originalQuoteStatus = status;
       const statusEl = document.getElementById('quoteStatus') as HTMLSpanElement;
       statusEl.textContent = status;
       
       let statusClasses = 'bg-slate-100 text-slate-800';
       if (status === 'Sent') statusClasses = 'bg-blue-100 text-blue-800';
-      if (status === 'Accepted') statusClasses = 'bg-emerald-100 text-emerald-800';
+      if (status === 'Accepted' || status === 'Approved') statusClasses = 'bg-emerald-100 text-emerald-800';
       if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
+      if (status === 'Final') statusClasses = 'bg-purple-100 text-purple-800';
       statusEl.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}`;
 
       // Total
@@ -291,47 +387,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       }
 
       // Products
-      const productsContainer = document.getElementById('productsContainer') as HTMLDivElement;
-      if (products.length === 0) {
-        productsContainer.innerHTML = '<p class="text-sm text-slate-500">No products linked to this quote</p>';
-      } else {
-        productsContainer.innerHTML = `
-          <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead class="bg-slate-50 border-b border-slate-200">
-                <tr>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Brand</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product Code</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">HSN Code</th>
-                  <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Unit Price</th>
-                  <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Tax</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-200">
-                ${products.map((product: any) => {
-                  const name = product.fields['Product Name'] || 'Unnamed Product';
-                  const brand = product.fields['Brand'] || '-';
-                  const productCode = product.fields['Product Code'] || '-';
-                  const code = product.fields['HSN Code'] || '-';
-                  const price = product.fields['Unit Price'] || 0;
-                  const tax = product.fields['Tax'] || '-';
-                  return `
-                    <tr>
-                      <td class="px-4 py-3 text-sm text-slate-900">${name}</td>
-                      <td class="px-4 py-3 text-sm text-slate-600">${brand}</td>
-                      <td class="px-4 py-3 text-sm text-slate-600">${productCode}</td>
-                      <td class="px-4 py-3 text-sm text-slate-600">${code}</td>
-                      <td class="px-4 py-3 text-sm text-slate-900 text-right">₹${Number(price).toLocaleString('en-IN')}</td>
-                      <td class="px-4 py-3 text-sm text-slate-600">${tax}</td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
+      currentProducts = products;
+      renderProducts();
 
       // Notes
       if (fields['Notes']) {
@@ -428,7 +485,425 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       }
     }
 
+    /**
+     * Render products table based on edit mode
+     */
+    function renderProducts() {
+      const productsContainer = document.getElementById('productsContainer') as HTMLDivElement;
+      
+      if (currentProducts.length === 0) {
+        productsContainer.innerHTML = '<p class="text-sm text-slate-500">No products linked to this quote</p>';
+        return;
+      }
+
+      const actionColumn = isEditMode ? '<th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>' : '';
+      
+      productsContainer.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Brand</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product Code</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">HSN Code</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Qty</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Unit Price</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Tax %</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Total</th>
+                ${actionColumn}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              ${currentProducts.map((product: any) => {
+                const name = product.fields['Product Name'] || 'Unnamed Product';
+                const brand = product.fields['Brand'] || '-';
+                const productCode = product.fields['Product Code'] || '-';
+                const code = product.fields['HSN Code'] || '-';
+                const unitPrice = Number(product.fields['Unit Price']) || 0;
+                const quantity = Number(product.fields['Quantity']) || 1;
+                const taxRate = Number(product.fields['Tax']) || 0;
+                
+                // Calculate line total with tax
+                const subtotal = unitPrice * quantity;
+                const taxAmount = subtotal * (taxRate / 100);
+                const lineTotal = subtotal + taxAmount;
+                
+                const actionCell = isEditMode ? `
+                  <td class="px-4 py-3">
+                    <button class="remove-product-btn p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" data-record-id="${product.id}" title="Remove product">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </td>
+                ` : '';
+                return `
+                  <tr>
+                    <td class="px-4 py-3 text-sm text-slate-900">${name}</td>
+                    <td class="px-4 py-3 text-sm text-slate-600">${brand}</td>
+                    <td class="px-4 py-3 text-sm text-slate-600">${productCode}</td>
+                    <td class="px-4 py-3 text-sm text-slate-600">${code}</td>
+                    <td class="px-4 py-3 text-sm text-slate-900 text-center">${quantity}</td>
+                    <td class="px-4 py-3 text-sm text-slate-900 text-right">₹${unitPrice.toLocaleString('en-IN')}</td>
+                    <td class="px-4 py-3 text-sm text-slate-600 text-center">${taxRate}%</td>
+                    <td class="px-4 py-3 text-sm font-medium text-slate-900 text-right">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    ${actionCell}
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      // Attach remove handlers in edit mode
+      if (isEditMode) {
+        document.querySelectorAll('.remove-product-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const recordId = (btn as HTMLElement).getAttribute('data-record-id');
+            if (recordId && confirm('Remove this product from the quote?')) {
+              await unlinkProduct(recordId);
+            }
+          });
+        });
+      }
+    }
+
+    /**
+     * Toggle edit mode
+     */
+    function toggleEditMode(enable: boolean) {
+      isEditMode = enable;
+      const editModePanel = document.getElementById('editModePanel') as HTMLDivElement;
+      const editQuoteBtn = document.getElementById('editQuoteBtn') as HTMLButtonElement;
+      const editQuoteStatus = document.getElementById('editQuoteStatus') as HTMLSelectElement;
+      
+      if (enable) {
+        editModePanel.classList.remove('hidden');
+        editQuoteBtn.classList.add('hidden');
+        // Set current status in dropdown
+        if (editQuoteStatus) {
+          editQuoteStatus.value = originalQuoteStatus;
+        }
+        // Scroll to edit panel
+        editModePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else {
+        editModePanel.classList.add('hidden');
+        editQuoteBtn.classList.remove('hidden');
+        // Clear search
+        const newProductSearch = document.getElementById('newProductSearch') as HTMLInputElement;
+        if (newProductSearch) newProductSearch.value = '';
+        selectedNewProduct = null;
+        const addBtn = document.getElementById('addProductToQuoteBtn') as HTMLButtonElement;
+        if (addBtn) addBtn.disabled = true;
+      }
+      
+      renderProducts();
+    }
+
+    /**
+     * Calculate total amount from current products including tax
+     * Formula: Sum of (Unit Price * Quantity * (1 + Tax%/100))
+     */
+    function calculateTotal(): number {
+      return currentProducts.reduce((sum, product) => {
+        const unitPrice = Number(product.fields['Unit Price']) || 0;
+        const quantity = Number(product.fields['Quantity']) || 1;
+        const taxRate = Number(product.fields['Tax']) || 0;
+        
+        // Calculate: price * quantity * (1 + tax/100)
+        const subtotal = unitPrice * quantity;
+        const taxAmount = subtotal * (taxRate / 100);
+        const total = subtotal + taxAmount;
+        
+        return sum + total;
+      }, 0);
+    }
+
+    /**
+     * Update quote fields using PATCH
+     * Endpoint: PATCH /proxy/quotes/records
+     * Body: { "id": "47", "fields": { "Total Amount": 12345 } }
+     */
+    async function updateQuote(fields: { [key: string]: any }) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/quotes/records`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: quoteId,
+              fields: fields
+            })
+          }
+        );
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to update quote');
+        }
+
+        return await safeJsonParse(response);
+      } catch (error) {
+        console.error('Error updating quote:', error);
+        throw error;
+      }
+    }
+
+    /**
+     * Unlink a product from the quote
+     * Uses NocoDB record ID from the linked products response
+     */
+    async function unlinkProduct(recordId: string) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify([parseInt(recordId)])
+          }
+        );
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to unlink product');
+        }
+
+        // Remove from local state using NocoDB record ID
+        currentProducts = currentProducts.filter(p => p.id !== parseInt(recordId));
+        renderProducts();
+        
+        // Recalculate total and update quote
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+        
+        // Reload quote to get updated data
+        await loadQuoteDetails();
+      } catch (error) {
+        console.error('Error unlinking product:', error);
+        alert('Failed to remove product. Please try again.');
+      }
+    }
+
+    /**
+     * Link a new product to the quote
+     */
+    async function linkProduct(productId: string) {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify([parseInt(productId)])
+          }
+        );
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to link product');
+        }
+
+        // Clear selection
+        selectedNewProduct = null;
+        const newProductSearch = document.getElementById('newProductSearch') as HTMLInputElement;
+        newProductSearch.value = '';
+        const addBtn = document.getElementById('addProductToQuoteBtn') as HTMLButtonElement;
+        addBtn.disabled = true;
+        
+        // Reload quote to get updated products
+        await loadQuoteDetails();
+        
+        // Recalculate total and update quote
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+        
+        // Reload again to show updated total
+        await loadQuoteDetails();
+      } catch (error) {
+        console.error('Error linking product:', error);
+        alert('Failed to add product. Please try again.');
+      }
+    }
+
+    /**
+     * Search products with debounce
+     */
+    async function searchProducts(searchTerm: string) {
+      const dropdown = document.getElementById('newProductDropdown') as HTMLDivElement;
+      const results = document.getElementById('newProductResults') as HTMLDivElement;
+      const loading = document.getElementById('newProductLoading') as HTMLDivElement;
+      const empty = document.getElementById('newProductEmpty') as HTMLDivElement;
+
+      if (!searchTerm || searchTerm.length < 2) {
+        dropdown.classList.add('hidden');
+        return;
+      }
+
+      try {
+        loading.classList.remove('hidden');
+        results.innerHTML = '';
+        empty.classList.add('hidden');
+        dropdown.classList.remove('hidden');
+
+        const rawWhere = `(Product Name,like,%${searchTerm}%)~or(Product Code,like,%${searchTerm}%)`;
+        const encodedWhere = encodeURIComponent(rawWhere);
+        const queryString = `where=${encodedWhere}&pageSize=15`;
+
+        const response = await fetch(`${API_BASE_URL}/proxy/products/records?${queryString}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        loading.classList.add('hidden');
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to search products');
+        }
+
+        const data = await safeJsonParse(response);
+        const products = data.records || [];
+
+        if (products.length === 0) {
+          empty.classList.remove('hidden');
+          return;
+        }
+
+        results.innerHTML = products.map((prod: any) => {
+          const name = prod.fields?.['Product Name'] || 'Unnamed';
+          const brand = prod.fields?.['Brand'] || '';
+          const price = prod.fields?.['Unit Price'] || 0;
+          return `
+            <button type="button" class="product-option w-full px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0" data-id="${prod.id}" data-name="${name}" data-price="${price}">
+              <div class="text-sm font-medium text-slate-900">${name}</div>
+              <div class="text-xs text-slate-500 mt-0.5">${brand ? brand + ' • ' : ''}₹${price}</div>
+            </button>
+          `;
+        }).join('');
+
+        // Add click handlers
+        results.querySelectorAll('.product-option').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            const name = btn.getAttribute('data-name');
+            const price = btn.getAttribute('data-price');
+            selectNewProduct(id!, name!, price!);
+          });
+        });
+      } catch (error) {
+        console.error('Failed to search products:', error);
+        loading.classList.add('hidden');
+        empty.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * Select a product from search results
+     */
+    function selectNewProduct(id: string, name: string, price: string) {
+      selectedNewProduct = { id, name, price };
+      const searchInput = document.getElementById('newProductSearch') as HTMLInputElement;
+      const dropdown = document.getElementById('newProductDropdown') as HTMLDivElement;
+      const addBtn = document.getElementById('addProductToQuoteBtn') as HTMLButtonElement;
+      
+      searchInput.value = `${name} - ₹${price}`;
+      dropdown.classList.add('hidden');
+      addBtn.disabled = false;
+    }
+
     // Event listeners
+    document.getElementById('editQuoteBtn')?.addEventListener('click', () => toggleEditMode(true));
+    document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
+      toggleEditMode(false);
+      // Reload to reset any unsaved changes
+      loadQuoteDetails();
+    });
+    document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
+      try {
+        // Check if status changed
+        const editQuoteStatus = document.getElementById('editQuoteStatus') as HTMLSelectElement;
+        const newStatus = editQuoteStatus?.value;
+        
+        if (newStatus && newStatus !== originalQuoteStatus) {
+          await updateQuote({ "Quote Status": newStatus });
+        }
+        
+        toggleEditMode(false);
+        // Reload to show updated data
+        await loadQuoteDetails();
+        
+        // Show success message
+        const statusEl = document.getElementById('quoteStatus') as HTMLSpanElement;
+        const originalText = statusEl.textContent;
+        statusEl.textContent = '✓ Saved';
+        setTimeout(() => {
+          if (statusEl.textContent === '✓ Saved') {
+            statusEl.textContent = originalText;
+          }
+        }, 2000);
+      } catch (error) {
+        console.error('Error saving changes:', error);
+        alert('Failed to save changes. Please try again.');
+      }
+    });
+    
+    document.getElementById('addProductToQuoteBtn')?.addEventListener('click', async () => {
+      if (selectedNewProduct) {
+        await linkProduct(selectedNewProduct.id);
+      }
+    });
+
+    // Product search with debounce
+    const debouncedProductSearch = debounce((searchTerm: string) => {
+      searchProducts(searchTerm);
+    }, 400);
+
+    document.getElementById('newProductSearch')?.addEventListener('input', (e) => {
+      const searchTerm = (e.target as HTMLInputElement).value;
+      debouncedProductSearch(searchTerm);
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('newProductDropdown') as HTMLDivElement;
+      const searchInput = document.getElementById('newProductSearch') as HTMLInputElement;
+      if (dropdown && searchInput && !dropdown.contains(e.target as Node) && e.target !== searchInput) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
     document.getElementById('previewPdfBtn')?.addEventListener('click', () => generatePDF(true));
     document.getElementById('downloadPdfBtn')?.addEventListener('click', () => generatePDF(false));
 
