@@ -362,6 +362,13 @@ export const POST: APIRoute = async ({ request }) => {
     
     summaryY += 30;
     
+    // Check if we have enough space left on the current page
+    // A4 page height is ~841 points, bottom margin 50 → safe limit around 750
+    if (summaryY > 750) {
+      doc.addPage();
+      summaryY = 50;
+    }
+    
     // Top border
     doc.strokeColor('#000000')
        .lineWidth(2)
@@ -393,9 +400,15 @@ export const POST: APIRoute = async ({ request }) => {
     ];
     
     terms.forEach((term, index) => {
+      // Check if we need a page break for very long content
+      if (summaryY > 780) {
+        doc.addPage();
+        summaryY = 50;
+      }
+      
       const termHeight = doc.heightOfString(term, { width: 495, lineGap: 2 });
-      doc.text(term, 50, summaryY, { width: 495, lineGap: 2 });
-      summaryY += termHeight + 6;
+      doc.text(term, 50, summaryY, { width: 495, lineGap: 2, continued: false });
+      summaryY += termHeight + 8;
     });
 
     doc.end();
