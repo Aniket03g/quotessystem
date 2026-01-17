@@ -10,14 +10,15 @@ import (
 )
 
 type User struct {
-	ID           int64
-	Email        string
-	Provider     string
-	Name         string
-	AvatarURL    string
-	PasswordHash string
-	Role         string
-	CreatedAt    time.Time
+	ID                 int64
+	Email              string
+	Provider           string
+	Name               string
+	AvatarURL          string
+	PasswordHash       string
+	Role               string
+	MustChangePassword bool
+	CreatedAt          time.Time
 }
 
 type Database struct {
@@ -134,6 +135,26 @@ func (d *Database) runMigrations() error {
 		log.Println("[DB] Updated existing users with default role")
 	}
 
+	// Check if must_change_password column exists
+	err = d.db.QueryRow(`
+		SELECT COUNT(*) FROM pragma_table_info('users') WHERE name='must_change_password'
+	`).Scan(&columnExists)
+
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to check for must_change_password column: %v", err)
+		return err
+	}
+
+	if columnExists == 0 {
+		log.Println("[DB] Adding must_change_password column to users table...")
+		_, err = d.db.Exec(`ALTER TABLE users ADD COLUMN must_change_password BOOLEAN DEFAULT 0`)
+		if err != nil {
+			log.Printf("[DB ERROR] Failed to add must_change_password column: %v", err)
+			return err
+		}
+		log.Println("[DB] must_change_password column added successfully")
+	}
+
 	log.Println("[DB] Migrations completed successfully")
 	return nil
 }
@@ -177,11 +198,12 @@ func (d *Database) CreateUser(email, provider, name, avatarURL string) (*User, e
 func (d *Database) GetUserByID(id int64) (*User, error) {
 	user := &User{}
 	var name, avatarURL, passwordHash, role sql.NullString
+	var mustChangePassword sql.NullBool
 
 	err := d.db.QueryRow(
-		"SELECT id, email, provider, name, avatar_url, password_hash, role, created_at FROM users WHERE id = ?",
+		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, created_at FROM users WHERE id = ?",
 		id,
-	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &user.CreatedAt)
+	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &user.CreatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -199,6 +221,7 @@ func (d *Database) GetUserByID(id int64) (*User, error) {
 	if user.Role == "" {
 		user.Role = "user"
 	}
+	user.MustChangePassword = mustChangePassword.Bool
 
 	return user, nil
 }
@@ -207,11 +230,12 @@ func (d *Database) GetUserByID(id int64) (*User, error) {
 func (d *Database) GetUserByEmail(email string) (*User, error) {
 	user := &User{}
 	var name, avatarURL, passwordHash, role sql.NullString
+	var mustChangePassword sql.NullBool
 
 	err := d.db.QueryRow(
-		"SELECT id, email, provider, name, avatar_url, password_hash, role, created_at FROM users WHERE email = ?",
+		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, created_at FROM users WHERE email = ?",
 		email,
-	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &user.CreatedAt)
+	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &user.CreatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -229,6 +253,7 @@ func (d *Database) GetUserByEmail(email string) (*User, error) {
 	if user.Role == "" {
 		user.Role = "user"
 	}
+	user.MustChangePassword = mustChangePassword.Bool
 
 	return user, nil
 }
@@ -236,7 +261,7 @@ func (d *Database) GetUserByEmail(email string) (*User, error) {
 // GetAllUsers retrieves all users
 func (d *Database) GetAllUsers() ([]*User, error) {
 	rows, err := d.db.Query(
-		"SELECT id, email, provider, name, avatar_url, password_hash, role, created_at FROM users ORDER BY created_at DESC",
+		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, created_at FROM users ORDER BY created_at DESC",
 	)
 	if err != nil {
 		log.Printf("[DB ERROR] Failed to get all users: %v", err)
@@ -248,8 +273,9 @@ func (d *Database) GetAllUsers() ([]*User, error) {
 	for rows.Next() {
 		user := &User{}
 		var name, avatarURL, passwordHash, role sql.NullString
+		var mustChangePassword sql.NullBool
 
-		if err := rows.Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &user.CreatedAt); err != nil {
+		if err := rows.Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &user.CreatedAt); err != nil {
 			return nil, err
 		}
 
@@ -261,6 +287,7 @@ func (d *Database) GetAllUsers() ([]*User, error) {
 		if user.Role == "" {
 			user.Role = "user"
 		}
+		user.MustChangePassword = mustChangePassword.Bool
 
 		users = append(users, user)
 	}

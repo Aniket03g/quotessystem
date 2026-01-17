@@ -240,6 +240,7 @@
 
   <script>
     import { loginUser } from '../lib/api';
+    import { decodeJWT } from '../utils/jwt';
 
     const API_BASE_URL = `http://${window.location.hostname}:8080`;
     const form = document.getElementById('loginForm') as HTMLFormElement;
@@ -267,11 +268,20 @@
       submitBtn.textContent = 'Logging in...';
 
       try {
-        await loginUser(email, password);
+        const response = await loginUser(email, password);
         // Store email for user profile display
         localStorage.setItem('user_email', email);
-        // Redirect to quotes page on success
-        window.location.href = '/quotes';
+        
+        // Decode JWT to check for must_change_password
+        const claims = decodeJWT(response.token);
+        
+        if (claims?.must_change_password) {
+          // User must change password before accessing system
+          window.location.href = '/change-password';
+        } else {
+          // Normal login - redirect to quotes page
+          window.location.href = '/quotes';
+        }
       } catch (error) {
         errorDiv.textContent = error instanceof Error ? error.message : 'Login failed';
         errorDiv.classList.add('show');

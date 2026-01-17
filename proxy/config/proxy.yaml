@@ -26,4 +26,4 @@ tables:
 
   products_for_quotes:
     name: "ProductsForQuotes"
-    operations: [read, create, link]
+    operations: [read, update, create, link]

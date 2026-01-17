@@ -241,3 +241,84 @@ export function logout(): void {
     window.location.href = '/login';
   }
 }
+
+// Admin: Create new user
+export interface CreateUserRequest {
+  email: string;
+  name: string;
+  role: 'user' | 'admin';
+}
+
+export interface CreateUserResponse {
+  message: string;
+  email: string;
+  user_id: number;
+  role: string;
+  temporary_password: string;
+}
+
+export async function createUser(data: CreateUserRequest): Promise<CreateUserResponse> {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (response.status === 403) {
+    throw new Error('Admin access required');
+  }
+
+  if (response.status === 409) {
+    throw new Error('User with this email already exists');
+  }
+
+  return await safeJsonParse<CreateUserResponse>(response);
+}
+
+// Change password
+export interface ChangePasswordRequest {
+  old_password: string;
+  new_password: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+  token?: string;
+}
+
+export async function changePassword(data: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (response.status === 401) {
+    throw new Error('Current password is incorrect');
+  }
+
+  const result = await safeJsonParse<ChangePasswordResponse>(response);
+  
+  // Update token if new one is provided
+  if (result.token) {
+    setToken(result.token);
+  }
+  
+  return result;
+}

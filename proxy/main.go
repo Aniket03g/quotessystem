@@ -12,6 +12,7 @@ import (
 	"github.com/grove/generic-proxy/internal/auth"
 	"github.com/grove/generic-proxy/internal/config"
 	"github.com/grove/generic-proxy/internal/db"
+	"github.com/grove/generic-proxy/internal/handlers"
 	"github.com/grove/generic-proxy/internal/introspect"
 	"github.com/grove/generic-proxy/internal/logger"
 	"github.com/grove/generic-proxy/internal/middleware"
@@ -174,6 +175,12 @@ func main() {
 	// Create introspection handler
 	introspectHandler := introspect.NewHandler(metaCache, resolvedConfig, proxyConfigPath)
 
+	// Create admin handler for user management
+	adminHandler := handlers.NewAdminHandler(database)
+
+	// Create password change handler
+	passwordHandler := handlers.NewAuthHandler(database, cfg.JWTSecret)
+
 	// Create router
 	mux := http.NewServeMux()
 
@@ -198,6 +205,18 @@ func main() {
 		http.HandlerFunc(authHandler.GetCurrentUser),
 	)
 	mux.Handle("/auth/me", protectedUserHandler)
+
+	// Protected password change endpoint
+	protectedPasswordChangeHandler := middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(passwordHandler.ChangePassword),
+	)
+	mux.Handle("/api/auth/change-password", protectedPasswordChangeHandler)
+
+	// Protected admin endpoints (admin-only user creation)
+	protectedAdminCreateUserHandler := middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(adminHandler.CreateUser),
+	)
+	mux.Handle("/api/admin/users", protectedAdminCreateUserHandler)
 
 	// Protected secure ping endpoint (example)
 	protectedPingHandler := auth.AuthMiddleware(cfg.JWTSecret)(
@@ -292,8 +311,18 @@ func loginHandler(database *db.Database, jwtSecret string) http.HandlerFunc {
 		if err == nil && dbUser != nil {
 			log.Printf("[LOGIN] Database user authenticated: %s (role: %s)", dbUser.Email, dbUser.Role)
 
-			// Generate JWT
-			token, err := utils.GenerateJWT(fmt.Sprintf("%d", dbUser.ID), dbUser.Role, jwtSecret)
+			// Check if user must change password
+			if dbUser.MustChangePassword {
+				log.Printf("[LOGIN] User must change password: %s", dbUser.Email)
+			}
+
+			// Generate JWT with must_change_password flag if needed
+			token, err := utils.GenerateJWTWithPasswordFlag(
+				fmt.Sprintf("%d", dbUser.ID),
+				dbUser.Role,
+				dbUser.MustChangePassword,
+				jwtSecret,
+			)
 			if err != nil {
 				log.Printf("[LOGIN ERROR] Failed to generate JWT: %v", err)
 				respondWithError(w, http.StatusInternalServerError, "failed to generate token")

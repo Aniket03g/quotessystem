@@ -891,6 +891,57 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
 
     /**
+     * Create ProductsForQuotes junction records with custom unit prices
+     * This allows per-quote pricing that differs from the catalog price
+     */
+    async function createProductsForQuotesRecords(
+      quoteId: number, 
+      productData: Array<{ productId: number; quantity: number; unitPrice: number }>
+    ): Promise<void> {
+      console.log(`[QUOTE] Creating ${productData.length} ProductsForQuotes junction records for quote ${quoteId}`);
+
+      for (const item of productData) {
+        const payload = {
+          fields: {
+            'Quotes': quoteId,
+            'Products': item.productId,
+            'Quantity': item.quantity,
+            'Custom Unit Price': item.unitPrice
+          }
+        };
+
+        console.log(`[QUOTE] Creating ProductsForQuotes record:`, JSON.stringify(payload));
+
+        const response = await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        console.log(`[QUOTE] ProductsForQuotes create response status: ${response.status}`);
+
+        if (response.status === 401) {
+          logout();
+          throw new Error('Unauthorized - please login again');
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error(`[QUOTE] Failed to create ProductsForQuotes record:`, errorText);
+          throw new Error(`Failed to create ProductsForQuotes record (${response.status}): ${errorText}`);
+        }
+
+        const result = await safeJsonParse(response);
+        console.log(`[QUOTE] ProductsForQuotes record created successfully:`, result);
+      }
+
+      console.log('[QUOTE] All ProductsForQuotes records created successfully');
+    }
+
+    /**
      * Handle form submission
      */
     async function handleCreateQuote(e: Event) {
@@ -905,6 +956,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       const productItems = productsContainer.querySelectorAll('.product-item');
       const productIds: number[] = [];
+      const productDataForJunction: Array<{ productId: number; quantity: number; unitPrice: number }> = [];
       let totalAmount = 0;
 
       productItems.forEach(item => {
@@ -917,6 +969,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         
         if (productId && quantity > 0) {
           productIds.push(productId);
+          productDataForJunction.push({ productId, quantity, unitPrice: price });
           totalAmount += price * quantity;
         }
       });
@@ -938,6 +991,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         // Step 3: Link products to the quote using proxy link endpoint
         if (productIds.length > 0) {
           await linkProductsToQuote(quoteId, productIds);
+        }
+
+        // Step 4: Create ProductsForQuotes junction records with custom prices
+        if (productDataForJunction.length > 0) {
+          await createProductsForQuotesRecords(quoteId, productDataForJunction);
         }
 
         console.log('[QUOTE] Quote creation and linking completed successfully');

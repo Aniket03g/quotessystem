@@ -1,0 +1,152 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Admin Dashboard" currentPage="dashboard">
+  <div class="max-w-7xl mx-auto">
+    <!-- Welcome Section -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
+      <p class="text-slate-600">Manage users and system settings</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Users Card -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalUsers">-</h3>
+        <p class="text-sm text-slate-600">Total Users</p>
+      </div>
+
+      <!-- Active Sessions Card -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1">Active</h3>
+        <p class="text-sm text-slate-600">System Status</p>
+      </div>
+
+      <!-- Quotes Card -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalQuotes">-</h3>
+        <p class="text-sm text-slate-600">Total Quotes</p>
+      </div>
+
+      <!-- Products Card -->
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+          </div>
+        </div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalProducts">-</h3>
+        <p class="text-sm text-slate-600">Total Products</p>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6 mb-8">
+      <h2 class="text-lg font-semibold text-slate-800 mb-4">Quick Actions</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <a href="/admin/users" class="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-medium text-slate-800 group-hover:text-blue-700">Create User</h3>
+            <p class="text-sm text-slate-500">Add new user account</p>
+          </div>
+        </a>
+
+        <a href="/quotes" class="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all group">
+          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-medium text-slate-800 group-hover:text-purple-700">View Quotes</h3>
+            <p class="text-sm text-slate-500">Browse all quotes</p>
+          </div>
+        </a>
+
+        <a href="/products" class="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition-all group">
+          <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-medium text-slate-800 group-hover:text-orange-700">Manage Products</h3>
+            <p class="text-sm text-slate-500">View product catalog</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- System Info -->
+    <div class="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-6">
+      <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-slate-800 mb-1">Admin Access</h3>
+          <p class="text-sm text-slate-600">You have full administrative privileges. Use the User Management section to create and manage user accounts.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { fetchQuotes, fetchProducts } from '../../lib/api';
+
+    // Load dashboard stats
+    async function loadStats() {
+      try {
+        // Fetch quotes count
+        const quotes = await fetchQuotes();
+        const quotesEl = document.getElementById('totalQuotes');
+        if (quotesEl) quotesEl.textContent = quotes.length.toString();
+
+        // Fetch products count
+        const products = await fetchProducts();
+        const productsEl = document.getElementById('totalProducts');
+        if (productsEl) productsEl.textContent = products.length.toString();
+
+        // Set placeholder for users (would need backend endpoint)
+        const usersEl = document.getElementById('totalUsers');
+        if (usersEl) usersEl.textContent = '—';
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+      }
+    }
+
+    loadStats();
+  </script>
+</AdminLayout>

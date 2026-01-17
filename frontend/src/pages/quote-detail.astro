@@ -230,6 +230,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     // Edit mode state
     let isEditMode = false;
     let currentProducts: any[] = [];
+    let lineItems: any[] = []; // ProductsForQuotes junction records
     let selectedNewProduct: { id: string; name: string; price: string } | null = null;
     let originalQuoteStatus = '';
     let currentQuoteFields: any = {};
@@ -284,9 +285,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         }
 
-        // Fetch linked products with Id field for unlinking
-        const productsResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Unit Price,Quantity,Brand,HSN Code,Model,Product Code,Tax,Description`,
+        // Step 1: Fetch catalog products via links endpoint (WITHOUT Unit Price)
+        console.log('[QUOTE DETAIL] Step 1: Fetching catalog products from links endpoint...');
+        const catalogResponse = await fetch(
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Brand,HSN Code,Model,Product Code,Tax,Description`,
           {
             method: 'GET',
             headers: {
@@ -298,22 +300,97 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
         let products: Array<{ name: string; price?: number }> = [];
         let productRecords: any[] = [];
-        if (productsResponse.ok) {
-          const productsData = await safeJsonParse(productsResponse);
-          productRecords = productsData.list || productsData.records || [];
-          // Store full records with NocoDB IDs for unlinking
-          products = productRecords.map((record: any) => ({
-            name: record.fields['Product Name'] || 'Unnamed Product',
-            price: record.fields['Unit Price'] 
-              ? parseFloat(String(record.fields['Unit Price'])) 
-              : undefined,
-            model: record.fields['Model'] || undefined,
-            productCode: record.fields['Product Code'] || undefined,
-            tax: record.fields['Tax'] || undefined,
-            hsnCode: record.fields['HSN Code'] || undefined,
-            description: record.fields['Description'] || undefined
-          }));
+        
+        if (!catalogResponse.ok) {
+          console.error('[QUOTE DETAIL] Failed to fetch catalog products');
+          throw new Error('Failed to fetch catalog products');
         }
+
+        const catalogData = await safeJsonParse(catalogResponse);
+        const catalogProducts = catalogData.list || catalogData.records || [];
+        console.log('[QUOTE DETAIL] Catalog products fetched:', catalogProducts.length);
+        console.log('[QUOTE DETAIL] Sample catalog product:', catalogProducts[0]);
+
+        // Step 2: Fetch junction table data for custom prices and quantities
+        console.log('[QUOTE DETAIL] Step 2: Fetching custom prices from junction table...');
+        const junctionResponse = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,nc_76_d__Products_id`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        let junctionRecords: any[] = [];
+        if (junctionResponse.ok) {
+          const junctionData = await safeJsonParse(junctionResponse);
+          junctionRecords = junctionData.records || [];
+          console.log('[QUOTE DETAIL] Junction records fetched:', junctionRecords.length);
+          console.log('[QUOTE DETAIL] Sample junction record:', junctionRecords[0]);
+        } else {
+          console.warn('[QUOTE DETAIL] Failed to fetch junction records - products will show without custom pricing');
+        }
+
+        // Step 3: Merge catalog products with junction data by product ID
+        console.log('[QUOTE DETAIL] Step 3: Merging catalog and junction data...');
+        productRecords = catalogProducts.map((catalogProduct: any) => {
+          const productId = catalogProduct.id;
+          
+          // Find matching junction record by product ID
+          const junctionMatch = junctionRecords.find(
+            (jr: any) => jr.fields['nc_76_d__Products_id'] === productId
+          );
+
+          if (junctionMatch) {
+            console.log(`[QUOTE DETAIL] Found junction match for product ${productId}:`, junctionMatch);
+            return {
+              junctionId: junctionMatch.id,
+              productId: productId,
+              quantity: junctionMatch.fields['Quantity'] || 1,
+              customUnitPrice: junctionMatch.fields['Custom Unit Price'],
+              catalogUnitPrice: null, // Not fetched from catalog anymore
+              productName: catalogProduct.fields['Product Name'],
+              brand: catalogProduct.fields['Brand'],
+              hsnCode: catalogProduct.fields['HSN Code'],
+              model: catalogProduct.fields['Model'],
+              productCode: catalogProduct.fields['Product Code'],
+              tax: catalogProduct.fields['Tax'],
+              description: catalogProduct.fields['Description']
+            };
+          } else {
+            console.warn(`[QUOTE DETAIL] No junction record found for product ${productId} - using defaults`);
+            return {
+              junctionId: null,
+              productId: productId,
+              quantity: 1,
+              customUnitPrice: null,
+              catalogUnitPrice: null,
+              productName: catalogProduct.fields['Product Name'],
+              brand: catalogProduct.fields['Brand'],
+              hsnCode: catalogProduct.fields['HSN Code'],
+              model: catalogProduct.fields['Model'],
+              productCode: catalogProduct.fields['Product Code'],
+              tax: catalogProduct.fields['Tax'],
+              description: catalogProduct.fields['Description']
+            };
+          }
+        });
+
+        console.log('[QUOTE DETAIL] Merged product records:', productRecords.length);
+        
+        // Map for PDF generation compatibility
+        products = productRecords.map((record: any) => ({
+          name: record.productName || 'Unnamed Product',
+          price: record.customUnitPrice || 0,
+          model: record.model,
+          productCode: record.productCode,
+          tax: record.tax,
+          hsnCode: record.hsnCode,
+          description: record.description
+        }));
 
         // Store for PDF generation (same structure as download function)
         currentQuoteData = {
@@ -487,6 +564,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
     /**
      * Render products table based on edit mode
+     * Shows products from ProductsForQuotes junction with custom prices
      */
     function renderProducts() {
       const productsContainer = document.getElementById('productsContainer') as HTMLDivElement;
@@ -510,44 +588,67 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                 <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Qty</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Unit Price</th>
                 <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Tax %</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Total</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Subtotal</th>
                 ${actionColumn}
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200">
               ${currentProducts.map((product: any) => {
-                const name = product.fields['Product Name'] || 'Unnamed Product';
-                const brand = product.fields['Brand'] || '-';
-                const productCode = product.fields['Product Code'] || '-';
-                const code = product.fields['HSN Code'] || '-';
-                const unitPrice = Number(product.fields['Unit Price']) || 0;
-                const quantity = Number(product.fields['Quantity']) || 1;
-                const taxRate = Number(product.fields['Tax']) || 0;
+                const name = product.productName || 'Unnamed Product';
+                const brand = product.brand || '-';
+                const productCode = product.productCode || '-';
+                const code = product.hsnCode || '-';
+                const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
+                const unitPrice = customPrice !== null ? customPrice : 0;
+                const quantity = Number(product.quantity) || 1;
+                const taxRate = Number(product.tax) || 0;
+                const junctionId = product.junctionId;
                 
-                // Calculate line total with tax
+                // Calculate line total with tax (only if price is set)
                 const subtotal = unitPrice * quantity;
                 const taxAmount = subtotal * (taxRate / 100);
                 const lineTotal = subtotal + taxAmount;
                 
+                // Editable fields in edit mode
+                const qtyCell = isEditMode ? `
+                  <td class="px-4 py-3 text-center">
+                    <input type="number" min="1" value="${quantity}" 
+                      class="quantity-input w-16 px-2 py-1 text-sm text-center border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      data-junction-id="${junctionId}" 
+                      ${!junctionId ? 'disabled title="No junction record"' : ''} />
+                  </td>
+                ` : `<td class="px-4 py-3 text-sm text-slate-900 text-center">${quantity}</td>`;
+                
+                const priceCell = isEditMode ? `
+                  <td class="px-4 py-3 text-right">
+                    <input type="number" min="0" step="0.01" value="${unitPrice || ''}" 
+                      class="price-input w-28 px-2 py-1 text-sm text-right border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      data-junction-id="${junctionId}" 
+                      placeholder="Set price" 
+                      ${!junctionId ? 'disabled title="No junction record"' : ''} />
+                  </td>
+                ` : `<td class="px-4 py-3 text-sm text-slate-900 text-right">${customPrice !== null ? '₹' + unitPrice.toLocaleString('en-IN') : '<span class="text-slate-400">No price set</span>'}</td>`;
+                
                 const actionCell = isEditMode ? `
                   <td class="px-4 py-3">
-                    <button class="remove-product-btn p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" data-record-id="${product.id}" title="Remove product">
+                    <button class="remove-product-btn p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" data-junction-id="${junctionId}" title="Remove product">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
                     </button>
                   </td>
                 ` : '';
+                
                 return `
-                  <tr>
+                  <tr data-junction-id="${junctionId}">
                     <td class="px-4 py-3 text-sm text-slate-900">${name}</td>
                     <td class="px-4 py-3 text-sm text-slate-600">${brand}</td>
                     <td class="px-4 py-3 text-sm text-slate-600">${productCode}</td>
                     <td class="px-4 py-3 text-sm text-slate-600">${code}</td>
-                    <td class="px-4 py-3 text-sm text-slate-900 text-center">${quantity}</td>
-                    <td class="px-4 py-3 text-sm text-slate-900 text-right">₹${unitPrice.toLocaleString('en-IN')}</td>
+                    ${qtyCell}
+                    ${priceCell}
                     <td class="px-4 py-3 text-sm text-slate-600 text-center">${taxRate}%</td>
-                    <td class="px-4 py-3 text-sm font-medium text-slate-900 text-right">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="px-4 py-3 text-sm font-medium text-slate-900 text-right subtotal-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     ${actionCell}
                   </tr>
                 `;
@@ -557,14 +658,45 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         </div>
       `;
 
-      // Attach remove handlers in edit mode
+      // Attach event handlers in edit mode
       if (isEditMode) {
+        // Remove button handlers
         document.querySelectorAll('.remove-product-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
-            const recordId = (btn as HTMLElement).getAttribute('data-record-id');
-            if (recordId && confirm('Remove this product from the quote?')) {
-              await unlinkProduct(recordId);
+            const junctionId = (btn as HTMLElement).getAttribute('data-junction-id');
+            if (junctionId && confirm('Remove this product from the quote?')) {
+              await removeLineItem(junctionId);
             }
+          });
+        });
+        
+        // Quantity input handlers with debounce
+        document.querySelectorAll('.quantity-input').forEach(input => {
+          let timeout: number;
+          input.addEventListener('input', (e) => {
+            clearTimeout(timeout);
+            timeout = window.setTimeout(async () => {
+              const junctionId = (input as HTMLElement).getAttribute('data-junction-id');
+              const newQuantity = parseInt((input as HTMLInputElement).value);
+              if (junctionId && newQuantity > 0) {
+                await updateLineItemQuantity(junctionId, newQuantity);
+              }
+            }, 800);
+          });
+        });
+        
+        // Price input handlers with debounce
+        document.querySelectorAll('.price-input').forEach(input => {
+          let timeout: number;
+          input.addEventListener('input', (e) => {
+            clearTimeout(timeout);
+            timeout = window.setTimeout(async () => {
+              const junctionId = (input as HTMLElement).getAttribute('data-junction-id');
+              const newPrice = parseFloat((input as HTMLInputElement).value);
+              if (junctionId && newPrice >= 0) {
+                await updateLineItemPrice(junctionId, newPrice);
+              }
+            }, 800);
           });
         });
       }
@@ -605,20 +737,208 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     /**
      * Calculate total amount from current products including tax
      * Formula: Sum of (Unit Price * Quantity * (1 + Tax%/100))
+     * Only includes products with custom prices set
      */
     function calculateTotal(): number {
       return currentProducts.reduce((sum, product) => {
-        const unitPrice = Number(product.fields['Unit Price']) || 0;
-        const quantity = Number(product.fields['Quantity']) || 1;
-        const taxRate = Number(product.fields['Tax']) || 0;
+        const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
+        
+        // Skip products without custom price
+        if (customPrice === null) {
+          return sum;
+        }
+        
+        const quantity = Number(product.quantity) || 1;
+        const taxRate = Number(product.tax) || 0;
         
         // Calculate: price * quantity * (1 + tax/100)
-        const subtotal = unitPrice * quantity;
+        const subtotal = customPrice * quantity;
         const taxAmount = subtotal * (taxRate / 100);
         const total = subtotal + taxAmount;
         
         return sum + total;
       }, 0);
+    }
+
+    /**
+     * Update line item quantity in ProductsForQuotes junction table
+     */
+    async function updateLineItemQuantity(junctionId: string, newQuantity: number) {
+      try {
+        console.log(`[LINE ITEM] Updating quantity for junction ${junctionId} to ${newQuantity}`);
+        
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: junctionId,
+              fields: {
+                'Quantity': newQuantity
+              }
+            })
+          }
+        );
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[LINE ITEM] Failed to update quantity:', errorText);
+          throw new Error('Failed to update quantity');
+        }
+
+        console.log('[LINE ITEM] Quantity updated successfully');
+        
+        // Update local state
+        const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
+        if (product) {
+          product.quantity = newQuantity;
+        }
+        
+        // Recalculate and update quote total
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+        
+        // Update the subtotal display
+        updateSubtotalDisplay(junctionId);
+      } catch (error) {
+        console.error('Error updating quantity:', error);
+        alert('Failed to update quantity. Please try again.');
+      }
+    }
+
+    /**
+     * Update line item custom unit price in ProductsForQuotes junction table
+     */
+    async function updateLineItemPrice(junctionId: string, newPrice: number) {
+      try {
+        console.log(`[LINE ITEM] Updating custom price for junction ${junctionId} to ${newPrice}`);
+        
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: junctionId,
+              fields: {
+                'Custom Unit Price': newPrice
+              }
+            })
+          }
+        );
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[LINE ITEM] Failed to update price:', errorText);
+          throw new Error('Failed to update price');
+        }
+
+        console.log('[LINE ITEM] Price updated successfully');
+        
+        // Update local state
+        const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
+        if (product) {
+          product.customUnitPrice = newPrice;
+        }
+        
+        // Recalculate and update quote total
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+        
+        // Update the subtotal display
+        updateSubtotalDisplay(junctionId);
+      } catch (error) {
+        console.error('Error updating price:', error);
+        alert('Failed to update price. Please try again.');
+      }
+    }
+
+    /**
+     * Update subtotal display for a specific line item
+     */
+    function updateSubtotalDisplay(junctionId: string) {
+      const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
+      if (!product) return;
+      
+      const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
+      const quantity = Number(product.quantity) || 1;
+      const taxRate = Number(product.tax) || 0;
+      
+      const subtotalCell = document.querySelector(`.subtotal-cell[data-junction-id="${junctionId}"]`);
+      if (subtotalCell) {
+        if (customPrice === null) {
+          subtotalCell.innerHTML = '<span class="text-slate-400">No price set</span>';
+        } else {
+          const subtotal = customPrice * quantity;
+          const taxAmount = subtotal * (taxRate / 100);
+          const lineTotal = subtotal + taxAmount;
+          subtotalCell.textContent = `₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+      }
+    }
+
+    /**
+     * Remove line item from ProductsForQuotes junction table
+     */
+    async function removeLineItem(junctionId: string) {
+      try {
+        console.log(`[LINE ITEM] Removing junction record ${junctionId}`);
+        
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records/${junctionId}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            }
+          }
+        );
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[LINE ITEM] Failed to remove line item:', errorText);
+          throw new Error('Failed to remove line item');
+        }
+
+        console.log('[LINE ITEM] Line item removed successfully');
+        
+        // Remove from local state
+        currentProducts = currentProducts.filter(p => p.junctionId !== parseInt(junctionId));
+        renderProducts();
+        
+        // Recalculate total and update quote
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+        
+        // Reload quote to get updated data
+        await loadQuoteDetails();
+      } catch (error) {
+        console.error('Error removing line item:', error);
+        alert('Failed to remove product. Please try again.');
+      }
     }
 
     /**
@@ -703,11 +1023,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
 
     /**
-     * Link a new product to the quote
+     * Add a new product to the quote via ProductsForQuotes junction table
+     * Creates junction record with custom price (defaults to catalog price)
      */
     async function linkProduct(productId: string) {
       try {
-        const response = await fetch(
+        console.log(`[ADD PRODUCT] Adding product ${productId} to quote ${quoteId}`);
+        
+        // Get the catalog price from selectedNewProduct
+        const catalogPrice = selectedNewProduct?.price ? parseFloat(selectedNewProduct.price) : 0;
+        
+        // Step 1: Link product to quote (for compatibility)
+        console.log('[ADD PRODUCT] Step 1: Linking product via links endpoint');
+        const linkResponse = await fetch(
           `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`,
           {
             method: 'POST',
@@ -719,14 +1047,57 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         );
 
-        if (response.status === 401) {
+        if (linkResponse.status === 401) {
           logout();
           return;
         }
 
-        if (!response.ok) {
+        if (!linkResponse.ok) {
+          const errorText = await linkResponse.text();
+          console.error('[ADD PRODUCT] Failed to link product:', errorText);
           throw new Error('Failed to link product');
         }
+
+        console.log('[ADD PRODUCT] Product linked successfully');
+
+        // Step 2: Create ProductsForQuotes junction record with custom price
+        console.log('[ADD PRODUCT] Step 2: Creating ProductsForQuotes junction record');
+        const junctionPayload = {
+          fields: {
+            'Quotes': parseInt(quoteId!),
+            'Products': parseInt(productId),
+            'Quantity': 1,
+            'Custom Unit Price': catalogPrice
+          }
+        };
+
+        console.log('[ADD PRODUCT] Junction payload:', JSON.stringify(junctionPayload));
+
+        const junctionResponse = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(junctionPayload)
+          }
+        );
+
+        if (junctionResponse.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!junctionResponse.ok) {
+          const errorText = await junctionResponse.text();
+          console.error('[ADD PRODUCT] Failed to create junction record:', errorText);
+          throw new Error('Failed to create ProductsForQuotes record');
+        }
+
+        const junctionResult = await safeJsonParse(junctionResponse);
+        console.log('[ADD PRODUCT] Junction record created:', junctionResult);
 
         // Clear selection
         selectedNewProduct = null;
@@ -742,10 +1113,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         const newTotal = calculateTotal();
         await updateQuote({ "Total Amount": newTotal });
         
-        // Reload again to show updated total
-        await loadQuoteDetails();
+        console.log('[ADD PRODUCT] Product added successfully');
       } catch (error) {
-        console.error('Error linking product:', error);
+        console.error('Error adding product:', error);
         alert('Failed to add product. Please try again.');
       }
     }

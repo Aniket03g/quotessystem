@@ -48,9 +48,12 @@ export const POST: APIRoute = async ({ request }) => {
 
     // === HEADER SECTION ===
     
+    // Determine selected logo and company details
+    const selectedLogo = quoteData.logo || 'greenocare';
+    const companyName = selectedLogo === 'grove' ? 'Grove Systems Pvt. Ltd.' : 'GreenOCare Solutions Pvt. Ltd.';
+    
     // Logo
     try {
-      const selectedLogo = quoteData.logo || 'greenocare';
       const logoFileName = selectedLogo === 'grove' ? 'grove_logo.png' : 'green-o-care-logo.png';
       
       // Try multiple paths
@@ -81,7 +84,7 @@ export const POST: APIRoute = async ({ request }) => {
     doc.fontSize(20)
        .font('Helvetica-Bold')
        .fillColor('#000000')
-       .text('GreenOCare Solutions Pvt. Ltd.', 50, 120);
+       .text(companyName, 50, 120);
     
     // Company Address
     doc.fontSize(10)
@@ -243,7 +246,8 @@ export const POST: APIRoute = async ({ request }) => {
       // HSN Code
       doc.fontSize(9)
          .fillColor('#646464');
-      doc.text(`HSN: ${product.hsnCode || 'N/A'}`, cols.product + 4, productY, { width: colWidths.product - 8 });
+      const hsnText = product.hsnCode ? product.hsnCode : 'N/A';
+      doc.text(hsnText, cols.product + 4, productY, { width: colWidths.product - 8 });
       
       // Product Code - centered
       doc.fontSize(9)
@@ -262,7 +266,6 @@ export const POST: APIRoute = async ({ request }) => {
       doc.fontSize(10)
          .fillColor('#000000')
          .font('Helvetica');
-      doc.fontSize(10).fillColor('#000000').font('Helvetica');
       const priceText = `Rs. ${price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       doc.text(priceText, cols.unitPrice + 4, textY + 8, { width: colWidths.unitPrice - 8, align: 'right' });
       
@@ -276,7 +279,11 @@ export const POST: APIRoute = async ({ request }) => {
       doc.text(taxAmountText, cols.tax + 4, textY + 8, { width: colWidths.tax - 8, align: 'right' });
       
       doc.fontSize(8).fillColor('#505050');
-      const taxRateText = product.tax || 'GST-18.0%';
+      let taxRateText = product.tax || 'GST-18.0%';
+      // Ensure tax rate has % symbol
+      if (taxRateText && !taxRateText.includes('%')) {
+        taxRateText = `${taxRateText}%`;
+      }
       doc.text(taxRateText, cols.tax + 4, textY + 22, { width: colWidths.tax - 8, align: 'right' });
       
       // Total - aligned with Warranty, Unit Price, Qty
@@ -391,13 +398,22 @@ export const POST: APIRoute = async ({ request }) => {
        .font('Helvetica')
        .fillColor('#000000');
     
-    const terms = [
-      '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
-      '2. Delivery Terms –',
-      '3. Payment Terms –',
-      '4. Bank Details – Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651',
-      '5. GST No- 07AAECG5147M1ZB'
-    ];
+    // Select terms based on logo (use selectedLogo from header section)
+    const terms = selectedLogo === 'grove' 
+      ? [
+          '1. Order to be placed on: Grove Systems Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
+          '2. Delivery Terms –',
+          '3. Payment Terms –',
+          '4. Bank Details – Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651',
+          '5. GST No- 07AAHCG5253F1ZO'
+        ]
+      : [
+          '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
+          '2. Delivery Terms –',
+          '3. Payment Terms –',
+          '4. Bank Details – Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651',
+          '5. GST No- 07AAECG5147M1ZB'
+        ];
     
     terms.forEach((term, index) => {
       // Check if we need a page break for very long content
