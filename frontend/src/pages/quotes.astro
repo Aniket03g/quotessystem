@@ -146,6 +146,15 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           </select>
         </div>
 
+        <!-- Quote Type -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Quote Type *</label>
+          <select id="quoteType" required class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
+            <option value="Customer">Customer</option>
+            <option value="Dealer">Dealer</option>
+          </select>
+        </div>
+
         <!-- Products Section -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-2">Products *</label>
@@ -174,6 +183,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                   <div class="product-empty hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
                 </div>
               </div>
+              <input type="number" class="product-custom-price w-32 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Price" min="0" step="0.01" required />
               <input type="number" class="product-quantity w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Qty" min="1" value="1" required />
               <button type="button" class="remove-product-btn p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -586,8 +596,15 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         empty.classList.add('hidden');
         dropdown.classList.remove('hidden');
 
-        const rawWhere = `(Product Name,like,%${searchTerm}%)~or(Product Code,like,%${searchTerm}%)`;        const encodedWhere = encodeURIComponent(rawWhere);
-        const queryString = `where=${encodedWhere}&pageSize=15`;
+        // Get selected quote type to determine which price field to fetch
+        const quoteTypeSelect = document.getElementById('quoteType') as HTMLSelectElement;
+        const quoteType = quoteTypeSelect?.value || 'Customer';
+        const priceField = quoteType === 'Dealer' ? 'Dealer Unit Price' : 'Customer Unit Price';
+
+        const rawWhere = `(Product Name,like,%${searchTerm}%)~or(Product Code,like,%${searchTerm}%)`;
+        const encodedWhere = encodeURIComponent(rawWhere);
+        const fieldsParam = encodeURIComponent(`Id,Product Name,Brand,Product Code,${priceField}`);
+        const queryString = `where=${encodedWhere}&pageSize=15&fields=${fieldsParam}`;
 
         const response = await fetch(`${API_BASE_URL}/proxy/products/records?${queryString}`, {
           method: 'GET',
@@ -619,7 +636,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         results.innerHTML = products.map((prod: any) => {
           const name = prod.fields?.['Product Name'] || 'Unnamed';
           const brand = prod.fields?.['Brand'] || '';
-          const price = prod.fields?.['Unit Price'] || 0;
+          const price = prod.fields?.[priceField] || 0;
           return `
             <button type="button" class="product-option w-full px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0" data-id="${prod.id}" data-name="${name}" data-price="${price}">
               <div class="text-sm font-medium text-slate-900">${name}</div>
@@ -652,12 +669,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const idInput = productItem.querySelector('.product-id') as HTMLInputElement;
       const nameInput = productItem.querySelector('.product-name') as HTMLInputElement;
       const priceInput = productItem.querySelector('.product-price') as HTMLInputElement;
+      const customPriceInput = productItem.querySelector('.product-custom-price') as HTMLInputElement;
       const dropdown = productItem.querySelector('.product-dropdown') as HTMLDivElement;
 
       searchInput.value = `${name} - ₹${price}`;
       idInput.value = id;
       nameInput.value = name;
       priceInput.value = price;
+      
+      // Auto-fill custom price with catalog price (user can edit)
+      if (customPriceInput) {
+        customPriceInput.value = price;
+      }
+      
       dropdown.classList.add('hidden');
     }
 
@@ -715,6 +739,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             <div class="product-empty hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
           </div>
         </div>
+        <input type="number" class="product-custom-price w-32 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Price" min="0" step="0.01" required />
         <input type="number" class="product-quantity w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" placeholder="Qty" min="1" value="1" required />
         <button type="button" class="remove-product-btn p-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -764,6 +789,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       totalAmount: number;
       notes: string;
       quoteStatus: string;
+      quoteType: string;
     }): Promise<number> {
       const userEmail = getUserEmail();
       
@@ -771,6 +797,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         fields: {
           'Subject': `Quote for ${params.accountName}`,
           'Quote Status': params.quoteStatus,
+          'Quote Type': params.quoteType,
           'Quote Version': '1.0',
           'Quote Date': params.quoteDate,
           'Valid Until': params.validUntil,
@@ -952,6 +979,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const quoteDate = (document.getElementById('quoteDate') as HTMLInputElement).value;
       const validUntil = (document.getElementById('validUntil') as HTMLInputElement).value;
       const quoteStatus = (document.getElementById('quoteStatus') as HTMLSelectElement).value;
+      const quoteType = (document.getElementById('quoteType') as HTMLSelectElement).value;
       const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
 
       const productItems = productsContainer.querySelectorAll('.product-item');
@@ -961,16 +989,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       productItems.forEach(item => {
         const idInput = item.querySelector('.product-id') as HTMLInputElement;
-        const priceInput = item.querySelector('.product-price') as HTMLInputElement;
+        const customPriceInput = item.querySelector('.product-custom-price') as HTMLInputElement;
         const quantity = parseInt((item.querySelector('.product-quantity') as HTMLInputElement).value);
         
         const productId = parseInt(idInput.value);
-        const price = parseFloat(priceInput.value || '0');
+        const customPrice = parseFloat(customPriceInput.value || '0');
         
-        if (productId && quantity > 0) {
+        if (productId && quantity > 0 && customPrice > 0) {
           productIds.push(productId);
-          productDataForJunction.push({ productId, quantity, unitPrice: price });
-          totalAmount += price * quantity;
+          productDataForJunction.push({ productId, quantity, unitPrice: customPrice });
+          totalAmount += customPrice * quantity;
         }
       });
 
@@ -982,7 +1010,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           validUntil,
           totalAmount,
           notes,
-          quoteStatus
+          quoteStatus,
+          quoteType
         });
 
         // Step 2: Link the account to the quote using proxy link endpoint
