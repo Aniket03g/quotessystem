@@ -279,8 +279,12 @@
           // User must change password before accessing system
           window.location.href = '/change-password';
         } else {
-          // Normal login - redirect to quotes page
-          window.location.href = '/quotes';
+          // Check user role and redirect accordingly
+          if (response.role === 'admin') {
+            window.location.href = '/admin';
+          } else {
+            window.location.href = '/quotes';
+          }
         }
       } catch (error) {
         errorDiv.textContent = error instanceof Error ? error.message : 'Login failed';

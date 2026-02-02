@@ -124,20 +124,20 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   </div>
 
   <script>
-    import { fetchQuotes, fetchProducts } from '../../lib/api';
+    import { fetchQuotesCount, fetchProductsCount } from '../../lib/api';
 
     // Load dashboard stats
     async function loadStats() {
       try {
-        // Fetch quotes count
-        const quotes = await fetchQuotes();
+        // Fetch quotes count using count API
+        const quotesCount = await fetchQuotesCount();
         const quotesEl = document.getElementById('totalQuotes');
-        if (quotesEl) quotesEl.textContent = quotes.length.toString();
+        if (quotesEl) quotesEl.textContent = quotesCount.toString();
 
-        // Fetch products count
-        const products = await fetchProducts();
+        // Fetch products count using count API
+        const productsCount = await fetchProductsCount();
         const productsEl = document.getElementById('totalProducts');
-        if (productsEl) productsEl.textContent = products.length.toString();
+        if (productsEl) productsEl.textContent = productsCount.toString();
 
         // Set placeholder for users (would need backend endpoint)
         const usersEl = document.getElementById('totalUsers');

@@ -36,41 +36,65 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   <div id="quoteContent" class="hidden space-y-6">
     <!-- Header Card -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <div class="flex items-start justify-between mb-6">
+      <div class="flex items-start justify-between mb-8">
         <div>
-          <h1 id="quoteSubject" class="text-2xl font-semibold text-slate-800 mb-2">Loading...</h1>
-          <div class="flex items-center gap-4 text-sm text-slate-600">
-            <span id="quoteDate">Date: --</span>
+          <h1 id="quoteSubject" class="text-3xl font-bold text-slate-900 mb-3">Loading...</h1>
+          <div class="flex items-center gap-5 text-sm text-slate-600">
+            <span id="quoteDate" class="font-medium">Date: --</span>
             <span class="text-slate-300">•</span>
-            <span id="quoteVersion">Version: --</span>
+            <div class="relative">
+              <button id="versionBadge" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-base font-semibold rounded-full transition-colors shadow-sm">
+                <span id="versionText">Version --</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              <div id="versionDropdown" class="hidden absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-slate-200 z-50 max-h-96 overflow-y-auto">
+                <div class="p-3 border-b border-slate-200 bg-slate-50">
+                  <h3 class="text-sm font-semibold text-slate-700">Version History</h3>
+                </div>
+                <div id="versionList" class="p-2">
+                  <div class="flex items-center justify-center py-8">
+                    <svg class="animate-spin w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="ml-2 text-sm text-slate-600">Loading versions...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="flex gap-2 items-center">
+        <div class="flex gap-3 items-center">
           <div class="flex items-center gap-2">
-            <label for="logoSelect" class="text-sm font-medium text-slate-700">Logo:</label>
+            <label for="logoSelect" class="text-sm font-medium text-slate-700">Generate with:</label>
             <select id="logoSelect" class="px-3 py-2 bg-white border border-slate-300 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
               <option value="greenocare">GreenOCare</option>
               <option value="grove">Grove Systems</option>
             </select>
           </div>
-          <button id="editQuoteBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
+          <button id="createNewVersionBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
+            </svg>
+            New Version
+          </button>
+          <button id="editQuoteBtn" class="inline-flex items-center justify-center p-2.5 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors" title="Edit Products">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
             </svg>
-            Edit Products
           </button>
-          <button id="previewPdfBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button id="previewPdfBtn" class="inline-flex items-center justify-center p-2.5 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors" title="Preview PDF">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
             </svg>
-            Preview PDF
           </button>
-          <button id="downloadPdfBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3 3m0 0l-3-3m3 3V10"></path>
+          <button id="downloadPdfBtn" class="inline-flex items-center justify-center p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm" title="Download PDF">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
-            Download PDF
           </button>
         </div>
       </div>
@@ -83,7 +107,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           </span>
         </div>
         <div>
-          <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Total Amount</p>
+          <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Sub Total</p>
           <p id="quoteTotal" class="text-lg font-semibold text-slate-900">₹0</p>
         </div>
         <div>
@@ -314,7 +338,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         // Step 2: Fetch junction table data for custom prices and quantities
         console.log('[QUOTE DETAIL] Step 2: Fetching custom prices from junction table...');
         const junctionResponse = await fetch(
-          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,nc_76_d__Products_id`,
+          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,Discount,nc_76_d__Products_id`,
           {
             method: 'GET',
             headers: {
@@ -346,11 +370,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
           if (junctionMatch) {
             console.log(`[QUOTE DETAIL] Found junction match for product ${productId}:`, junctionMatch);
+            const discount = Number(junctionMatch.fields['Discount']) || 0;
             return {
               junctionId: junctionMatch.id,
               productId: productId,
               quantity: junctionMatch.fields['Quantity'] || 1,
               customUnitPrice: junctionMatch.fields['Custom Unit Price'],
+              discount: discount,
               catalogUnitPrice: null, // Not fetched from catalog anymore
               productName: catalogProduct.fields['Product Name'],
               brand: catalogProduct.fields['Brand'],
@@ -367,6 +393,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               productId: productId,
               quantity: 1,
               customUnitPrice: null,
+              discount: 0,
               catalogUnitPrice: null,
               productName: catalogProduct.fields['Product Name'],
               brand: catalogProduct.fields['Brand'],
@@ -385,6 +412,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         products = productRecords.map((record: any) => ({
           name: record.productName || 'Unnamed Product',
           price: record.customUnitPrice || 0,
+          quantity: record.quantity || 1,
+          discount: record.discount || 0,
           model: record.model,
           productCode: record.productCode,
           tax: record.tax,
@@ -425,7 +454,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       // Header
       (document.getElementById('quoteSubject') as HTMLHeadingElement).textContent = fields['Subject'] || 'Untitled Quote';
       (document.getElementById('quoteDate') as HTMLSpanElement).textContent = `Date: ${fields['Quote Date'] || 'N/A'}`;
-      (document.getElementById('quoteVersion') as HTMLSpanElement).textContent = `Version: ${fields['Quote Version'] || '1.0'}`;
+      (document.getElementById('versionText') as HTMLSpanElement).textContent = `Version ${fields['Quote Version'] || '1.0'}`;
+      
+      // Style version badge as green for current version
+      const versionBadge = document.getElementById('versionBadge') as HTMLButtonElement;
+      if (versionBadge) {
+        versionBadge.className = 'inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 text-base font-semibold rounded-full transition-colors shadow-sm';
+      }
 
       // Status
       const status = fields['Quote Status'] || 'Draft';
@@ -579,16 +614,17 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       productsContainer.innerHTML = `
         <div class="overflow-x-auto">
           <table class="w-full">
-            <thead class="bg-slate-50 border-b border-slate-200">
+            <thead class="bg-slate-100 border-b-2 border-slate-300">
               <tr>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Brand</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product Code</th>
-                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">HSN Code</th>
-                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Qty</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Unit Price</th>
-                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Tax %</th>
-                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Subtotal</th>
+                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Product</th>
+                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Brand</th>
+                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Product Code</th>
+                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">HSN Code</th>
+                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Qty</th>
+                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Unit Price</th>
+                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Discount %</th>
+                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Tax %</th>
+                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Line Total</th>
                 ${actionColumn}
               </tr>
             </thead>
@@ -601,33 +637,45 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                 const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
                 const unitPrice = customPrice !== null ? customPrice : 0;
                 const quantity = Number(product.quantity) || 1;
+                const discount = Number(product.discount) || 0;
                 const taxRate = Number(product.tax) || 0;
                 const junctionId = product.junctionId;
                 
-                // Calculate line total with tax (only if price is set)
+                // Calculate line total with discount and tax
                 const subtotal = unitPrice * quantity;
-                const taxAmount = subtotal * (taxRate / 100);
-                const lineTotal = subtotal + taxAmount;
+                const discountAmount = subtotal * (discount / 100);
+                const afterDiscount = subtotal - discountAmount;
+                const taxAmount = afterDiscount * (taxRate / 100);
+                const lineTotal = afterDiscount + taxAmount;
                 
                 // Editable fields in edit mode
                 const qtyCell = isEditMode ? `
-                  <td class="px-4 py-3 text-center">
+                  <td class="px-4 py-3.5 text-center">
                     <input type="number" min="1" value="${quantity}" 
-                      class="quantity-input w-16 px-2 py-1 text-sm text-center border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      class="quantity-input w-20 px-3 py-2 text-sm text-center border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
                       data-junction-id="${junctionId}" 
                       ${!junctionId ? 'disabled title="No junction record"' : ''} />
                   </td>
-                ` : `<td class="px-4 py-3 text-sm text-slate-900 text-center">${quantity}</td>`;
+                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-center">${quantity}</td>`;
                 
                 const priceCell = isEditMode ? `
-                  <td class="px-4 py-3 text-right">
+                  <td class="px-4 py-3.5 text-right">
                     <input type="number" min="0" step="0.01" value="${unitPrice || ''}" 
-                      class="price-input w-28 px-2 py-1 text-sm text-right border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      class="price-input w-32 px-3 py-2 text-sm text-right border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
                       data-junction-id="${junctionId}" 
                       placeholder="Set price" 
                       ${!junctionId ? 'disabled title="No junction record"' : ''} />
                   </td>
-                ` : `<td class="px-4 py-3 text-sm text-slate-900 text-right">${customPrice !== null ? '₹' + unitPrice.toLocaleString('en-IN') : '<span class="text-slate-400">No price set</span>'}</td>`;
+                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-right">${customPrice !== null && customPrice !== undefined ? '₹' + Number(customPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '<span class="text-slate-400">No price set</span>'}</td>`;
+                
+                const discountCell = isEditMode ? `
+                  <td class="px-4 py-3.5 text-center">
+                    <input type="number" min="0" max="100" step="0.1" value="${discount}" 
+                      class="discount-input w-20 px-3 py-2 text-sm text-center border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
+                      data-junction-id="${junctionId}" 
+                      ${!junctionId ? 'disabled title="No junction record"' : ''} />
+                  </td>
+                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-center">${discount}%</td>`;
                 
                 const actionCell = isEditMode ? `
                   <td class="px-4 py-3">
@@ -639,16 +687,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                   </td>
                 ` : '';
                 
+                const rowIndex = currentProducts.indexOf(product);
+                const rowClass = rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50';
                 return `
-                  <tr data-junction-id="${junctionId}">
-                    <td class="px-4 py-3 text-sm text-slate-900">${name}</td>
-                    <td class="px-4 py-3 text-sm text-slate-600">${brand}</td>
-                    <td class="px-4 py-3 text-sm text-slate-600">${productCode}</td>
-                    <td class="px-4 py-3 text-sm text-slate-600">${code}</td>
+                  <tr data-junction-id="${junctionId}" class="${rowClass} hover:bg-blue-50 transition-colors">
+                    <td class="px-4 py-3.5 text-sm font-medium text-slate-900">${name}</td>
+                    <td class="px-4 py-3.5 text-sm text-slate-600">${brand}</td>
+                    <td class="px-4 py-3.5 text-sm text-slate-600">${productCode}</td>
+                    <td class="px-4 py-3.5 text-sm text-slate-600">${code}</td>
                     ${qtyCell}
                     ${priceCell}
-                    <td class="px-4 py-3 text-sm text-slate-600 text-center">${taxRate}%</td>
-                    <td class="px-4 py-3 text-sm font-medium text-slate-900 text-right subtotal-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    ${discountCell}
+                    <td class="px-4 py-3.5 text-sm font-medium text-slate-600 text-center">${taxRate}%</td>
+                    <td class="px-4 py-3.5 text-sm font-bold text-slate-900 text-right line-total-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     ${actionCell}
                   </tr>
                 `;
@@ -656,7 +707,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             </tbody>
           </table>
         </div>
+        <div class="mt-8 flex justify-end">
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl px-8 py-6 border-2 border-blue-200 shadow-sm">
+            <div class="text-sm font-semibold text-slate-600 mb-2 uppercase tracking-wide">Grand Total (after discount & tax)</div>
+            <div id="grandTotal" class="text-4xl font-bold text-blue-900">₹0.00</div>
+          </div>
+        </div>
       `;
+      
+      // Update grand total
+      updateGrandTotal();
 
       // Attach event handlers in edit mode
       if (isEditMode) {
@@ -690,8 +750,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           let timeout: number;
           input.addEventListener('input', (e) => {
             clearTimeout(timeout);
+            // Immediate optimistic update
+            const junctionId = (input as HTMLElement).getAttribute('data-junction-id');
+            updateLineItemDisplay(junctionId);
+            
             timeout = window.setTimeout(async () => {
-              const junctionId = (input as HTMLElement).getAttribute('data-junction-id');
               const newPrice = parseFloat((input as HTMLInputElement).value);
               if (junctionId && newPrice >= 0) {
                 await updateLineItemPrice(junctionId, newPrice);
@@ -699,7 +762,126 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             }, 800);
           });
         });
+        
+        // Discount input handlers with debounce
+        document.querySelectorAll('.discount-input').forEach(input => {
+          let timeout: number;
+          input.addEventListener('input', (e) => {
+            clearTimeout(timeout);
+            // Immediate optimistic update
+            const junctionId = (input as HTMLElement).getAttribute('data-junction-id');
+            updateLineItemDisplay(junctionId);
+            
+            timeout = window.setTimeout(async () => {
+              const newDiscount = parseFloat((input as HTMLInputElement).value);
+              if (junctionId && newDiscount >= 0 && newDiscount <= 100) {
+                await updateLineItemDiscount(junctionId, newDiscount);
+              }
+            }, 800);
+          });
+        });
       }
+    }
+    
+    /**
+     * Update line item display with real-time calculation (optimistic UI)
+     */
+    function updateLineItemDisplay(junctionId: string | null) {
+      if (!junctionId) return;
+      
+      const row = document.querySelector(`tr[data-junction-id="${junctionId}"]`);
+      if (!row) return;
+      
+      const qtyInput = row.querySelector('.quantity-input') as HTMLInputElement;
+      const priceInput = row.querySelector('.price-input') as HTMLInputElement;
+      const discountInput = row.querySelector('.discount-input') as HTMLInputElement;
+      const lineTotalCell = row.querySelector('.line-total-cell');
+      
+      if (!qtyInput || !priceInput || !discountInput || !lineTotalCell) return;
+      
+      const quantity = parseFloat(qtyInput.value) || 1;
+      const unitPrice = parseFloat(priceInput.value) || 0;
+      const discount = parseFloat(discountInput.value) || 0;
+      
+      // Find product to get tax rate
+      const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
+      const taxRate = product ? (Number(product.tax) || 0) : 0;
+      
+      // Calculate line total
+      const subtotal = unitPrice * quantity;
+      const discountAmount = subtotal * (discount / 100);
+      const afterDiscount = subtotal - discountAmount;
+      const taxAmount = afterDiscount * (taxRate / 100);
+      const lineTotal = afterDiscount + taxAmount;
+      
+      // Update display
+      lineTotalCell.textContent = '₹' + lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      
+      // Update grand total
+      updateGrandTotal();
+    }
+    
+    /**
+     * Update grand total display
+     * Works in both edit and non-edit modes by using currentProducts array
+     */
+    function updateGrandTotal() {
+      const grandTotalEl = document.getElementById('grandTotal');
+      if (!grandTotalEl) return;
+      
+      let total = 0;
+      
+      if (isEditMode) {
+        // In edit mode, read from input fields for real-time updates
+        document.querySelectorAll('tr[data-junction-id]').forEach(row => {
+          const qtyInput = row.querySelector('.quantity-input') as HTMLInputElement;
+          const priceInput = row.querySelector('.price-input') as HTMLInputElement;
+          const discountInput = row.querySelector('.discount-input') as HTMLInputElement;
+          
+          if (qtyInput && priceInput && discountInput) {
+            const quantity = parseFloat(qtyInput.value) || 1;
+            const unitPrice = parseFloat(priceInput.value) || 0;
+            const discount = parseFloat(discountInput.value) || 0;
+            
+            const junctionId = row.getAttribute('data-junction-id');
+            const product = currentProducts.find(p => p.junctionId === parseInt(junctionId || '0'));
+            const taxRate = product ? (Number(product.tax) || 0) : 0;
+            
+            const subtotal = unitPrice * quantity;
+            const discountAmount = subtotal * (discount / 100);
+            const afterDiscount = subtotal - discountAmount;
+            const taxAmount = afterDiscount * (taxRate / 100);
+            const lineTotal = afterDiscount + taxAmount;
+            
+            total += lineTotal;
+          }
+        });
+      } else {
+        // In non-edit mode, calculate from currentProducts array
+        total = currentProducts.reduce((sum, product) => {
+          const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
+          
+          // Skip products without custom price
+          if (customPrice === null) {
+            return sum;
+          }
+          
+          const quantity = Number(product.quantity) || 1;
+          const discount = Number(product.discount) || 0;
+          const taxRate = Number(product.tax) || 0;
+          
+          // Calculate: (price * quantity - discount) * (1 + tax/100)
+          const subtotal = customPrice * quantity;
+          const discountAmount = subtotal * (discount / 100);
+          const afterDiscount = subtotal - discountAmount;
+          const taxAmount = afterDiscount * (taxRate / 100);
+          const lineTotal = afterDiscount + taxAmount;
+          
+          return sum + lineTotal;
+        }, 0);
+      }
+      
+      grandTotalEl.textContent = '₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     /**
@@ -735,8 +917,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
 
     /**
-     * Calculate total amount from current products including tax
-     * Formula: Sum of (Unit Price * Quantity * (1 + Tax%/100))
+     * Calculate total amount from current products including discount and tax
+     * Formula: Sum of ((Unit Price * Quantity - Discount) * (1 + Tax%/100))
      * Only includes products with custom prices set
      */
     function calculateTotal(): number {
@@ -749,17 +931,70 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         }
         
         const quantity = Number(product.quantity) || 1;
+        const discount = Number(product.discount) || 0;
         const taxRate = Number(product.tax) || 0;
         
-        // Calculate: price * quantity * (1 + tax/100)
+        // Calculate: (price * quantity - discount) * (1 + tax/100)
         const subtotal = customPrice * quantity;
-        const taxAmount = subtotal * (taxRate / 100);
-        const total = subtotal + taxAmount;
+        const discountAmount = subtotal * (discount / 100);
+        const afterDiscount = subtotal - discountAmount;
+        const taxAmount = afterDiscount * (taxRate / 100);
+        const total = afterDiscount + taxAmount;
         
         return sum + total;
       }, 0);
     }
 
+    /**
+     * Update line item discount in ProductsForQuotes junction table
+     */
+    async function updateLineItemDiscount(junctionId: string, newDiscount: number) {
+      try {
+        console.log(`[LINE ITEM] Updating discount for junction ${junctionId} to ${newDiscount}%`);
+        
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              id: junctionId,
+              fields: {
+                'Discount': newDiscount
+              }
+            })
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to update discount: ${errorText}`);
+        }
+
+        const result = await safeJsonParse(response);
+        console.log('[LINE ITEM] Discount updated successfully:', result);
+        
+        // Update local state
+        const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
+        if (product) {
+          product.discount = newDiscount;
+        }
+        
+        // Recalculate and update quote total
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+        
+      } catch (error) {
+        console.error('[LINE ITEM] Error updating discount:', error);
+        alert('Failed to update discount. Please try again.');
+        // Reload to revert optimistic update
+        await loadQuoteDetails();
+      }
+    }
+    
     /**
      * Update line item quantity in ProductsForQuotes junction table
      */
@@ -1276,6 +1511,495 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
     document.getElementById('previewPdfBtn')?.addEventListener('click', () => generatePDF(true));
     document.getElementById('downloadPdfBtn')?.addEventListener('click', () => generatePDF(false));
+    document.getElementById('createNewVersionBtn')?.addEventListener('click', () => createNewVersion());
+
+    // Version history dropdown
+    let versionChain: any[] = [];
+    let versionChainLoaded = false;
+
+    document.getElementById('versionBadge')?.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const dropdown = document.getElementById('versionDropdown') as HTMLDivElement;
+      
+      if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        
+        // Fetch version chain on first open
+        if (!versionChainLoaded) {
+          await fetchAndRenderVersionHistory();
+        }
+      } else {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('versionDropdown') as HTMLDivElement;
+      const badge = document.getElementById('versionBadge') as HTMLButtonElement;
+      
+      if (dropdown && badge && !dropdown.contains(e.target as Node) && e.target !== badge) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    /**
+     * Compare two version strings (e.g., "1.0", "1.1", "2.0")
+     * Returns: -1 if a < b, 0 if equal, 1 if a > b
+     */
+    function compareVersions(versionA: string, versionB: string): number {
+      const partsA = versionA.split('.').map(n => parseInt(n) || 0);
+      const partsB = versionB.split('.').map(n => parseInt(n) || 0);
+      
+      const maxLength = Math.max(partsA.length, partsB.length);
+      
+      for (let i = 0; i < maxLength; i++) {
+        const a = partsA[i] || 0;
+        const b = partsB[i] || 0;
+        
+        if (a < b) return -1;
+        if (a > b) return 1;
+      }
+      
+      return 0;
+    }
+
+    /**
+     * Traverse backwards through Parent Quote links to find the root (oldest) quote
+     */
+    async function findRootQuote(startQuoteId: string): Promise<any> {
+      let currentQuote: any;
+      let currentId = startQuoteId;
+      const visited = new Set<string>();
+      const maxDepth = 50;
+      let depth = 0;
+
+      console.log('[VERSION HISTORY] Finding root quote starting from', startQuoteId);
+
+      while (currentId && depth < maxDepth) {
+        if (visited.has(currentId)) {
+          console.error('[VERSION HISTORY] Circular reference detected at quote', currentId);
+          break;
+        }
+        visited.add(currentId);
+
+        const response = await fetch(`${API_BASE_URL}/proxy/quotes/records/${currentId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.error('[VERSION HISTORY] Failed to fetch quote', currentId);
+          break;
+        }
+
+        currentQuote = await safeJsonParse(response);
+        const parentField = currentQuote.fields['Parent Quote'];
+
+        if (parentField && typeof parentField === 'object' && parentField.id) {
+          currentId = parentField.id.toString();
+          depth++;
+        } else {
+          // No parent, this is the root
+          console.log('[VERSION HISTORY] Found root quote:', currentQuote.id, 'after', depth, 'steps');
+          return currentQuote;
+        }
+      }
+
+      console.log('[VERSION HISTORY] Returning quote', currentQuote?.id, 'as root');
+      return currentQuote;
+    }
+
+    /**
+     * Fetch version chain using hybrid approach:
+     * 1. Traverse backwards to find root quote
+     * 2. Fetch all quotes with same Subject
+     * 3. Build chain by following Parent Quote relationships
+     * Returns array sorted by version (oldest to newest)
+     */
+    async function fetchVersionChain(startQuoteId: string): Promise<any[]> {
+      console.log('[VERSION HISTORY] Fetching version chain for quote', startQuoteId);
+
+      try {
+        // Step 1: Find the root quote by traversing backwards
+        const rootQuote = await findRootQuote(startQuoteId);
+        
+        if (!rootQuote) {
+          throw new Error('Failed to find root quote');
+        }
+
+        const subject = rootQuote.fields['Subject'];
+        if (!subject) {
+          console.warn('[VERSION HISTORY] No subject found, returning only root quote');
+          return [rootQuote];
+        }
+
+        console.log('[VERSION HISTORY] Root quote:', rootQuote.id, 'Subject:', subject);
+
+        // Step 2: Fetch all quotes with same Subject
+        const rawWhere = `(Subject,eq,${subject})`;
+        const encodedWhere = encodeURIComponent(rawWhere);
+        
+        const allQuotesResponse = await fetch(
+          `${API_BASE_URL}/proxy/quotes/records?where=${encodedWhere}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!allQuotesResponse.ok) {
+          throw new Error('Failed to fetch quotes by subject');
+        }
+
+        const allQuotesData = await safeJsonParse(allQuotesResponse);
+        const allQuotes = allQuotesData.records || [];
+
+        console.log('[VERSION HISTORY] Found', allQuotes.length, 'quotes with same subject');
+
+        // Step 3: Build chain by following Parent Quote relationships from root
+        const chain: any[] = [];
+        const quoteMap = new Map(allQuotes.map((q: any) => [q.id, q]));
+        
+        let currentQuote = rootQuote;
+        chain.push(currentQuote);
+
+        // Find children by looking for quotes that reference current as parent
+        while (true) {
+          const child = allQuotes.find((q: any) => {
+            const parentField = q.fields['Parent Quote'];
+            return parentField && typeof parentField === 'object' && parentField.id === currentQuote.id;
+          });
+
+          if (!child) {
+            break; // No more children
+          }
+
+          chain.push(child);
+          currentQuote = child;
+        }
+
+        console.log('[VERSION HISTORY] Built chain with', chain.length, 'versions:', 
+          chain.map((q: any) => `${q.id}(v${q.fields['Quote Version']})`).join(' → '));
+
+        return chain;
+      } catch (error) {
+        console.error('[VERSION HISTORY] Error fetching version chain:', error);
+        throw error;
+      }
+    }
+
+    /**
+     * Fetch version chain and render in dropdown
+     */
+    async function fetchAndRenderVersionHistory() {
+      const versionList = document.getElementById('versionList') as HTMLDivElement;
+      
+      try {
+        versionChain = await fetchVersionChain(quoteId!);
+        versionChainLoaded = true;
+        
+        renderVersionHistory();
+      } catch (error) {
+        console.error('[VERSION HISTORY] Error loading version history:', error);
+        versionList.innerHTML = `
+          <div class="px-4 py-8 text-center text-sm text-red-600">
+            Failed to load version history
+          </div>
+        `;
+      }
+    }
+
+    /**
+     * Render version history list
+     */
+    function renderVersionHistory() {
+      const versionList = document.getElementById('versionList') as HTMLDivElement;
+      
+      if (versionChain.length === 0) {
+        versionList.innerHTML = `
+          <div class="px-4 py-8 text-center text-sm text-slate-500">
+            No version history available
+          </div>
+        `;
+        return;
+      }
+
+      versionList.innerHTML = versionChain.map((quote, index) => {
+        const fields = quote.fields || {};
+        const version = fields['Quote Version'] || '1.0';
+        const date = fields['Quote Date'] || 'N/A';
+        const status = fields['Quote Status'] || 'Draft';
+        const total = fields['Total Amount'] || 0;
+        const isCurrent = quote.id.toString() === quoteId;
+
+        let statusColor = 'text-slate-600';
+        if (status === 'Sent') statusColor = 'text-blue-600';
+        if (status === 'Approved' || status === 'Accepted') statusColor = 'text-emerald-600';
+        if (status === 'Rejected') statusColor = 'text-red-600';
+
+        return `
+          <button 
+            class="version-item w-full px-3 py-2.5 text-left hover:bg-slate-50 rounded-lg transition-colors ${isCurrent ? 'bg-blue-50 border border-blue-200' : ''}"
+            data-quote-id="${quote.id}"
+            ${isCurrent ? 'disabled' : ''}
+          >
+            <div class="flex items-start justify-between mb-1">
+              <span class="text-sm font-semibold text-slate-800">Version ${version}</span>
+              ${isCurrent ? '<span class="text-xs font-medium text-blue-600 bg-blue-100 px-2 py-0.5 rounded">Current</span>' : ''}
+            </div>
+            <div class="text-xs text-slate-600 space-y-0.5">
+              <div>${date}</div>
+              <div class="flex items-center gap-2">
+                <span class="${statusColor}">${status}</span>
+                <span class="text-slate-400">•</span>
+                <span class="font-medium">₹${Number(total).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      // Add click handlers for version navigation
+      document.querySelectorAll('.version-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetQuoteId = btn.getAttribute('data-quote-id');
+          if (targetQuoteId && targetQuoteId !== quoteId) {
+            window.location.href = `/quote-detail?id=${targetQuoteId}`;
+          }
+        });
+      });
+    }
+
+    /**
+     * Create a new version of the current quote
+     * Copies quote fields, increments version, sets parent quote, and copies all line items
+     */
+    async function createNewVersion() {
+      const btn = document.getElementById('createNewVersionBtn') as HTMLButtonElement;
+      const originalText = btn.innerHTML;
+      
+      try {
+        // Show loading state
+        btn.disabled = true;
+        btn.innerHTML = `
+          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Creating...</span>
+        `;
+
+        console.log('[VERSION] Creating new version of quote', quoteId);
+
+        // Step 1: Fetch current quote details
+        const quoteResponse = await fetch(`${API_BASE_URL}/proxy/quotes/records/${quoteId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!quoteResponse.ok) {
+          throw new Error('Failed to fetch current quote');
+        }
+
+        const currentQuote = await safeJsonParse(quoteResponse);
+        const currentFields = currentQuote.fields || {};
+        
+        // Increment version (e.g., "1.2" -> "1.3")
+        const currentVersion = currentFields['Quote Version'] || '1.0';
+        const newVersion = incrementVersion(currentVersion);
+        
+        console.log('[VERSION] Current version:', currentVersion, '-> New version:', newVersion);
+
+        // Step 2: Create new quote record
+        const newQuotePayload = {
+          fields: {
+            'Subject': currentFields['Subject'] || 'Quote',
+            'Quote Status': 'Draft',
+            'Quote Type': currentFields['Quote Type'] || 'Customer',
+            'Quote Version': newVersion,
+            'Quote Date': new Date().toISOString().split('T')[0],
+            'Valid Until': currentFields['Valid Until'] || '',
+            'Total Amount': currentFields['Total Amount'] || 0,
+            'Notes': currentFields['Notes'] || '',
+            'Quote Created By': currentFields['Quote Created By'] || 'Unknown User',
+            'Parent Quote': parseInt(quoteId!)
+          }
+        };
+
+        console.log('[VERSION] Creating new quote with payload:', newQuotePayload);
+
+        const createResponse = await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(newQuotePayload)
+        });
+
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text();
+          throw new Error(`Failed to create new quote: ${errorText}`);
+        }
+
+        const createResult = await safeJsonParse(createResponse);
+        const newQuoteId = createResult.records ? createResult.records[0]?.id : createResult.id;
+        
+        if (!newQuoteId) {
+          throw new Error('No quote ID returned from create');
+        }
+
+        console.log('[VERSION] New quote created with ID:', newQuoteId);
+
+        // Step 3: Link account to new quote (copy from current)
+        const accountResponse = await fetch(
+          `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (accountResponse.ok) {
+          const accountData = await safeJsonParse(accountResponse);
+          const accounts = accountData.list || accountData.records || [];
+          if (accounts.length > 0) {
+            const accountId = accounts[0].id;
+            console.log('[VERSION] Linking account', accountId, 'to new quote');
+            
+            await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy/${newQuoteId}`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify([{ id: accountId }])
+            });
+          }
+        }
+
+        // Step 4: Fetch current line items from ProductsForQuotes
+        const lineItemsResponse = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Quantity,Custom%20Unit%20Price,Discount,nc_76_d__Products_id`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!lineItemsResponse.ok) {
+          throw new Error('Failed to fetch line items');
+        }
+
+        const lineItemsData = await safeJsonParse(lineItemsResponse);
+        const lineItems = lineItemsData.records || [];
+        
+        console.log('[VERSION] Found', lineItems.length, 'line items to copy');
+
+        // Step 5: Link products to new quote first
+        const productIds = lineItems.map((item: any) => item.fields['nc_76_d__Products_id']).filter(Boolean);
+        
+        if (productIds.length > 0) {
+          console.log('[VERSION] Linking', productIds.length, 'products to new quote');
+          
+          await fetch(`${API_BASE_URL}/proxy/quotes/links/products/${newQuoteId}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productIds.map(id => ({ id })))
+          });
+        }
+
+        // Step 6: Create new ProductsForQuotes records
+        for (const item of lineItems) {
+          const productId = item.fields['nc_76_d__Products_id'];
+          const quantity = item.fields['Quantity'] || 1;
+          const customPrice = item.fields['Custom Unit Price'];
+          const discount = item.fields['Discount'] || 0;
+
+          if (!productId) continue;
+
+          const lineItemPayload = {
+            fields: {
+              'Quotes': newQuoteId,
+              'Products': productId,
+              'Quantity': quantity,
+              'Custom Unit Price': customPrice,
+              'Discount': discount
+            }
+          };
+
+          console.log('[VERSION] Creating line item:', lineItemPayload);
+
+          const lineItemResponse = await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(lineItemPayload)
+          });
+
+          if (!lineItemResponse.ok) {
+            console.error('[VERSION] Failed to create line item for product', productId);
+          }
+        }
+
+        console.log('[VERSION] Successfully created new version. Redirecting to', newQuoteId);
+
+        // Success - redirect to new quote
+        window.location.href = `/quote-detail?id=${newQuoteId}`;
+
+      } catch (error) {
+        console.error('[VERSION] Error creating new version:', error);
+        alert(`Failed to create new version: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        
+        // Restore button
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    /**
+     * Increment version number (e.g., "1.2" -> "1.3", "2.9" -> "3.0")
+     */
+    function incrementVersion(version: string): string {
+      const parts = version.split('.');
+      if (parts.length === 1) {
+        // Single number like "1" -> "2"
+        return (parseInt(parts[0]) + 1).toString();
+      }
+      
+      // Decimal version like "1.2" -> "1.3"
+      const major = parseInt(parts[0]) || 1;
+      const minor = parseInt(parts[1]) || 0;
+      
+      if (minor >= 9) {
+        // Roll over: "1.9" -> "2.0"
+        return `${major + 1}.0`;
+      } else {
+        // Increment minor: "1.2" -> "1.3"
+        return `${major}.${minor + 1}`;
+      }
+    }
 
     // Load quote details on page load
     loadQuoteDetails();

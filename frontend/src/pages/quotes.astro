@@ -10,7 +10,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         <h1 class="text-2xl font-semibold text-slate-800">Quotes</h1>
         <p class="text-sm text-slate-600 mt-1">Create and manage customer quotes</p>
       </div>
-      <button id="createQuoteBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+      <button id="createQuoteBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
@@ -305,7 +305,27 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         }
 
         const data = await safeJsonParse(response);
-        const quotes = data.records || [];
+        const allQuotes = data.records || [];
+
+        // Filter to show only latest versions (exclude quotes that have child versions)
+        // Build Set of parent quote IDs by checking which quotes are referenced as parents
+        const parentQuoteIds = new Set<number>();
+        allQuotes.forEach((quote: any) => {
+          const parentField = quote.fields['Parent Quote'];
+          
+          // Parent Quote is an object: { id: 63, fields: { Subject: "..." } }
+          if (parentField && typeof parentField === 'object' && parentField.id) {
+            parentQuoteIds.add(parentField.id);
+          }
+        });
+
+        // Keep only quotes that are NOT parents (i.e., latest versions)
+        const quotes = allQuotes.filter((quote: any) => {
+          return !parentQuoteIds.has(quote.id);
+        });
+
+        console.log(`[QUOTES] Filtered ${allQuotes.length} total quotes to ${quotes.length} latest versions`);
+        console.log(`[QUOTES] Hidden ${parentQuoteIds.size} parent quotes with newer versions`);
 
         loadingDiv.classList.add('hidden');
 
@@ -327,10 +347,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
 
           return `
-            <tr class="cursor-pointer transition-colors hover:bg-slate-50 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}" onclick="window.location.href='/quote-detail?id=${record.id}'">
+            <tr class="cursor-pointer transition-all hover:bg-blue-50/50 hover:shadow-sm" onclick="window.location.href='/quote-detail?id=${record.id}'">
               <td class="px-6 py-4 text-sm font-medium text-slate-900">${quoteName}</td>
               <td class="px-6 py-4 text-sm text-slate-600">${date}</td>
-              <td class="px-6 py-4 text-sm text-slate-600">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+              <td class="px-6 py-4 text-sm font-semibold text-slate-900">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
               <td class="px-6 py-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
                   ${status}
@@ -338,15 +358,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               </td>
               <td class="px-6 py-4" onclick="event.stopPropagation()">
                 <div class="flex gap-2">
-                  <button class="view-quote-btn p-1.5 rounded-lg hover:bg-slate-100 transition-colors" data-quote-id="${record.id}" title="View Details">
-                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <button class="preview-pdf-btn p-2 rounded-lg hover:bg-blue-100 transition-colors" data-quote-id="${record.id}" title="Preview PDF">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                  </button>
-                  <button class="download-pdf-btn p-1.5 rounded-lg hover:bg-slate-100 transition-colors" data-quote-id="${record.id}" title="Download PDF">
-                    <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3 3m0 0l-3-3m3 3V10"></path>
                     </svg>
                   </button>
                 </div>
@@ -357,13 +372,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
         quotesTable.classList.remove('hidden');
         
-        // Attach PDF download handlers
-        document.querySelectorAll('.download-pdf-btn').forEach(btn => {
+        // Attach PDF preview handlers
+        document.querySelectorAll('.preview-pdf-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             e.stopPropagation();
             const quoteId = (btn as HTMLElement).getAttribute('data-quote-id');
             if (quoteId) {
-              await downloadQuotePDF(quoteId);
+              await previewQuotePDF(quoteId, btn as HTMLButtonElement);
             }
           });
         });
@@ -374,6 +389,174 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           errorText.textContent = error instanceof Error ? error.message : 'Failed to load quotes';
         }
         errorDiv.classList.remove('hidden');
+      }
+    }
+
+    /**
+     * Preview quote PDF - same logic as quote-detail page
+     */
+    async function previewQuotePDF(quoteId: string, button?: HTMLButtonElement) {
+      // Store original button content
+      const originalContent = button?.innerHTML;
+      
+      try {
+        // Show loading spinner
+        if (button) {
+          button.disabled = true;
+          button.innerHTML = `
+            <svg class="animate-spin w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          `;
+        }
+        // Fetch quote details
+        const quoteResponse = await fetch(`${API_BASE_URL}/proxy/quotes/records/${quoteId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+          },
+        });
+
+        if (!quoteResponse.ok) {
+          throw new Error('Failed to fetch quote details');
+        }
+
+        const quoteData = await safeJsonParse(quoteResponse);
+        const fields = quoteData.fields || {};
+
+        // Fetch linked account
+        const accountResponse = await fetch(
+          `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}?fields=Account Name`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+            },
+          }
+        );
+
+        let accountName = 'N/A';
+        if (accountResponse.ok) {
+          const accountData = await safeJsonParse(accountResponse);
+          const accountList = accountData.list || accountData.records || [];
+          if (accountList.length > 0) {
+            accountName = accountList[0].fields?.['Account Name'] || accountList[0]['Account Name'] || 'N/A';
+          }
+        }
+
+        // Fetch products from junction table
+        const junctionResponse = await fetch(
+          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,Discount,nc_76_d__Products_id`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache',
+            },
+          }
+        );
+
+        let products: any[] = [];
+        if (junctionResponse.ok) {
+          const junctionData = await safeJsonParse(junctionResponse);
+          const junctionRecords = junctionData.records || [];
+          console.log('[PDF PREVIEW] Junction records:', junctionRecords);
+
+          // Fetch catalog products
+          const catalogResponse = await fetch(
+            `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Unit Price,Brand,HSN Code,Model,Product Code,Tax,Description`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
+              },
+            }
+          );
+
+          if (catalogResponse.ok) {
+            const catalogData = await safeJsonParse(catalogResponse);
+            const catalogProducts = catalogData.list || catalogData.records || [];
+            console.log('[PDF PREVIEW] Catalog products:', catalogProducts);
+
+            products = catalogProducts.map((catalogProduct: any) => {
+              const productId = catalogProduct.id;
+              const junctionMatch = junctionRecords.find(
+                (jr: any) => jr.fields['nc_76_d__Products_id'] === productId
+              );
+
+              if (junctionMatch) {
+                return {
+                  name: catalogProduct.fields['Product Name'],
+                  quantity: junctionMatch.fields['Quantity'] || 1,
+                  price: junctionMatch.fields['Custom Unit Price'] || 0,
+                  discount: junctionMatch.fields['Discount'] || 0,
+                  tax: catalogProduct.fields['Tax'] || 0,
+                  hsnCode: catalogProduct.fields['HSN Code'],
+                  description: catalogProduct.fields['Description']
+                };
+              }
+              return null;
+            }).filter((p: any) => p !== null);
+          }
+        }
+
+        console.log('[PDF PREVIEW] Products array:', products);
+        console.log('[PDF PREVIEW] Products count:', products.length);
+
+        // Prepare request body for PDF generation
+        const requestBody = {
+          id: parseInt(quoteId),
+          subject: fields['Subject'] || `Quote #${quoteId}`,
+          date: fields['Quote Date'] || new Date().toISOString().split('T')[0],
+          version: fields['Quote Version'] || '1.0',
+          total: fields['Total Amount'] || 0,
+          account: {
+            name: accountName
+          },
+          products: products,
+          logo: 'greenocare'
+        };
+
+        console.log('[PDF PREVIEW] Request body:', JSON.stringify(requestBody, null, 2));
+
+        // Generate PDF
+        const response = await fetch('/api/quotes/pdf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to generate PDF: ${response.status} ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // Open in new tab for preview
+        window.open(url, '_blank');
+        
+        // Clean up
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      } catch (error) {
+        console.error('[PDF PREVIEW ERROR]', error);
+        alert(error instanceof Error ? error.message : 'Failed to preview PDF');
+      } finally {
+        // Restore button state
+        if (button && originalContent) {
+          button.disabled = false;
+          button.innerHTML = originalContent;
+        }
       }
     }
 

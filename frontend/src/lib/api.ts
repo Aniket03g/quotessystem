@@ -233,6 +233,41 @@ export async function fetchProducts(): Promise<Product[]> {
   return normalizedProducts;
 }
 
+// Generic function to fetch count from any table
+export async function fetchCount(tableName: string): Promise<number> {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/proxy/${tableName}/count`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (response.status === 401) {
+    clearToken();
+    clearUserInfo();
+    throw new Error('Unauthorized - please login again');
+  }
+
+  const data = await safeJsonParse<{ count: number }>(response);
+  return data.count;
+}
+
+// Fetch quotes count
+export async function fetchQuotesCount(): Promise<number> {
+  return fetchCount('quotes');
+}
+
+// Fetch products count
+export async function fetchProductsCount(): Promise<number> {
+  return fetchCount('products');
+}
+
 // Logout user
 export function logout(): void {
   clearToken();

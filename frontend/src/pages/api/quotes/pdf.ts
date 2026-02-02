@@ -9,10 +9,12 @@ interface QuoteProduct {
   name: string;
   brand?: string;
   price?: number;
+  discount?: number;
   productCode?: string;
   tax?: string;
   hsnCode?: string;
   warranty?: number;
+  quantity?: number;
 }
 
 interface QuoteData {
@@ -138,13 +140,14 @@ export const POST: APIRoute = async ({ request }) => {
     
     // Column widths - balanced to fit all headers properly
     const colWidths = {
-      sno: pageWidth * 0.05,        // 5%
-      product: pageWidth * 0.21,     // 21%
-      model: pageWidth * 0.12,       // 12% - wider for "Model/Part Code"
-      warranty: pageWidth * 0.11,    // 11% - fits "Warranty (yrs)"
-      unitPrice: pageWidth * 0.15,   // 15%
-      qty: pageWidth * 0.06,         // 6%
-      tax: pageWidth * 0.13,         // 13%
+      sno: pageWidth * 0.04,        // 4%
+      product: pageWidth * 0.18,     // 18%
+      model: pageWidth * 0.10,       // 10%
+      warranty: pageWidth * 0.09,    // 9%
+      unitPrice: pageWidth * 0.13,   // 13%
+      qty: pageWidth * 0.05,         // 5%
+      discount: pageWidth * 0.12,    // 12% - new Discount column
+      tax: pageWidth * 0.12,         // 12%
       total: pageWidth * 0.17        // 17%
     };
     
@@ -156,8 +159,9 @@ export const POST: APIRoute = async ({ request }) => {
       warranty: 50 + colWidths.sno + colWidths.product + colWidths.model,
       unitPrice: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty,
       qty: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice,
-      tax: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty,
-      total: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty + colWidths.tax,
+      discount: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty,
+      tax: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty + colWidths.discount,
+      total: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty + colWidths.discount + colWidths.tax,
       end: 545
     };
     
@@ -176,9 +180,16 @@ export const POST: APIRoute = async ({ request }) => {
     doc.text('S.No.', cols.sno + 4, headerTextY, { width: colWidths.sno - 8, align: 'center' });
     doc.text('Product Details', cols.product + 4, headerTextY, { width: colWidths.product - 8, align: 'left' });
     doc.text('Product Code', cols.model + 4, headerTextY, { width: colWidths.model - 8, align: 'center' });
-    doc.text('Warranty (yrs)', cols.warranty + 4, headerTextY, { width: colWidths.warranty - 8, align: 'center' });
+    
+    // Warranty header - two lines with smaller font
+    doc.fontSize(8);
+    doc.text('Warranty', cols.warranty + 4, headerTextY - 1, { width: colWidths.warranty - 8, align: 'center', lineBreak: false });
+    doc.text('(mths)', cols.warranty + 4, headerTextY + 9, { width: colWidths.warranty - 8, align: 'center', lineBreak: false });
+    doc.fontSize(9);
+    
     doc.text('Unit Price', cols.unitPrice + 4, headerTextY, { width: colWidths.unitPrice - 8, align: 'center' });
     doc.text('Qty', cols.qty + 4, headerTextY, { width: colWidths.qty - 8, align: 'center' });
+    doc.text('Discount', cols.discount + 4, headerTextY, { width: colWidths.discount - 8, align: 'center' });
     doc.text('Tax', cols.tax + 4, headerTextY, { width: colWidths.tax - 8, align: 'center' });
     doc.text('Total', cols.total + 4, headerTextY, { width: colWidths.total - 8, align: 'center' });
     
@@ -190,37 +201,72 @@ export const POST: APIRoute = async ({ request }) => {
     
     // Table rows
     let currentY = tableTop + headerHeight;
-    let subtotal = 0;
+    let subtotalBeforeDiscount = 0;
     let totalTax = 0;
+    let totalDiscount = 0;
     
     quoteData.products.forEach((product, index) => {
       const price = product.price || 0;
-      const qty = 1;
-      const itemSubtotal = price * qty;
+      const qty = product.quantity || 1;
+      const discount = product.discount || 0;
       
-      // Extract tax rate
-      let taxRate = 0.18;
-      if (product.tax) {
-        const taxMatch = product.tax.match(/([0-9.]+)\s*%/);
+      // Calculate amounts
+      const itemSubtotalBeforeDiscount = price * qty;
+      const discountAmount = (itemSubtotalBeforeDiscount * discount) / 100;
+      const itemSubtotalAfterDiscount = itemSubtotalBeforeDiscount - discountAmount;
+      
+      // Extract tax rate - only apply if numeric value found
+      let taxRate = 0;
+      if (product.tax && typeof product.tax === 'string') {
+        const taxMatch = product.tax.match(/([0-9.]+)/);
         if (taxMatch) {
           taxRate = parseFloat(taxMatch[1]) / 100;
         }
+      } else if (typeof product.tax === 'number') {
+        taxRate = product.tax / 100;
       }
       
-      const itemTax = itemSubtotal * taxRate;
-      const itemTotal = itemSubtotal + itemTax;
+      // Calculate tax on discounted amount
+      const itemTax = itemSubtotalAfterDiscount * taxRate;
+      const itemTotal = itemSubtotalAfterDiscount + itemTax;
       
-      subtotal += itemSubtotal;
+      // Accumulate totals
+      subtotalBeforeDiscount += itemSubtotalBeforeDiscount;
+      totalDiscount += discountAmount;
       totalTax += itemTax;
       
-      const rowHeight = 50; // Increased slightly for better spacing
+      const cellPadding = 10;
+      const textY = currentY + cellPadding;
+      
+      // Calculate product details height first to determine row height
+      let productDetailsHeight = 0;
+      let tempY = textY;
+      
+      // Product name height
+      doc.fontSize(10).font('Helvetica-Bold');
+      const nameHeight = doc.heightOfString(product.name, { width: colWidths.product - 8 });
+      productDetailsHeight += nameHeight + 1;
+      
+      // Brand height (if exists)
+      if (product.brand) {
+        doc.fontSize(9).font('Helvetica');
+        const brandHeight = doc.heightOfString(product.brand, { width: colWidths.product - 8 });
+        productDetailsHeight += brandHeight + 1;
+      }
+      
+      // HSN code height
+      doc.fontSize(9);
+      const hsnText = product.hsnCode ? product.hsnCode : 'N/A';
+      const hsnHeight = doc.heightOfString(hsnText, { width: colWidths.product - 8 });
+      productDetailsHeight += hsnHeight;
+      
+      // Calculate row height: max of product details height or minimum height for other columns
+      const minRowHeight = 50;
+      const rowHeight = Math.max(minRowHeight, productDetailsHeight + (cellPadding * 2));
       
       // Draw row background
       doc.rect(50, currentY, pageWidth, rowHeight)
          .fillAndStroke('#ffffff', '#000000');
-      
-      const cellPadding = 10;
-      const textY = currentY + cellPadding;
       
       // S.No
       doc.fontSize(9)
@@ -246,7 +292,6 @@ export const POST: APIRoute = async ({ request }) => {
       // HSN Code
       doc.fontSize(9)
          .fillColor('#646464');
-      const hsnText = product.hsnCode ? product.hsnCode : 'N/A';
       doc.text(hsnText, cols.product + 4, productY, { width: colWidths.product - 8 });
       
       // Product Code - centered
@@ -256,40 +301,56 @@ export const POST: APIRoute = async ({ request }) => {
       const productCodeText = product.productCode || '-';
       doc.text(productCodeText, cols.model + 4, textY + 8, { width: colWidths.model - 8, align: 'center' });
       
-      // Warranty - centered (all numbers at same Y position)
+      // Warranty - centered (all numbers at same Y position) - display in months
       doc.fontSize(10)
          .fillColor('#000000')
          .font('Helvetica');
-      doc.text((product.warranty || 1).toString(), cols.warranty + 4, textY + 8, { width: colWidths.warranty - 8, align: 'center' });
+      const warrantyInMonths = (product.warranty || 1) * 12;
+      doc.text(warrantyInMonths.toString(), cols.warranty + 4, textY + 8, { width: colWidths.warranty - 8, align: 'center' });
       
-      // Unit Price - right aligned (same Y as other numbers)
+      // Unit Price - show original price (right aligned)
       doc.fontSize(10)
          .fillColor('#000000')
          .font('Helvetica');
       const priceText = `Rs. ${price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      doc.text(priceText, cols.unitPrice + 4, textY + 8, { width: colWidths.unitPrice - 8, align: 'right' });
+      doc.text(priceText, cols.unitPrice + 4, textY + 8, { width: colWidths.unitPrice - 8, align: 'right', lineBreak: false });
       
       // Qty - centered (same Y as other numbers)
       doc.fontSize(10).fillColor('#000000').font('Helvetica');
       doc.text(qty.toString(), cols.qty + 4, textY + 8, { width: colWidths.qty - 8, align: 'center' });
       
+      // Discount (amount and percentage) - similar to Tax display
+      doc.fontSize(10).fillColor('#000000').font('Helvetica');
+      const discountAmountText = `Rs. ${discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      const discountAmountY = textY + 8;
+      doc.text(discountAmountText, cols.discount + 4, discountAmountY, { width: colWidths.discount - 8, align: 'right', lineBreak: false });
+      
+      // Calculate height of discount amount text to position percentage below it
+      const discountAmountHeight = doc.heightOfString(discountAmountText, { width: colWidths.discount - 8 });
+      doc.fontSize(8).fillColor('#505050');
+      const discountPercentText = discount > 0 ? `${discount}%` : '0%';
+      doc.text(discountPercentText, cols.discount + 4, discountAmountY + discountAmountHeight + 2, { width: colWidths.discount - 8, align: 'right' });
+      
       // Tax (amount and rate) - ALIGNED with Unit Price and Total
       doc.fontSize(10).fillColor('#000000').font('Helvetica');
       const taxAmountText = `Rs. ${itemTax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      doc.text(taxAmountText, cols.tax + 4, textY + 8, { width: colWidths.tax - 8, align: 'right' });
+      const taxAmountY = textY + 8;
+      doc.text(taxAmountText, cols.tax + 4, taxAmountY, { width: colWidths.tax - 8, align: 'right', lineBreak: false });
       
+      // Calculate height of tax amount text to position percentage below it
+      const taxAmountHeight = doc.heightOfString(taxAmountText, { width: colWidths.tax - 8 });
       doc.fontSize(8).fillColor('#505050');
       let taxRateText = product.tax || 'GST-18.0%';
       // Ensure tax rate has % symbol
       if (taxRateText && !taxRateText.includes('%')) {
         taxRateText = `${taxRateText}%`;
       }
-      doc.text(taxRateText, cols.tax + 4, textY + 22, { width: colWidths.tax - 8, align: 'right' });
+      doc.text(taxRateText, cols.tax + 4, taxAmountY + taxAmountHeight + 2, { width: colWidths.tax - 8, align: 'right' });
       
       // Total - aligned with Warranty, Unit Price, Qty
       doc.fontSize(10).fillColor('#000000').font('Helvetica');
       const totalText = `Rs. ${itemTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      doc.text(totalText, cols.total + 4, textY + 8, { width: colWidths.total - 8, align: 'right' });
+      doc.text(totalText, cols.total + 4, textY + 8, { width: colWidths.total - 8, align: 'right', lineBreak: false });
       
       // Draw row vertical lines
       Object.values(cols).forEach(x => {
@@ -307,7 +368,7 @@ export const POST: APIRoute = async ({ request }) => {
     const summaryLabelWidth = 130;
     
     let summaryY = currentY + 20;
-    const grandTotal = subtotal + totalTax;
+    const grandTotal = subtotalBeforeDiscount - totalDiscount + totalTax;
     
     doc.fontSize(10)
        .fillColor('#000000')
@@ -320,9 +381,9 @@ export const POST: APIRoute = async ({ request }) => {
       doc.text(text, x - textWidth, y, { lineBreak: false });
     };
     
-    // Sub Total
+    // Sub Total (before discount)
     doc.text('Sub Total', summaryLabelX, summaryY, { width: summaryLabelWidth, align: 'left' });
-    const subTotalText = `Rs. ${subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    const subTotalText = `Rs. ${subtotalBeforeDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     rightAlignText(subTotalText, 545, summaryY, 10);
     summaryY += 20;
     
@@ -332,9 +393,10 @@ export const POST: APIRoute = async ({ request }) => {
     rightAlignText(taxText, 545, summaryY, 10);
     summaryY += 20;
     
-    // Adjustment
-    doc.text('Adjustment', summaryLabelX, summaryY, { width: summaryLabelWidth, align: 'left' });
-    rightAlignText('Rs. 0.00', 545, summaryY, 10);
+    // Discount
+    doc.text('Discount', summaryLabelX, summaryY, { width: summaryLabelWidth, align: 'left' });
+    const discountText = `Rs. ${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    rightAlignText(discountText, 545, summaryY, 10);
     summaryY += 25;
     
     // Grand Total border
