@@ -1,42 +1,73 @@
 ---
-import DashboardLayout from '../layouts/DashboardLayout.astro';
+import AdminLayout from '../layouts/AdminLayout.astro';
 ---
 
-<DashboardLayout title="Quotes - Grove Systems" currentPage="quotes">
+<AdminLayout title="Quotes" currentPage="quotes">
   <!-- Page Header -->
   <div class="mb-6">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div>
         <h1 class="text-2xl font-semibold text-slate-800">Quotes</h1>
-        <p class="text-sm text-slate-600 mt-1">Create and manage customer quotes</p>
       </div>
-      <button id="createQuoteBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white text-base font-semibold rounded-lg hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl">
+      <button id="createQuoteBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
-        Create New Quote
+        Create Quote
       </button>
     </div>
   </div>
 
-  <!-- Quotes Table Card -->
-  <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
-    <!-- Search Section -->
-    <div class="p-6 border-b border-slate-200">
-      <div class="relative">
+  <!-- Search and Filter Bar -->
+  <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+    <div class="flex flex-col lg:flex-row gap-4">
+      <!-- Search -->
+      <div class="flex-1 relative">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
         <input 
           type="text" 
           id="searchInput" 
-          placeholder="Search quotes..." 
+          placeholder="Q Search..." 
           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           autocomplete="off"
         />
       </div>
+      
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Sort -->
+        <button class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+          <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+          </svg>
+          <span class="text-sm text-slate-700">Sort</span>
+        </button>
+        
+        <!-- Filter -->
+        <button class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+          <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+          </svg>
+          <span class="text-sm text-slate-700">Filter</span>
+        </button>
+        
+        <!-- List View Dropdown -->
+        <div class="relative">
+          <button class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+            <span class="text-sm text-slate-700">List View</span>
+          </button>
+        </div>
+      </div>
     </div>
+  </div>
 
+  <!-- Quotes Table -->
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
     <!-- Loading State -->
     <div id="loading" class="py-12 text-center">
       <svg class="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
@@ -61,11 +92,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       <table class="w-full">
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Quote</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Date</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Total Amount</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">QUOTE NAME</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">DATE</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">TOTAL AMOUNT</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">ACTIONS</th>
           </tr>
         </thead>
         <tbody id="quotesBody" class="divide-y divide-slate-200"></tbody>
@@ -78,7 +110,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
       </svg>
       <p class="text-slate-600 font-medium mb-1">No quotes found</p>
-      <p class="text-sm text-slate-500">Click "Create New Quote" to get started</p>
+      <p class="text-sm text-slate-500">Click "Create Quote" to get started</p>
     </div>
   </div>
 
@@ -305,6 +337,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         }
 
         const data = await safeJsonParse(response);
+        console.log('[QUOTES] Response received, records count:', data.records?.length || 0);
+        
+        // Log only first 3 records for debugging
+        if (data.records && data.records.length > 0) {
+          console.log('[QUOTES] Sample records (first 3):', data.records.slice(0, 3));
+        }
+        
         const allQuotes = data.records || [];
 
         // Filter to show only latest versions (exclude quotes that have child versions)
@@ -345,17 +384,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           if (status === 'Sent') statusClasses = 'bg-blue-100 text-blue-800';
           if (status === 'Accepted') statusClasses = 'bg-emerald-100 text-emerald-800';
           if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
+          if (status === 'Approved') statusClasses = 'bg-green-100 text-green-800';
 
           return `
             <tr class="cursor-pointer transition-all hover:bg-blue-50/50 hover:shadow-sm" onclick="window.location.href='/quote-detail?id=${record.id}'">
-              <td class="px-6 py-4 text-sm font-medium text-slate-900">${quoteName}</td>
+              <td class="px-6 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
+              <td class="px-6 py-4 text-sm text-slate-900">${quoteName}</td>
               <td class="px-6 py-4 text-sm text-slate-600">${date}</td>
-              <td class="px-6 py-4 text-sm font-semibold text-slate-900">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
               <td class="px-6 py-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
                   ${status}
                 </span>
               </td>
+              <td class="px-6 py-4 text-sm font-semibold text-slate-900">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
               <td class="px-6 py-4" onclick="event.stopPropagation()">
                 <div class="flex gap-2">
                   <button class="preview-pdf-btn p-2 rounded-lg hover:bg-blue-100 transition-colors" data-quote-id="${record.id}" title="Preview PDF">
@@ -680,7 +721,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
      * Search accounts with debounce
      */
     async function searchAccounts(searchTerm: string) {
+      console.log('\n=== ACCOUNT SEARCH STARTED ===');
+      console.log('[ACCOUNT SEARCH] Search term:', searchTerm);
+      
       if (!searchTerm || searchTerm.length < 2) {
+        console.log('[ACCOUNT SEARCH] Search term too short, hiding dropdown');
         accountDropdown.classList.add('hidden');
         return;
       }
@@ -694,8 +739,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         const rawWhere = `(Account Name,like,%${searchTerm}%)`;
         const encodedWhere = encodeURIComponent(rawWhere);
         const queryString = `where=${encodedWhere}&pageSize=15`;
+        
+        const searchUrl = `${API_BASE_URL}/proxy/accounts_copy/records?${queryString}`;
+        console.log('[ACCOUNT SEARCH] Search URL:', searchUrl);
+        console.log('[ACCOUNT SEARCH] Raw where clause:', rawWhere);
 
-        const response = await fetch(`${API_BASE_URL}/proxy/accounts/records?${queryString}`, {
+        const response = await fetch(searchUrl, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -703,29 +752,47 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           },
         });
 
+        console.log('[ACCOUNT SEARCH] Response status:', response.status, response.statusText);
+        
         accountLoading.classList.add('hidden');
 
         if (response.status === 401) {
+          console.error('[ACCOUNT SEARCH] Unauthorized');
           logout();
           return;
         }
 
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[ACCOUNT SEARCH] Failed. Status:', response.status);
+          console.error('[ACCOUNT SEARCH] Error response:', errorText);
           throw new Error('Failed to search accounts');
         }
 
         const data = await safeJsonParse(response);
+        console.log('[ACCOUNT SEARCH] Response data:', data);
+        console.log('[ACCOUNT SEARCH] Records count:', data.records?.length || 0);
+        
         const accounts = data.records || [];
+        
+        // Log ALL account IDs and names to track any increment issues
+        console.log('[ACCOUNT SEARCH] All accounts returned:');
+        accounts.forEach((acc: any, index: number) => {
+          console.log(`[ACCOUNT SEARCH]   ${index + 1}. ID: ${acc.id}, Name: "${acc.fields?.['Account Name'] || 'Unnamed'}"`);
+        });
 
         if (accounts.length === 0) {
           accountEmpty.classList.remove('hidden');
           return;
         }
 
-        accountResults.innerHTML = accounts.map((acc: any) => {
+        accountResults.innerHTML = accounts.map((acc: any, index: number) => {
           const name = acc.fields?.['Account Name'] || 'Unnamed';
           const owner = acc.fields?.['Account Owner'] || '';
           const phone = acc.fields?.['Phone'] || '';
+          
+          console.log(`[ACCOUNT SEARCH] Rendering button ${index + 1}: ID=${acc.id}, Name="${name}"`);
+          
           return `
             <button type="button" class="account-option w-full px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0" data-id="${acc.id}" data-name="${name}">
               <div class="text-sm font-medium text-slate-900">${name}</div>
@@ -733,17 +800,28 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             </button>
           `;
         }).join('');
+        
+        console.log('[ACCOUNT SEARCH] Dropdown HTML rendered with', accounts.length, 'options');
 
         // Add click handlers to account options
-        accountResults.querySelectorAll('.account-option').forEach(btn => {
+        accountResults.querySelectorAll('.account-option').forEach((btn, index) => {
           btn.addEventListener('click', () => {
             const id = btn.getAttribute('data-id');
             const name = btn.getAttribute('data-name');
+            console.log(`[ACCOUNT SEARCH] Button ${index + 1} clicked - ID from data-id attribute: "${id}", Name: "${name}"`);
             selectAccount(id!, name!);
           });
         });
+        
+        console.log('[ACCOUNT SEARCH] ✓ Search completed successfully');
+        console.log('=== ACCOUNT SEARCH COMPLETED ===\n');
       } catch (error) {
-        console.error('Failed to search accounts:', error);
+        console.error('\n=== ACCOUNT SEARCH FAILED ===');
+        console.error('[ACCOUNT SEARCH] Error type:', error?.constructor?.name);
+        console.error('[ACCOUNT SEARCH] Error message:', error instanceof Error ? error.message : 'Unknown error');
+        console.error('[ACCOUNT SEARCH] Full error:', error);
+        console.error('================================\n');
+        
         accountLoading.classList.add('hidden');
         accountEmpty.classList.remove('hidden');
       }
@@ -753,9 +831,26 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
      * Select an account from search results
      */
     function selectAccount(id: string, name: string) {
+      console.log('\n=== ACCOUNT SELECTED ===');
+      console.log('[ACCOUNT SELECT] Received ID:', id, '(type:', typeof id, ')');
+      console.log('[ACCOUNT SELECT] Received Name:', name);
+      
+      // Check if ID is being modified
+      const idAsNumber = parseInt(id);
+      console.log('[ACCOUNT SELECT] ID as number:', idAsNumber);
+      console.log('[ACCOUNT SELECT] ID string length:', id.length);
+      console.log('[ACCOUNT SELECT] ID exact value:', JSON.stringify(id));
+      
       selectedAccountId.value = id;
       accountSearch.value = name;
       selectedAccountData = { id, name };
+      
+      console.log('[ACCOUNT SELECT] Set selectedAccountId.value to:', selectedAccountId.value);
+      console.log('[ACCOUNT SELECT] Set accountSearch.value to:', accountSearch.value);
+      console.log('[ACCOUNT SELECT] Set selectedAccountData to:', selectedAccountData);
+      console.log('[ACCOUNT SELECT] ✓ Account selection complete');
+      console.log('========================\n');
+      
       accountDropdown.classList.add('hidden');
     }
 
@@ -974,7 +1069,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       quoteStatus: string;
       quoteType: string;
     }): Promise<number> {
+      console.log('[QUOTE] Creating quote record...');
+      console.log('[QUOTE] Account Name:', params.accountName);
+      console.log('[QUOTE] Quote Date:', params.quoteDate);
+      console.log('[QUOTE] Valid Until:', params.validUntil);
+      console.log('[QUOTE] Total Amount:', params.totalAmount);
+      console.log('[QUOTE] Quote Status:', params.quoteStatus);
+      console.log('[QUOTE] Quote Type:', params.quoteType);
+      
       const userEmail = getUserEmail();
+      console.log('[QUOTE] User Email:', userEmail);
       
       const quotePayload = {
         fields: {
@@ -990,9 +1094,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         }
       };
 
-      console.log('[QUOTE] Creating quote with payload:', quotePayload);
+      console.log('[QUOTE] Quote payload:', JSON.stringify(quotePayload, null, 2));
 
-      const response = await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
+      const createUrl = `${API_BASE_URL}/proxy/quotes/records`;
+      console.log('[QUOTE] Create URL:', createUrl);
+      console.log('[QUOTE] Token exists:', !!token);
+      
+      const response = await fetch(createUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1001,14 +1109,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         body: JSON.stringify(quotePayload)
       });
 
+      console.log('[QUOTE] Create response status:', response.status, response.statusText);
+      console.log('[QUOTE] Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (response.status === 401) {
+        console.error('[QUOTE] Unauthorized - token may be expired');
         logout();
         throw new Error('Unauthorized - please login again');
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('[QUOTE] Failed to create quote:', errorText);
+        console.error('[QUOTE] Failed to create quote. Status:', response.status);
+        console.error('[QUOTE] Error response:', errorText);
         throw new Error(`Failed to create quote: ${errorText}`);
       }
 
@@ -1023,7 +1136,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         throw new Error('Failed to get quote ID from response');
       }
 
-      console.log('[QUOTE] Quote created successfully with ID:', quoteId);
+      console.log('[QUOTE] ✓ Quote created successfully with ID:', quoteId);
       return quoteId;
     }
 
@@ -1032,11 +1145,17 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
      * Uses NocoDB-style linking: POST /proxy/quotes/links/accounts_copy/{quote_id}
      */
     async function linkAccountToQuote(quoteId: number, accountId: number): Promise<void> {
-      console.log(`[QUOTE] Linking account ${accountId} to quote ${quoteId}`);
-      console.log(`[QUOTE] Link URL: ${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`);
-      console.log(`[QUOTE] Link body:`, JSON.stringify([{ id: accountId }]));
+      console.log('[QUOTE] Step: Linking account to quote...');
+      console.log('[QUOTE] Account ID:', accountId);
+      console.log('[QUOTE] Quote ID:', quoteId);
+      
+      const linkUrl = `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`;
+      console.log('[QUOTE] Link URL:', linkUrl);
+      
+      const linkBody = [{ id: accountId }];
+      console.log('[QUOTE] Link body:', JSON.stringify(linkBody, null, 2));
 
-      const response = await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`, {
+      const response = await fetch(linkUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1045,21 +1164,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         body: JSON.stringify([{ id: accountId }])
       });
 
-      console.log(`[QUOTE] Link account response status: ${response.status}`);
+      console.log('[QUOTE] Link account response status:', response.status, response.statusText);
 
       if (response.status === 401) {
+        console.error('[QUOTE] Unauthorized during account linking');
         logout();
         throw new Error('Unauthorized - please login again');
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[QUOTE] Failed to link account:`, errorText);
+        console.error('[QUOTE] Failed to link account. Status:', response.status);
+        console.error('[QUOTE] Error response:', errorText);
         throw new Error(`Failed to link account (${response.status}): ${errorText}`);
       }
 
       const linkResult = await safeJsonParse(response);
-      console.log('[QUOTE] Account linked successfully:', linkResult);
+      console.log('[QUOTE] ✓ Account linked successfully:', linkResult);
     }
 
     /**
@@ -1067,14 +1188,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
      * Uses NocoDB-style linking: POST /proxy/quotes/links/products/{quote_id}
      */
     async function linkProductsToQuote(quoteId: number, productIds: number[]): Promise<void> {
-      console.log(`[QUOTE] Linking ${productIds.length} products to quote ${quoteId}`);
+      console.log('[QUOTE] Step: Linking products to quote...');
+      console.log('[QUOTE] Quote ID:', quoteId);
+      console.log('[QUOTE] Number of products:', productIds.length);
+      console.log('[QUOTE] Product IDs:', productIds);
 
       // Build array of product IDs for linking
       const productLinks = productIds.map(id => ({ id }));
-      console.log(`[QUOTE] Link URL: ${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`);
-      console.log(`[QUOTE] Link body:`, JSON.stringify(productLinks));
+      
+      const linkUrl = `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`;
+      console.log('[QUOTE] Link URL:', linkUrl);
+      console.log('[QUOTE] Link body:', JSON.stringify(productLinks, null, 2));
 
-      const response = await fetch(`${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`, {
+      const response = await fetch(linkUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1083,21 +1209,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         body: JSON.stringify(productLinks)
       });
 
-      console.log(`[QUOTE] Link products response status: ${response.status}`);
+      console.log('[QUOTE] Link products response status:', response.status, response.statusText);
 
       if (response.status === 401) {
+        console.error('[QUOTE] Unauthorized during product linking');
         logout();
         throw new Error('Unauthorized - please login again');
       }
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`[QUOTE] Failed to link products:`, errorText);
+        console.error('[QUOTE] Failed to link products. Status:', response.status);
+        console.error('[QUOTE] Error response:', errorText);
         throw new Error(`Failed to link products (${response.status}): ${errorText}`);
       }
 
       const linkResult = await safeJsonParse(response);
-      console.log('[QUOTE] Products linked successfully:', linkResult);
+      console.log('[QUOTE] ✓ Products linked successfully:', linkResult);
     }
 
     /**
@@ -1108,9 +1236,17 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       quoteId: number, 
       productData: Array<{ productId: number; quantity: number; unitPrice: number }>
     ): Promise<void> {
-      console.log(`[QUOTE] Creating ${productData.length} ProductsForQuotes junction records for quote ${quoteId}`);
+      console.log('[QUOTE] Step: Creating ProductsForQuotes junction records...');
+      console.log('[QUOTE] Quote ID:', quoteId);
+      console.log('[QUOTE] Number of records to create:', productData.length);
+      console.log('[QUOTE] Product data:', productData);
 
-      for (const item of productData) {
+      for (let i = 0; i < productData.length; i++) {
+        const item = productData[i];
+        console.log(`[QUOTE] Processing product ${i + 1}/${productData.length}`);
+        console.log('[QUOTE] Product ID:', item.productId);
+        console.log('[QUOTE] Quantity:', item.quantity);
+        console.log('[QUOTE] Unit Price:', item.unitPrice);
         const payload = {
           fields: {
             'Quotes': quoteId,
@@ -1120,9 +1256,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         };
 
-        console.log(`[QUOTE] Creating ProductsForQuotes record:`, JSON.stringify(payload));
+        console.log('[QUOTE] Junction record payload:', JSON.stringify(payload, null, 2));
 
-        const response = await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {
+        const junctionUrl = `${API_BASE_URL}/proxy/products_for_quotes/records`;
+        console.log('[QUOTE] Junction URL:', junctionUrl);
+        
+        const response = await fetch(junctionUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -1131,24 +1270,26 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           body: JSON.stringify(payload)
         });
 
-        console.log(`[QUOTE] ProductsForQuotes create response status: ${response.status}`);
+        console.log('[QUOTE] Junction create response status:', response.status, response.statusText);
 
         if (response.status === 401) {
+          console.error('[QUOTE] Unauthorized during junction record creation');
           logout();
           throw new Error('Unauthorized - please login again');
         }
 
         if (!response.ok) {
           const errorText = await response.text();
-          console.error(`[QUOTE] Failed to create ProductsForQuotes record:`, errorText);
+          console.error('[QUOTE] Failed to create junction record. Status:', response.status);
+          console.error('[QUOTE] Error response:', errorText);
           throw new Error(`Failed to create ProductsForQuotes record (${response.status}): ${errorText}`);
         }
 
         const result = await safeJsonParse(response);
-        console.log(`[QUOTE] ProductsForQuotes record created successfully:`, result);
+        console.log('[QUOTE] ✓ Junction record created:', result);
       }
 
-      console.log('[QUOTE] All ProductsForQuotes records created successfully');
+      console.log('[QUOTE] ✓ All ProductsForQuotes records created successfully');
     }
 
     /**
@@ -1156,8 +1297,20 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
      */
     async function handleCreateQuote(e: Event) {
       e.preventDefault();
+      
+      console.log('\n=== CREATE QUOTE STARTED ===');
+      console.log('[QUOTE] API Base URL:', API_BASE_URL);
+      console.log('[QUOTE] Token exists:', !!token);
 
       const accountId = selectedAccountId.value;
+      console.log('[QUOTE] ========================================');
+      console.log('[QUOTE] ACCOUNT ID VERIFICATION BEFORE QUOTE CREATION');
+      console.log('[QUOTE] selectedAccountId.value:', accountId, '(type:', typeof accountId, ')');
+      console.log('[QUOTE] selectedAccountData:', selectedAccountData);
+      console.log('[QUOTE] Account ID as integer:', parseInt(accountId));
+      console.log('[QUOTE] Account ID string length:', accountId.length);
+      console.log('[QUOTE] Account ID exact value:', JSON.stringify(accountId));
+      console.log('[QUOTE] ========================================');
       const accountName = selectedAccountData?.name || '';
       const quoteDate = (document.getElementById('quoteDate') as HTMLInputElement).value;
       const validUntil = (document.getElementById('validUntil') as HTMLInputElement).value;
@@ -1170,7 +1323,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const productDataForJunction: Array<{ productId: number; quantity: number; unitPrice: number }> = [];
       let totalAmount = 0;
 
-      productItems.forEach(item => {
+      console.log('[QUOTE] Number of product items in form:', productItems.length);
+      
+      productItems.forEach((item, index) => {
         const idInput = item.querySelector('.product-id') as HTMLInputElement;
         const customPriceInput = item.querySelector('.product-custom-price') as HTMLInputElement;
         const quantity = parseInt((item.querySelector('.product-quantity') as HTMLInputElement).value);
@@ -1178,15 +1333,22 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         const productId = parseInt(idInput.value);
         const customPrice = parseFloat(customPriceInput.value || '0');
         
+        console.log(`[QUOTE] Product ${index + 1}: ID=${productId}, Qty=${quantity}, Price=${customPrice}`);
+        
         if (productId && quantity > 0 && customPrice > 0) {
           productIds.push(productId);
           productDataForJunction.push({ productId, quantity, unitPrice: customPrice });
           totalAmount += customPrice * quantity;
+        } else {
+          console.log(`[QUOTE] Product ${index + 1} skipped (invalid data)`);
         }
       });
+      
+      console.log('[QUOTE] Valid products:', productIds.length);
+      console.log('[QUOTE] Total Amount:', totalAmount);
 
       try {
-        // Step 1: Create the quote record
+        console.log('[QUOTE] Step 1: Creating quote record...');
         const quoteId = await createQuote({
           accountName,
           quoteDate,
@@ -1197,24 +1359,41 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           quoteType
         });
 
-        // Step 2: Link the account to the quote using proxy link endpoint
-        await linkAccountToQuote(quoteId, parseInt(accountId));
+        console.log('[QUOTE] Step 2: Linking account to quote...');
+        console.log('[QUOTE] About to link - Account ID before parseInt:', accountId);
+        const accountIdInt = parseInt(accountId);
+        console.log('[QUOTE] Account ID after parseInt:', accountIdInt);
+        console.log('[QUOTE] Calling linkAccountToQuote with quoteId:', quoteId, 'and accountId:', accountIdInt);
+        await linkAccountToQuote(quoteId, accountIdInt);
 
-        // Step 3: Link products to the quote using proxy link endpoint
         if (productIds.length > 0) {
+          console.log('[QUOTE] Step 3: Linking products to quote...');
           await linkProductsToQuote(quoteId, productIds);
+        } else {
+          console.log('[QUOTE] Step 3: No products to link');
         }
 
-        // Step 4: Create ProductsForQuotes junction records with custom prices
         if (productDataForJunction.length > 0) {
+          console.log('[QUOTE] Step 4: Creating ProductsForQuotes junction records...');
           await createProductsForQuotesRecords(quoteId, productDataForJunction);
+        } else {
+          console.log('[QUOTE] Step 4: No junction records to create');
         }
 
-        console.log('[QUOTE] Quote creation and linking completed successfully');
+        console.log('[QUOTE] ✓✓✓ Quote creation completed successfully!');
+        console.log('[QUOTE] Quote ID:', quoteId);
+        console.log('=== CREATE QUOTE COMPLETED ===\n');
+        
         closeModal();
         loadQuotes();
       } catch (error) {
-        console.error('[QUOTE ERROR]', error);
+        console.error('\n=== CREATE QUOTE FAILED ===');
+        console.error('[QUOTE] Error type:', error?.constructor?.name);
+        console.error('[QUOTE] Error message:', error instanceof Error ? error.message : 'Unknown error');
+        console.error('[QUOTE] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+        console.error('[QUOTE] Full error object:', error);
+        console.error('============================\n');
+        
         alert(error instanceof Error ? error.message : 'Failed to create quote');
       }
     }

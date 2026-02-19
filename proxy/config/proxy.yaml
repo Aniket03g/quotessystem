@@ -27,3 +27,7 @@ tables:
   products_for_quotes:
     name: "ProductsForQuotes"
     operations: [read, update, create, link]
+
+  accounts_copy:
+    name: "Accounts Copy"
+    operations: [read, create, update, delete]

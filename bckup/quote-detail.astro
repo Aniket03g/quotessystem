@@ -3,225 +3,272 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
 <DashboardLayout title="Quote Details - Grove Systems" currentPage="quotes">
-  <!-- Back Button -->
-  <div class="mb-6">
-    <a href="/quotes" class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+  <!-- Back Button (Nexus-style) -->
+  <div class="mb-4">
+    <a href="/quotes" class="inline-flex items-center gap-1.5 text-[13px] text-slate-500 hover:text-slate-800 transition-colors">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>
-      Back to Quotes
+      <span class="font-medium">Quote Details</span>
     </a>
   </div>
 
   <!-- Loading State -->
-  <div id="loading" class="py-12 text-center">
-    <svg class="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+  <div id="loading" class="py-16 text-center">
+    <svg class="animate-spin w-7 h-7 text-blue-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
       <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
     </svg>
-    <p class="text-sm text-slate-600">Loading quote details...</p>
+    <p class="text-[13px] text-slate-500">Loading quote details...</p>
   </div>
 
   <!-- Error State -->
-  <div id="error" class="hidden mx-auto max-w-2xl p-4 bg-red-50 border border-red-200 rounded-lg">
-    <div class="flex items-start gap-3">
-      <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div id="error" class="hidden mx-auto max-w-2xl p-3.5 bg-red-50 border border-red-200 rounded-lg">
+    <div class="flex items-start gap-2.5">
+      <svg class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
       </svg>
-      <p class="text-sm text-red-800" id="errorText"></p>
+      <p class="text-[13px] text-red-700" id="errorText"></p>
     </div>
   </div>
 
-  <!-- Quote Details Content -->
-  <div id="quoteContent" class="hidden space-y-6">
-    <!-- Header Card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <div class="flex items-start justify-between mb-8">
-        <div>
-          <h1 id="quoteSubject" class="text-3xl font-bold text-slate-900 mb-3">Loading...</h1>
-          <div class="flex items-center gap-5 text-sm text-slate-600">
-            <span id="quoteDate" class="font-medium">Date: --</span>
-            <span class="text-slate-300">•</span>
-            <div class="relative">
-              <button id="versionBadge" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-base font-semibold rounded-full transition-colors shadow-sm">
-                <span id="versionText">Version --</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </button>
-              <div id="versionDropdown" class="hidden absolute top-full left-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-slate-200 z-50 max-h-96 overflow-y-auto">
-                <div class="p-3 border-b border-slate-200 bg-slate-50">
-                  <h3 class="text-sm font-semibold text-slate-700">Version History</h3>
-                </div>
-                <div id="versionList" class="p-2">
-                  <div class="flex items-center justify-center py-8">
-                    <svg class="animate-spin w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+  <!-- Quote Details Content (Nexus Lead Details style - two column layout) -->
+  <div id="quoteContent" class="hidden">
+    <div class="flex gap-6">
+      <!-- Left Column - Main Content -->
+      <div class="flex-1 min-w-0 space-y-5">
+        <!-- Header Card -->
+        <div class="bg-white rounded-xl border border-slate-200/80 p-5">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <h1 id="quoteSubject" class="text-[22px] font-bold text-slate-900 mb-2">Loading...</h1>
+              <div class="flex items-center gap-3 text-[13px] text-slate-500">
+                <span id="quoteDate" class="font-medium">Date: --</span>
+                <span class="text-slate-300">|</span>
+                <div class="relative">
+                  <button id="versionBadge" class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-[12px] font-semibold rounded-full transition-colors">
+                    <span id="versionText">v--</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
-                    <span class="ml-2 text-sm text-slate-600">Loading versions...</span>
+                  </button>
+                  <div id="versionDropdown" class="hidden absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-slate-200 z-50 max-h-80 overflow-y-auto">
+                    <div class="px-4 py-3 border-b border-slate-100">
+                      <h3 class="text-[13px] font-semibold text-slate-700">Version History</h3>
+                    </div>
+                    <div id="versionList" class="p-2">
+                      <div class="flex items-center justify-center py-6">
+                        <svg class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="ml-2 text-[13px] text-slate-500">Loading versions...</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        <div class="flex gap-3 items-center">
-          <div class="flex items-center gap-2">
-            <label for="logoSelect" class="text-sm font-medium text-slate-700">Generate with:</label>
-            <select id="logoSelect" class="px-3 py-2 bg-white border border-slate-300 text-slate-700 text-sm rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="greenocare">GreenOCare</option>
-              <option value="grove">Grove Systems</option>
-            </select>
-          </div>
-          <button id="createNewVersionBtn" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
-            </svg>
-            New Version
-          </button>
-          <button id="editQuoteBtn" class="inline-flex items-center justify-center p-2.5 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors" title="Edit Products">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-            </svg>
-          </button>
-          <button id="previewPdfBtn" class="inline-flex items-center justify-center p-2.5 bg-slate-100 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors" title="Preview PDF">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-            </svg>
-          </button>
-          <button id="downloadPdfBtn" class="inline-flex items-center justify-center p-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm" title="Download PDF">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Status</p>
-          <span id="quoteStatus" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
-            Draft
-          </span>
-        </div>
-        <div>
-          <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Sub Total</p>
-          <p id="quoteTotal" class="text-lg font-semibold text-slate-900">₹0</p>
-        </div>
-        <div>
-          <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Valid Until</p>
-          <p id="quoteValidUntil" class="text-sm text-slate-700">--</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Account Information Card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <h2 class="text-lg font-semibold text-slate-800 mb-4">Account Information</h2>
-      <div id="accountInfo" class="space-y-2">
-        <div class="flex items-start gap-2">
-          <svg class="w-5 h-5 text-slate-400 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-          </svg>
-          <div>
-            <p class="text-sm font-medium text-slate-700" id="accountName">Loading...</p>
-            <p class="text-xs text-slate-500" id="accountDetails"></p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Edit Mode Panel (shown when editing) -->
-    <div id="editModePanel" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-6 mb-6">
-      <div class="flex items-start justify-between mb-6">
-        <div>
-          <h3 class="text-lg font-semibold text-slate-800 mb-1">Edit Quote</h3>
-          <p class="text-sm text-slate-600">Make changes to products and quote status</p>
-        </div>
-        <div class="flex gap-2">
-          <button id="cancelEditBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-            Cancel
-          </button>
-          <button id="saveEditBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Save Changes
-          </button>
-        </div>
-      </div>
-
-      <!-- Quote Status Section -->
-      <div class="bg-white rounded-xl p-4 mb-4 border border-slate-200">
-        <label class="block text-sm font-medium text-slate-700 mb-2">Quote Status</label>
-        <select id="editQuoteStatus" class="w-full max-w-xs px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-          <option value="Draft">Draft</option>
-          <option value="Sent">Sent</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-          <option value="Final">Final</option>
-        </select>
-      </div>
-
-      <!-- Add Product Section -->
-      <div class="bg-white rounded-xl p-4 border border-slate-200">
-        <label class="block text-sm font-medium text-slate-700 mb-3">
-          <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Add Product to Quote
-        </label>
-        <div class="flex gap-3">
-          <div class="flex-1 relative">
-            <input 
-              type="text" 
-              id="newProductSearch" 
-              placeholder="Search by product name or code..." 
-              autocomplete="off"
-              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
-            <div id="newProductDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              <div id="newProductResults" class="py-1"></div>
-              <div id="newProductLoading" class="hidden px-4 py-3 text-sm text-slate-500 text-center">
-                <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <div class="flex items-center gap-2">
+              <button id="createNewVersionBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-[12px] font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
                 </svg>
-                Searching...
-              </div>
-              <div id="newProductEmpty" class="hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
+                New Version
+              </button>
+              <button id="editQuoteBtn" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Edit Products">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
+              <button id="previewPdfBtn" class="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Preview PDF">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+              <button id="downloadPdfBtn" class="p-2 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Download PDF">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+              </button>
             </div>
           </div>
-          <button id="addProductToQuoteBtn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Add
-          </button>
+        </div>
+
+        <!-- Edit Mode Panel (shown when editing) -->
+        <div id="editModePanel" class="hidden bg-white rounded-xl border-2 border-blue-200 p-5">
+          <div class="flex items-start justify-between mb-5">
+            <div>
+              <h3 class="text-[15px] font-semibold text-slate-800 mb-0.5">Edit Quote</h3>
+              <p class="text-[12px] text-slate-500">Make changes to products and quote status</p>
+            </div>
+            <div class="flex gap-2">
+              <button id="cancelEditBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 text-[12px] font-medium rounded-lg hover:bg-slate-50 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Cancel
+              </button>
+              <button id="saveEditBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white text-[12px] font-medium rounded-lg hover:bg-emerald-600 transition-colors shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Save Changes
+              </button>
+            </div>
+          </div>
+
+          <!-- Quote Status Section -->
+          <div class="bg-slate-50 rounded-lg p-4 mb-4">
+            <label class="block text-[12px] font-medium text-slate-600 mb-1.5">Quote Status</label>
+            <select id="editQuoteStatus" class="w-full max-w-xs px-3 py-2 bg-white border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all">
+              <option value="Draft">Draft</option>
+              <option value="Sent">Sent</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+              <option value="Final">Final</option>
+            </select>
+          </div>
+
+          <!-- Add Product Section -->
+          <div class="bg-slate-50 rounded-lg p-4">
+            <label class="block text-[12px] font-medium text-slate-600 mb-2">
+              <svg class="w-3.5 h-3.5 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add Product to Quote
+            </label>
+            <div class="flex gap-2.5">
+              <div class="flex-1 relative">
+                <input 
+                  type="text" 
+                  id="newProductSearch" 
+                  placeholder="Search by product name or code..." 
+                  autocomplete="off"
+                  class="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-lg text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+                />
+                <div id="newProductDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div id="newProductResults" class="py-1"></div>
+                  <div id="newProductLoading" class="hidden px-4 py-3 text-[13px] text-slate-500 text-center">
+                    <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Searching...
+                  </div>
+                  <div id="newProductEmpty" class="hidden px-4 py-3 text-[13px] text-slate-500 text-center">No products found</div>
+                </div>
+              </div>
+              <button id="addProductToQuoteBtn" class="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-500 text-white text-[12px] font-medium rounded-lg hover:bg-emerald-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Card -->
+        <div class="bg-white rounded-xl border border-slate-200/80 p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-[15px] font-semibold text-slate-800">Products</h2>
+          </div>
+          <div id="productsContainer">
+            <div class="text-[13px] text-slate-500">Loading products...</div>
+          </div>
+        </div>
+
+        <!-- Notes Card (if exists) -->
+        <div id="notesCard" class="hidden bg-white rounded-xl border border-slate-200/80 p-5">
+          <h2 class="text-[15px] font-semibold text-slate-800 mb-3">Notes</h2>
+          <p id="quoteNotes" class="text-[13px] text-slate-600 whitespace-pre-wrap leading-relaxed"></p>
+        </div>
+      </div>
+
+      <!-- Right Column - Quote Details Sidebar (Nexus-style) -->
+      <div class="w-[300px] flex-shrink-0 hidden lg:block">
+        <div class="bg-white rounded-xl border border-slate-200/80 p-5 sticky top-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-[15px] font-semibold text-slate-800">Quote Details</h3>
+            <button class="text-slate-400 hover:text-slate-600 transition-colors">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <circle cx="4" cy="10" r="1.5"></circle>
+                <circle cx="10" cy="10" r="1.5"></circle>
+                <circle cx="16" cy="10" r="1.5"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Account -->
+            <div class="flex items-start gap-3">
+              <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              </svg>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Account</p>
+                <p class="text-[13px] font-medium text-slate-800 mt-0.5" id="sidebarAccountName">Loading...</p>
+                <p class="text-[11px] text-slate-400 mt-0.5" id="sidebarAccountDetails"></p>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="flex items-start gap-3">
+              <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Status</p>
+                <span id="sidebarQuoteStatus" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 mt-1">
+                  Draft
+                </span>
+              </div>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="flex items-start gap-3">
+              <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Sub Total</p>
+                <p id="sidebarQuoteTotal" class="text-[15px] font-bold text-slate-900 mt-0.5">₹0</p>
+              </div>
+            </div>
+
+            <!-- Valid Until -->
+            <div class="flex items-start gap-3">
+              <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <div>
+                <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Valid Until</p>
+                <p id="sidebarQuoteValidUntil" class="text-[13px] text-slate-700 mt-0.5">--</p>
+              </div>
+            </div>
+
+            <!-- Logo Selection -->
+            <div class="flex items-start gap-3">
+              <svg class="w-4 h-4 text-slate-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <div class="flex-1">
+                <p class="text-[11px] text-slate-400 font-medium uppercase tracking-wider">Generate with</p>
+                <select id="sidebarLogoSelect" class="mt-1 w-full px-2.5 py-1.5 bg-white border border-slate-200 text-slate-700 text-[12px] rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+                  <option value="greenocare">GreenOCare</option>
+                  <option value="grove">Grove Systems</option>
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Products Card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-slate-800">Products</h2>
-      </div>
-      <div id="productsContainer">
-        <div class="text-sm text-slate-500">Loading products...</div>
-      </div>
-    </div>
-
-    <!-- Notes Card (if exists) -->
-    <div id="notesCard" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-      <h2 class="text-lg font-semibold text-slate-800 mb-4">Notes</h2>
-      <p id="quoteNotes" class="text-sm text-slate-700 whitespace-pre-wrap"></p>
-    </div>
+    <!-- Account Info hidden container (for script compatibility) -->
+    <div id="accountInfo" class="hidden"></div>
   </div>
 
   <script>
@@ -258,10 +305,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     let selectedNewProduct: { id: string; name: string; price: string } | null = null;
     let originalQuoteStatus = '';
     let currentQuoteFields: any = {};
-    
-    // Version history state
-    let versionChain: any[] = [];
-    let versionChainLoaded = false;
 
     /**
      * Fetch quote details - same method as PDF download
@@ -463,44 +506,59 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       // Style version badge as green for current version
       const versionBadge = document.getElementById('versionBadge') as HTMLButtonElement;
       if (versionBadge) {
-        versionBadge.className = 'inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-700 text-base font-semibold rounded-full transition-colors shadow-sm';
+        versionBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[12px] font-semibold rounded-full transition-colors';
       }
 
       // Status
       const status = fields['Quote Status'] || 'Draft';
       originalQuoteStatus = status;
-      const statusEl = document.getElementById('quoteStatus') as HTMLSpanElement;
-      statusEl.textContent = status;
       
-      let statusClasses = 'bg-slate-100 text-slate-800';
-      if (status === 'Sent') statusClasses = 'bg-blue-100 text-blue-800';
-      if (status === 'Accepted' || status === 'Approved') statusClasses = 'bg-emerald-100 text-emerald-800';
-      if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
-      if (status === 'Final') statusClasses = 'bg-purple-100 text-purple-800';
-      statusEl.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}`;
+      let statusClasses = 'bg-slate-100 text-slate-600';
+      let dotColor = 'bg-slate-400';
+      if (status === 'Draft') { statusClasses = 'bg-slate-100 text-slate-600'; dotColor = 'bg-slate-400'; }
+      if (status === 'Sent') { statusClasses = 'bg-blue-50 text-blue-700'; dotColor = 'bg-blue-500'; }
+      if (status === 'Accepted' || status === 'Approved') { statusClasses = 'bg-emerald-50 text-emerald-700'; dotColor = 'bg-emerald-500'; }
+      if (status === 'Rejected') { statusClasses = 'bg-red-50 text-red-700'; dotColor = 'bg-red-500'; }
+      if (status === 'Final') { statusClasses = 'bg-purple-50 text-purple-700'; dotColor = 'bg-purple-500'; }
+      
+      const statusHtml = `<span class="w-1.5 h-1.5 rounded-full ${dotColor}"></span>${status}`;
+      
+      // Update sidebar status
+      const sidebarStatusEl = document.getElementById('sidebarQuoteStatus') as HTMLSpanElement;
+      if (sidebarStatusEl) {
+        sidebarStatusEl.innerHTML = statusHtml;
+        sidebarStatusEl.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${statusClasses} mt-1`;
+      }
 
       // Total
       const total = fields['Total Amount'] || 0;
-      (document.getElementById('quoteTotal') as HTMLParagraphElement).textContent = 
-        `₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      const totalFormatted = `₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      
+      // Update sidebar total
+      const sidebarTotalEl = document.getElementById('sidebarQuoteTotal');
+      if (sidebarTotalEl) sidebarTotalEl.textContent = totalFormatted;
 
       // Valid Until
-      (document.getElementById('quoteValidUntil') as HTMLParagraphElement).textContent = fields['Valid Until'] || 'N/A';
+      const validUntil = fields['Valid Until'] || 'N/A';
+      const sidebarValidEl = document.getElementById('sidebarQuoteValidUntil');
+      if (sidebarValidEl) sidebarValidEl.textContent = validUntil;
 
       // Account
       const accountName = accountData?.['Account Name'] || 'No account linked';
-      (document.getElementById('accountName') as HTMLParagraphElement).textContent = accountName;
+      const accountNameEl = document.getElementById('accountName');
+      if (accountNameEl) accountNameEl.textContent = accountName;
+      const sidebarAccountNameEl = document.getElementById('sidebarAccountName');
+      if (sidebarAccountNameEl) sidebarAccountNameEl.textContent = accountName;
       
       const accountDetails: string[] = [];
       if (accountData?.['Phone']) accountDetails.push(accountData['Phone']);
       if (accountData?.['Billing City']) accountDetails.push(accountData['Billing City']);
       
-      const accountDetailsEl = document.getElementById('accountDetails') as HTMLParagraphElement;
-      if (accountDetails.length > 0) {
-        accountDetailsEl.textContent = accountDetails.join(' • ');
-      } else {
-        accountDetailsEl.textContent = '';
-      }
+      const accountDetailsEl = document.getElementById('accountDetails');
+      const sidebarAccountDetailsEl = document.getElementById('sidebarAccountDetails');
+      const detailsText = accountDetails.length > 0 ? accountDetails.join(' • ') : '';
+      if (accountDetailsEl) accountDetailsEl.textContent = detailsText;
+      if (sidebarAccountDetailsEl) sidebarAccountDetailsEl.textContent = detailsText;
 
       // Products
       currentProducts = products;
@@ -531,7 +589,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       console.log('Quote data:', currentQuoteData);
 
       try {
-        const logoSelect = document.getElementById('logoSelect') as HTMLSelectElement;
+        const logoSelect = document.getElementById('sidebarLogoSelect') as HTMLSelectElement;
         const selectedLogo = logoSelect?.value || 'greenocare';
         console.log('Selected logo:', selectedLogo);
 
@@ -613,26 +671,26 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         return;
       }
 
-      const actionColumn = isEditMode ? '<th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>' : '';
+      const actionColumn = isEditMode ? '<th class="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Actions</th>' : '';
       
       productsContainer.innerHTML = `
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto -mx-5">
           <table class="w-full">
-            <thead class="bg-slate-100 border-b-2 border-slate-300">
-              <tr>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Product</th>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Brand</th>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Product Code</th>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">HSN Code</th>
-                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Qty</th>
-                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Unit Price</th>
-                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Discount %</th>
-                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Tax %</th>
-                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Line Total</th>
+            <thead>
+              <tr class="border-b border-slate-100">
+                <th class="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Product</th>
+                <th class="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Brand</th>
+                <th class="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Product Code</th>
+                <th class="px-4 py-2.5 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">HSN Code</th>
+                <th class="px-4 py-2.5 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Qty</th>
+                <th class="px-4 py-2.5 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Unit Price</th>
+                <th class="px-4 py-2.5 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Discount %</th>
+                <th class="px-4 py-2.5 text-center text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Tax %</th>
+                <th class="px-4 py-2.5 text-right text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Line Total</th>
                 ${actionColumn}
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200">
+            <tbody class="divide-y divide-slate-50">
               ${currentProducts.map((product: any) => {
                 const name = product.productName || 'Unnamed Product';
                 const brand = product.brand || '-';
@@ -691,19 +749,17 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                   </td>
                 ` : '';
                 
-                const rowIndex = currentProducts.indexOf(product);
-                const rowClass = rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50';
                 return `
-                  <tr data-junction-id="${junctionId}" class="${rowClass} hover:bg-blue-50 transition-colors">
-                    <td class="px-4 py-3.5 text-sm font-medium text-slate-900">${name}</td>
-                    <td class="px-4 py-3.5 text-sm text-slate-600">${brand}</td>
-                    <td class="px-4 py-3.5 text-sm text-slate-600">${productCode}</td>
-                    <td class="px-4 py-3.5 text-sm text-slate-600">${code}</td>
+                  <tr data-junction-id="${junctionId}" class="hover:bg-slate-50/80 transition-colors">
+                    <td class="px-4 py-3 text-[13px] font-medium text-slate-800">${name}</td>
+                    <td class="px-4 py-3 text-[13px] text-slate-500">${brand}</td>
+                    <td class="px-4 py-3 text-[13px] text-slate-500">${productCode}</td>
+                    <td class="px-4 py-3 text-[13px] text-slate-500">${code}</td>
                     ${qtyCell}
                     ${priceCell}
                     ${discountCell}
-                    <td class="px-4 py-3.5 text-sm font-medium text-slate-600 text-center">${taxRate}%</td>
-                    <td class="px-4 py-3.5 text-sm font-bold text-slate-900 text-right line-total-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="px-4 py-3 text-[13px] text-slate-500 text-center">${taxRate}%</td>
+                    <td class="px-4 py-3 text-[13px] font-semibold text-slate-800 text-right line-total-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     ${actionCell}
                   </tr>
                 `;
@@ -711,10 +767,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             </tbody>
           </table>
         </div>
-        <div class="mt-8 flex justify-end">
-          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl px-8 py-6 border-2 border-blue-200 shadow-sm">
-            <div class="text-sm font-semibold text-slate-600 mb-2 uppercase tracking-wide">Grand Total (after discount & tax)</div>
-            <div id="grandTotal" class="text-4xl font-bold text-blue-900">₹0.00</div>
+        <div class="mt-5 flex justify-end px-4">
+          <div class="bg-slate-50 rounded-lg px-6 py-4 border border-slate-200">
+            <div class="text-[11px] font-semibold text-slate-500 mb-1 uppercase tracking-wider">Grand Total (incl. discount & tax)</div>
+            <div id="grandTotal" class="text-[22px] font-bold text-slate-900">₹0.00</div>
           </div>
         </div>
       `;
@@ -1474,14 +1530,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         await loadQuoteDetails();
         
         // Show success message
-        const statusEl = document.getElementById('quoteStatus') as HTMLSpanElement;
-        const originalText = statusEl.textContent;
-        statusEl.textContent = '✓ Saved';
-        setTimeout(() => {
-          if (statusEl.textContent === '✓ Saved') {
-            statusEl.textContent = originalText;
-          }
-        }, 2000);
+        const statusEl = document.getElementById('sidebarQuoteStatus') as HTMLSpanElement;
+        if (statusEl) {
+          const originalText = statusEl.textContent;
+          statusEl.textContent = '✓ Saved';
+          setTimeout(() => {
+            if (statusEl.textContent === '✓ Saved') {
+              statusEl.textContent = originalText;
+            }
+          }, 2000);
+        }
       } catch (error) {
         console.error('Error saving changes:', error);
         alert('Failed to save changes. Please try again.');
@@ -1517,32 +1575,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     document.getElementById('downloadPdfBtn')?.addEventListener('click', () => generatePDF(false));
     document.getElementById('createNewVersionBtn')?.addEventListener('click', () => createNewVersion());
 
-    // Version badge click handler
-    const versionBadge = document.getElementById('versionBadge') as HTMLButtonElement;
-    const versionDropdown = document.getElementById('versionDropdown') as HTMLDivElement;
-    
-    versionBadge?.addEventListener('click', async (e) => {
+    // Version history dropdown
+    let versionChain: any[] = [];
+    let versionChainLoaded = false;
+
+    document.getElementById('versionBadge')?.addEventListener('click', async (e) => {
       e.stopPropagation();
-      console.log('\n=== VERSION DROPDOWN CLICKED ===');
-      const isHidden = versionDropdown.classList.contains('hidden');
-      console.log('[VERSION DROPDOWN] Current state:', isHidden ? 'hidden' : 'visible');
-      console.log('[VERSION DROPDOWN] Version chain loaded?', versionChainLoaded);
-      console.log('[VERSION DROPDOWN] Current quote ID:', quoteId);
+      const dropdown = document.getElementById('versionDropdown') as HTMLDivElement;
       
-      if (isHidden) {
-        console.log('[VERSION DROPDOWN] Opening dropdown...');
-        versionDropdown.classList.remove('hidden');
+      if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
         
-        // Fetch version chain on first open (lazy load)
+        // Fetch version chain on first open
         if (!versionChainLoaded) {
-          console.log('[VERSION DROPDOWN] Fetching version history for the first time...');
           await fetchAndRenderVersionHistory();
-        } else {
-          console.log('[VERSION DROPDOWN] Using cached version chain');
         }
       } else {
-        console.log('[VERSION DROPDOWN] Closing dropdown...');
-        versionDropdown.classList.add('hidden');
+        dropdown.classList.add('hidden');
       }
     });
 
@@ -1557,9 +1606,28 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     });
 
     /**
-     * Traverse UPWARD to find root quote
-     * Uses Parent Quote nested object: { "id": 126, "fields": { ... } }
-     * Root has Parent Quote = null
+     * Compare two version strings (e.g., "1.0", "1.1", "2.0")
+     * Returns: -1 if a < b, 0 if equal, 1 if a > b
+     */
+    function compareVersions(versionA: string, versionB: string): number {
+      const partsA = versionA.split('.').map(n => parseInt(n) || 0);
+      const partsB = versionB.split('.').map(n => parseInt(n) || 0);
+      
+      const maxLength = Math.max(partsA.length, partsB.length);
+      
+      for (let i = 0; i < maxLength; i++) {
+        const a = partsA[i] || 0;
+        const b = partsB[i] || 0;
+        
+        if (a < b) return -1;
+        if (a > b) return 1;
+      }
+      
+      return 0;
+    }
+
+    /**
+     * Traverse backwards through Parent Quote links to find the root (oldest) quote
      */
     async function findRootQuote(startQuoteId: string): Promise<any> {
       let currentQuote: any;
@@ -1568,17 +1636,78 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const maxDepth = 50;
       let depth = 0;
 
-      console.log('[VERSION] Step 1: Traversing UPWARD to find root from quote', startQuoteId);
+      console.log('[VERSION HISTORY] Finding root quote starting from', startQuoteId);
 
       while (currentId && depth < maxDepth) {
         if (visited.has(currentId)) {
-          console.error('[VERSION] Circular reference detected at quote', currentId);
-          throw new Error('Circular reference in version chain');
+          console.error('[VERSION HISTORY] Circular reference detected at quote', currentId);
+          break;
         }
         visited.add(currentId);
 
-        const response = await fetch(
-          `${API_BASE_URL}/proxy/quotes/records/${currentId}?fields=Id,Subject,Quote Version,Parent Quote,nc_76_d___Quotes_id`,
+        const response = await fetch(`${API_BASE_URL}/proxy/quotes/records/${currentId}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          console.error('[VERSION HISTORY] Failed to fetch quote', currentId);
+          break;
+        }
+
+        currentQuote = await safeJsonParse(response);
+        const parentField = currentQuote.fields['Parent Quote'];
+
+        if (parentField && typeof parentField === 'object' && parentField.id) {
+          currentId = parentField.id.toString();
+          depth++;
+        } else {
+          // No parent, this is the root
+          console.log('[VERSION HISTORY] Found root quote:', currentQuote.id, 'after', depth, 'steps');
+          return currentQuote;
+        }
+      }
+
+      console.log('[VERSION HISTORY] Returning quote', currentQuote?.id, 'as root');
+      return currentQuote;
+    }
+
+    /**
+     * Fetch version chain using hybrid approach:
+     * 1. Traverse backwards to find root quote
+     * 2. Fetch all quotes with same Subject
+     * 3. Build chain by following Parent Quote relationships
+     * Returns array sorted by version (oldest to newest)
+     */
+    async function fetchVersionChain(startQuoteId: string): Promise<any[]> {
+      console.log('[VERSION HISTORY] Fetching version chain for quote', startQuoteId);
+
+      try {
+        // Step 1: Find the root quote by traversing backwards
+        const rootQuote = await findRootQuote(startQuoteId);
+        
+        if (!rootQuote) {
+          throw new Error('Failed to find root quote');
+        }
+
+        const subject = rootQuote.fields['Subject'];
+        if (!subject) {
+          console.warn('[VERSION HISTORY] No subject found, returning only root quote');
+          return [rootQuote];
+        }
+
+        console.log('[VERSION HISTORY] Root quote:', rootQuote.id, 'Subject:', subject);
+
+        // Step 2: Fetch all quotes with same Subject
+        // Important: Do NOT encode the subject - NocoDB handles the raw where clause
+        const rawWhere = `(Subject,eq,${subject})`;
+        console.log('[VERSION HISTORY] Raw where clause:', rawWhere);
+        
+        const allQuotesResponse = await fetch(
+          `${API_BASE_URL}/proxy/quotes/records?where=${rawWhere}`,
           {
             method: 'GET',
             headers: {
@@ -1588,149 +1717,81 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         );
 
-        if (!response.ok) {
-          console.error('[VERSION] Failed to fetch quote', currentId);
-          throw new Error(`Failed to fetch quote ${currentId}`);
+        if (!allQuotesResponse.ok) {
+          throw new Error('Failed to fetch quotes by subject');
         }
 
-        currentQuote = await safeJsonParse(response);
-        const parentField = currentQuote.fields['Parent Quote'];
+        const allQuotesData = await safeJsonParse(allQuotesResponse);
+        const allQuotes = allQuotesData.records || [];
 
-        console.log(`[VERSION] Quote ${currentId}: Parent Quote =`, parentField);
-
-        // Parent Quote is a nested object with .id property, or null for root
-        if (parentField && typeof parentField === 'object' && parentField.id) {
-          currentId = parentField.id.toString();
-          depth++;
-          console.log(`[VERSION] Moving up to parent quote ${currentId}`);
-        } else {
-          // No parent, this is the root
-          console.log(`[VERSION] ✓ Found root quote: ${currentQuote.id} (v${currentQuote.fields['Quote Version']}) after ${depth} steps`);
-          return currentQuote;
-        }
-      }
-
-      if (depth >= maxDepth) {
-        throw new Error('Max depth exceeded while finding root');
-      }
-
-      return currentQuote;
-    }
-
-    /**
-     * Traverse DOWNWARD from root to build complete version chain
-     * Uses nc_76_d___Quotes_id field which points to the child quote
-     * Returns array ordered from root (v1.0) to latest version
-     */
-    async function buildVersionChainFromRoot(rootQuote: any): Promise<any[]> {
-      console.log('[VERSION] Step 2: Traversing DOWNWARD from root to build chain');
-      
-      const chain: any[] = [];
-      const visited = new Set<number>();
-      const maxDepth = 50;
-      
-      let currentQuote = rootQuote;
-      let depth = 0;
-
-      while (currentQuote && depth < maxDepth) {
-        if (visited.has(currentQuote.id)) {
-          console.error('[VERSION] Circular reference detected at quote', currentQuote.id);
-          throw new Error('Circular reference in version chain');
-        }
+        console.log('[VERSION HISTORY] Found', allQuotes.length, 'quotes with same subject');
         
-        visited.add(currentQuote.id);
+        // Log all quotes and their Parent Quote fields for debugging
+        console.log('[VERSION HISTORY] All quotes with Parent Quote field:');
+        allQuotes.forEach((q: any) => {
+          const parentField = q.fields['Parent Quote'];
+          console.log(`  Quote ${q.id} (v${q.fields['Quote Version']}):`, 
+            'Parent Quote =', parentField, 
+            'Type:', typeof parentField,
+            'Has id?:', parentField?.id);
+        });
+
+        // Step 3: Build chain by following Parent Quote relationships from root
+        const chain: any[] = [];
+        const quoteMap = new Map(allQuotes.map((q: any) => [q.id, q]));
+        
+        let currentQuote = rootQuote;
         chain.push(currentQuote);
-        
-        console.log(`[VERSION] Added to chain: ${currentQuote.id} (v${currentQuote.fields['Quote Version']})`);
-        
-        // Check for child quote using nc_76_d___Quotes_id field
-        const childId = currentQuote.fields['nc_76_d___Quotes_id'];
-        
-        if (childId) {
-          console.log(`[VERSION] Found child quote ID: ${childId}`);
-          
-          // Fetch the child quote
-          const response = await fetch(
-            `${API_BASE_URL}/proxy/quotes/records/${childId}?fields=Id,Subject,Quote Version,Quote Date,Quote Status,Total Amount,Parent Quote,nc_76_d___Quotes_id`,
-            {
-              method: 'GET',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
+        console.log('[VERSION HISTORY] Starting chain from root:', currentQuote.id);
 
-          if (!response.ok) {
-            console.warn(`[VERSION] Failed to fetch child quote ${childId}, stopping chain`);
-            break;
+        // Find children by looking for quotes that reference current as parent
+        let iteration = 0;
+        while (true) {
+          iteration++;
+          console.log(`[VERSION HISTORY] Iteration ${iteration}: Looking for child of quote ${currentQuote.id}`);
+          
+          const child = allQuotes.find((q: any) => {
+            const parentField = q.fields['Parent Quote'];
+            const hasParent = parentField && typeof parentField === 'object' && parentField.id === currentQuote.id;
+            
+            if (parentField) {
+              console.log(`  Checking quote ${q.id}: Parent Quote =`, parentField, 
+                'Match?', hasParent);
+            }
+            
+            return hasParent;
+          });
+
+          if (!child) {
+            console.log(`[VERSION HISTORY] No child found for quote ${currentQuote.id}, chain complete`);
+            break; // No more children
           }
 
-          currentQuote = await safeJsonParse(response);
-          depth++;
-        } else {
-          // No child, this is the latest version
-          console.log(`[VERSION] ✓ Reached latest version: ${currentQuote.id} (v${currentQuote.fields['Quote Version']})`);
-          break;
-        }
-      }
-
-      if (depth >= maxDepth) {
-        throw new Error('Max depth exceeded while building chain');
-      }
-
-      console.log('[VERSION] ✓ Built complete chain with', chain.length, 'versions:', 
-        chain.map((q: any) => `${q.id}(v${q.fields['Quote Version']})`).join(' → '));
-
-      return chain;
-    }
-
-    /**
-     * Fetch complete version chain using upward then downward traversal
-     * Step 1: Traverse upward to find root (using Parent Quote nested object)
-     * Step 2: Traverse downward from root (using nc_76_d___Quotes_id field)
-     * Returns array ordered from root to latest
-     */
-    async function fetchVersionChain(startQuoteId: string): Promise<any[]> {
-      console.log('\n=== FETCHING VERSION CHAIN ===');
-      console.log('[VERSION] Starting from quote', startQuoteId);
-
-      try {
-        // Step 1: Find root by traversing upward
-        const rootQuote = await findRootQuote(startQuoteId);
-        
-        if (!rootQuote) {
-          throw new Error('Failed to find root quote');
+          console.log(`[VERSION HISTORY] Found child: ${child.id} (v${child.fields['Quote Version']})`);
+          chain.push(child);
+          currentQuote = child;
+          
+          if (iteration > 20) {
+            console.error('[VERSION HISTORY] Too many iterations, breaking to prevent infinite loop');
+            break;
+          }
         }
 
-        // Step 2: Build chain by traversing downward from root
-        const chain = await buildVersionChainFromRoot(rootQuote);
+        console.log('[VERSION HISTORY] Built chain with', chain.length, 'versions:', 
+          chain.map((q: any) => `${q.id}(v${q.fields['Quote Version']})`).join(' → '));
 
-        console.log('=== VERSION CHAIN COMPLETE ===\n');
         return chain;
       } catch (error) {
-        console.error('[VERSION] Error fetching version chain:', error);
+        console.error('[VERSION HISTORY] Error fetching version chain:', error);
         throw error;
       }
     }
 
     /**
      * Fetch version chain and render in dropdown
-     * Shows loading spinner while fetching
      */
     async function fetchAndRenderVersionHistory() {
       const versionList = document.getElementById('versionList') as HTMLDivElement;
-      
-      // Show loading spinner
-      versionList.innerHTML = `
-        <div class="flex items-center justify-center py-8">
-          <svg class="animate-spin w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          <span class="ml-2 text-sm text-slate-600">Loading versions...</span>
-        </div>
-      `;
       
       try {
         versionChain = await fetchVersionChain(quoteId!);
@@ -1738,7 +1799,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         
         renderVersionHistory();
       } catch (error) {
-        console.error('[VERSION] Error loading version history:', error);
+        console.error('[VERSION HISTORY] Error loading version history:', error);
         versionList.innerHTML = `
           <div class="px-4 py-8 text-center text-sm text-red-600">
             Failed to load version history
@@ -1748,13 +1809,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
 
     /**
-     * Render version history list from cached chain
+     * Render version history list
      */
     function renderVersionHistory() {
-      console.log('\n=== RENDERING VERSION HISTORY ===');
-      console.log('[RENDER] Version chain length:', versionChain.length);
-      console.log('[RENDER] Current quote ID:', quoteId);
-      
       const versionList = document.getElementById('versionList') as HTMLDivElement;
       
       if (versionChain.length === 0) {
@@ -1766,7 +1823,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         return;
       }
 
-      versionList.innerHTML = versionChain.map((quote) => {
+      versionList.innerHTML = versionChain.map((quote, index) => {
         const fields = quote.fields || {};
         const version = fields['Quote Version'] || '1.0';
         const date = fields['Quote Date'] || 'N/A';
@@ -1810,8 +1867,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         });
       });
-      
-      console.log('[RENDER] ✓ Rendered', versionChain.length, 'versions');
     }
 
     /**
@@ -1819,6 +1874,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
      * Copies quote fields, increments version, sets parent quote, and copies all line items
      */
     async function createNewVersion() {
+      console.log('\n=== CREATE NEW VERSION STARTED ===');
+      console.log('[VERSION] Quote ID:', quoteId);
+      console.log('[VERSION] Token exists:', !!token);
+      console.log('[VERSION] API Base URL:', API_BASE_URL);
+      
       const btn = document.getElementById('createNewVersionBtn') as HTMLButtonElement;
       const originalText = btn.innerHTML;
       
@@ -1833,10 +1893,13 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           <span>Creating...</span>
         `;
 
-        console.log('[VERSION] Creating new version of quote', quoteId);
+        console.log('[VERSION] Step 1: Fetching current quote details...');
 
         // Step 1: Fetch current quote details
-        const quoteResponse = await fetch(`${API_BASE_URL}/proxy/quotes/records/${quoteId}`, {
+        const fetchUrl = `${API_BASE_URL}/proxy/quotes/records/${quoteId}`;
+        console.log('[VERSION] Fetch URL:', fetchUrl);
+        
+        const quoteResponse = await fetch(fetchUrl, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -1844,20 +1907,26 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           },
         });
 
+        console.log('[VERSION] Quote fetch response status:', quoteResponse.status, quoteResponse.statusText);
+        
         if (!quoteResponse.ok) {
-          throw new Error('Failed to fetch current quote');
+          const errorText = await quoteResponse.text();
+          console.error('[VERSION] Failed to fetch quote. Response:', errorText);
+          throw new Error('Failed to fetch current quote: ' + errorText);
         }
 
         const currentQuote = await safeJsonParse(quoteResponse);
+        console.log('[VERSION] Current quote data:', currentQuote);
         const currentFields = currentQuote.fields || {};
+        console.log('[VERSION] Current quote fields:', currentFields);
         
         // Increment version (e.g., "1.2" -> "1.3")
         const currentVersion = currentFields['Quote Version'] || '1.0';
         const newVersion = incrementVersion(currentVersion);
         
-        console.log('[VERSION] Current version:', currentVersion, '-> New version:', newVersion);
+        console.log('[VERSION] Version increment:', currentVersion, '->', newVersion);
 
-        // Step 2: Create new quote record
+        console.log('[VERSION] Step 2: Creating new quote record...');
         const newQuotePayload = {
           fields: {
             'Subject': currentFields['Subject'] || 'Quote',
@@ -1873,9 +1942,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         };
 
-        console.log('[VERSION] Creating new quote with payload:', newQuotePayload);
+        console.log('[VERSION] New quote payload:', JSON.stringify(newQuotePayload, null, 2));
 
-        const createResponse = await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
+        const createUrl = `${API_BASE_URL}/proxy/quotes/records`;
+        console.log('[VERSION] Create URL:', createUrl);
+        
+        const createResponse = await fetch(createUrl, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -1884,21 +1956,26 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           body: JSON.stringify(newQuotePayload)
         });
 
+        console.log('[VERSION] Create response status:', createResponse.status, createResponse.statusText);
+        
         if (!createResponse.ok) {
           const errorText = await createResponse.text();
+          console.error('[VERSION] Failed to create quote. Response:', errorText);
           throw new Error(`Failed to create new quote: ${errorText}`);
         }
 
         const createResult = await safeJsonParse(createResponse);
+        console.log('[VERSION] Create result:', createResult);
         const newQuoteId = createResult.records ? createResult.records[0]?.id : createResult.id;
         
         if (!newQuoteId) {
           throw new Error('No quote ID returned from create');
         }
 
-        console.log('[VERSION] New quote created with ID:', newQuoteId);
+        console.log('[VERSION] ✓ New quote created with ID:', newQuoteId);
+        console.log('[VERSION] Parent Quote field set to:', quoteId);
 
-        // Step 3: Link account to new quote (copy from current)
+        console.log('[VERSION] Step 3: Linking account to new quote...');
         const accountResponse = await fetch(
           `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`,
           {
@@ -1910,14 +1987,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           }
         );
 
+        console.log('[VERSION] Account fetch response status:', accountResponse.status);
+        
         if (accountResponse.ok) {
           const accountData = await safeJsonParse(accountResponse);
+          console.log('[VERSION] Account data:', accountData);
           const accounts = accountData.list || accountData.records || [];
+          console.log('[VERSION] Found', accounts.length, 'accounts');
+          
           if (accounts.length > 0) {
             const accountId = accounts[0].id;
-            console.log('[VERSION] Linking account', accountId, 'to new quote');
+            console.log('[VERSION] Linking account ID:', accountId, 'to new quote:', newQuoteId);
             
-            await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy/${newQuoteId}`, {
+            const linkResponse = await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy/${newQuoteId}`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,
@@ -1925,37 +2007,61 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               },
               body: JSON.stringify([{ id: accountId }])
             });
+            
+            console.log('[VERSION] Account link response status:', linkResponse.status);
+            if (linkResponse.ok) {
+              console.log('[VERSION] ✓ Account linked successfully');
+            } else {
+              const linkError = await linkResponse.text();
+              console.error('[VERSION] Account link failed:', linkError);
+            }
+          } else {
+            console.log('[VERSION] No accounts to link');
           }
+        } else {
+          console.log('[VERSION] Account fetch failed, skipping account link');
         }
 
-        // Step 4: Fetch current line items from ProductsForQuotes
-        const lineItemsResponse = await fetch(
-          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Quantity,Custom%20Unit%20Price,Discount,nc_76_d__Products_id`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
+        console.log('[VERSION] Step 4: Fetching line items from ProductsForQuotes...');
+        
+        const lineItemsUrl = `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Quantity,Custom%20Unit%20Price,Discount,nc_76_d__Products_id`;
+        console.log('[VERSION] Line items URL:', lineItemsUrl);
+        
+        const lineItemsResponse = await fetch(lineItemsUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
 
+        console.log('[VERSION] Line items fetch response status:', lineItemsResponse.status);
+        
         if (!lineItemsResponse.ok) {
-          throw new Error('Failed to fetch line items');
+          const errorText = await lineItemsResponse.text();
+          console.error('[VERSION] Failed to fetch line items. Response:', errorText);
+          throw new Error('Failed to fetch line items: ' + errorText);
         }
 
         const lineItemsData = await safeJsonParse(lineItemsResponse);
+        console.log('[VERSION] Line items data:', lineItemsData);
         const lineItems = lineItemsData.records || [];
         
         console.log('[VERSION] Found', lineItems.length, 'line items to copy');
+        console.log('[VERSION] Line items:', lineItems);
 
-        // Step 5: Link products to new quote first
+        console.log('[VERSION] Step 5: Linking products to new quote...');
+        
         const productIds = lineItems.map((item: any) => item.fields['nc_76_d__Products_id']).filter(Boolean);
+        console.log('[VERSION] Product IDs to link:', productIds);
         
         if (productIds.length > 0) {
           console.log('[VERSION] Linking', productIds.length, 'products to new quote');
           
-          await fetch(`${API_BASE_URL}/proxy/quotes/links/products/${newQuoteId}`, {
+          const linkProductsUrl = `${API_BASE_URL}/proxy/quotes/links/products/${newQuoteId}`;
+          console.log('[VERSION] Link products URL:', linkProductsUrl);
+          
+          const linkProductsResponse = await fetch(linkProductsUrl, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -1963,10 +2069,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             },
             body: JSON.stringify(productIds.map(id => ({ id })))
           });
+          
+          console.log('[VERSION] Link products response status:', linkProductsResponse.status);
+          if (linkProductsResponse.ok) {
+            console.log('[VERSION] ✓ Products linked successfully');
+          } else {
+            const linkError = await linkProductsResponse.text();
+            console.error('[VERSION] Products link failed:', linkError);
+          }
+        } else {
+          console.log('[VERSION] No products to link');
         }
 
-        // Step 6: Create new ProductsForQuotes records
-        for (const item of lineItems) {
+        console.log('[VERSION] Step 6: Creating ProductsForQuotes records...');
+        
+        for (let i = 0; i < lineItems.length; i++) {
+          const item = lineItems[i];
+          console.log(`[VERSION] Processing line item ${i + 1}/${lineItems.length}:`, item);
           const productId = item.fields['nc_76_d__Products_id'];
           const quantity = item.fields['Quantity'] || 1;
           const customPrice = item.fields['Custom Unit Price'];
@@ -1984,9 +2103,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             }
           };
 
-          console.log('[VERSION] Creating line item:', lineItemPayload);
+          console.log('[VERSION] Line item payload:', JSON.stringify(lineItemPayload, null, 2));
 
-          const lineItemResponse = await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {
+          const lineItemUrl = `${API_BASE_URL}/proxy/products_for_quotes/records`;
+          const lineItemResponse = await fetch(lineItemUrl, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -1995,18 +2115,33 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
             body: JSON.stringify(lineItemPayload)
           });
 
+          console.log('[VERSION] Line item response status:', lineItemResponse.status);
+          
           if (!lineItemResponse.ok) {
-            console.error('[VERSION] Failed to create line item for product', productId);
+            const lineItemError = await lineItemResponse.text();
+            console.error('[VERSION] Failed to create line item for product', productId, '- Error:', lineItemError);
+          } else {
+            const lineItemResult = await safeJsonParse(lineItemResponse);
+            console.log('[VERSION] ✓ Line item created:', lineItemResult);
           }
         }
 
-        console.log('[VERSION] Successfully created new version. Redirecting to', newQuoteId);
+        console.log('[VERSION] ✓✓✓ Successfully created new version!');
+        console.log('[VERSION] New Quote ID:', newQuoteId);
+        console.log('[VERSION] Redirecting to new quote page...');
+        console.log('=== CREATE NEW VERSION COMPLETED ===\n');
 
         // Success - redirect to new quote
         window.location.href = `/quote-detail?id=${newQuoteId}`;
 
       } catch (error) {
-        console.error('[VERSION] Error creating new version:', error);
+        console.error('\n=== CREATE NEW VERSION FAILED ===');
+        console.error('[VERSION] Error type:', error?.constructor?.name);
+        console.error('[VERSION] Error message:', error instanceof Error ? error.message : 'Unknown error');
+        console.error('[VERSION] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+        console.error('[VERSION] Full error object:', error);
+        console.error('=================================\n');
+        
         alert(`Failed to create new version: ${error instanceof Error ? error.message : 'Unknown error'}`);
         
         // Restore button
