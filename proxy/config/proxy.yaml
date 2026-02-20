@@ -1,7 +1,7 @@
 # Generic NocoDB Proxy Configuration
 # This file defines the schema-driven configuration for the proxy
 nocodb:
-  base_id: "pbf7tt48gxdl50h"
+  base_id: "pp4qzfe2jm84bdc"
 
 tables:
   quotes:
