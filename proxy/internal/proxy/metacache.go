@@ -93,9 +93,25 @@ func (m *MetaCache) fetchTableDetails(tableID string) (*TableMeta, error) {
 		return nil, fmt.Errorf("failed to read table details response: %w", err)
 	}
 
+	// SPECIAL LOGGING FOR CASES TABLE
+	if tableID == "me3dcwjt9vm9fot" {
+		log.Printf("[META CASES DEBUG] ========================================")
+		log.Printf("[META CASES DEBUG] Raw response for Cases table:")
+		log.Printf("[META CASES DEBUG] %s", string(body))
+		log.Printf("[META CASES DEBUG] ========================================")
+	}
+
 	var tableMeta TableMeta
 	if err := json.Unmarshal(body, &tableMeta); err != nil {
 		return nil, fmt.Errorf("failed to parse table details JSON: %w", err)
+	}
+
+	// SPECIAL LOGGING FOR CASES TABLE FIELDS
+	if tableID == "me3dcwjt9vm9fot" {
+		log.Printf("[META CASES DEBUG] Parsed %d fields for Cases table", len(tableMeta.Fields))
+		for i, field := range tableMeta.Fields {
+			log.Printf("[META CASES DEBUG] Field %d: ID=%s, Title=%s, Type=%s", i+1, field.ID, field.Title, field.Type)
+		}
 	}
 
 	return &tableMeta, nil

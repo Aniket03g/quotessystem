@@ -178,22 +178,40 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     /**
      * Build NocoDB search query with proper URL encoding
-     * Query format: where=(Account Name,like,%searchTerm%)
+     * Supports both ID-based and name-based searches
+     * - If searchTerm is numeric, search by ID
+     * - Otherwise, search by Account Name
      */
-    function buildSearchQuery(searchTerm: string): string {
+    function buildSearchQuery(searchTerm: string): { url: string; isIdSearch: boolean } {
       if (!searchTerm.trim()) {
-        return '';
+        return { url: '', isIdSearch: false };
       }
 
-      const rawWhere = `(Account Name,like,%${searchTerm}%)`;
-      const encodedWhere = encodeURIComponent(rawWhere);
-      const queryString = `where=${encodedWhere}&pageSize=15`;
+      // Check if search term is a number (ID search)
+      const trimmedTerm = searchTerm.trim();
+      const isNumeric = /^\d+$/.test(trimmedTerm);
 
-      return queryString;
+      if (isNumeric) {
+        // Direct ID fetch
+        return { 
+          url: `/${trimmedTerm}`,
+          isIdSearch: true 
+        };
+      } else {
+        // Name-based search
+        const rawWhere = `(Account Name,like,%${trimmedTerm}%)`;
+        const encodedWhere = encodeURIComponent(rawWhere);
+        const queryString = `where=${encodedWhere}&pageSize=15`;
+        return { 
+          url: `?${queryString}`,
+          isIdSearch: false 
+        };
+      }
     }
 
     /**
      * Search accounts via Generic Go Proxy
+     * Supports both ID-based and name-based searches
      */
     async function searchAccounts(searchTerm: string) {
       try {
@@ -203,11 +221,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         errorDiv.classList.add('hidden');
         loadingDiv.classList.add('hidden');
 
-        const queryString = buildSearchQuery(searchTerm);
-        const url = queryString 
-          ? `${API_BASE_URL}/proxy/accounts_copy/records?${queryString}`
+        const { url: queryPath, isIdSearch } = buildSearchQuery(searchTerm);
+        const url = queryPath 
+          ? `${API_BASE_URL}/proxy/accounts_copy/records${queryPath}`
           : `${API_BASE_URL}/proxy/accounts_copy/records?pageSize=15`;
 
+        console.log('[ACCOUNT LOOKUP] Search type:', isIdSearch ? 'ID' : 'Name');
         console.log('[ACCOUNT LOOKUP] URL:', url);
 
         const response = await fetch(url, {
@@ -223,15 +242,31 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           return;
         }
 
-        const data = await safeJsonParse(response);
-        console.log('[ACCOUNT LOOKUP] Response received, records count:', data.records?.length || 0);
-        
-        // Log only first 3 records for debugging
-        if (data.records && data.records.length > 0) {
-          console.log('[ACCOUNT LOOKUP] Sample records (first 3):', data.records.slice(0, 3));
+        if (response.status === 404 && isIdSearch) {
+          console.log('[ACCOUNT LOOKUP] Account ID not found');
+          displayResults([], searchTerm);
+          return;
         }
+
+        const data = await safeJsonParse(response);
         
-        displayResults(data.records || [], searchTerm);
+        // Handle ID search response (single record)
+        if (isIdSearch) {
+          console.log('[ACCOUNT LOOKUP] ID search result:', data);
+          // Wrap single record in array for display
+          const records = data.id ? [data] : [];
+          displayResults(records, searchTerm);
+        } else {
+          // Handle name search response (multiple records)
+          console.log('[ACCOUNT LOOKUP] Response received, records count:', data.records?.length || 0);
+          
+          // Log only first 3 records for debugging
+          if (data.records && data.records.length > 0) {
+            console.log('[ACCOUNT LOOKUP] Sample records (first 3):', data.records.slice(0, 3));
+          }
+          
+          displayResults(data.records || [], searchTerm);
+        }
       } catch (error) {
         console.error('[ACCOUNT LOOKUP ERROR]', error);
         searchSpinner.classList.add('hidden');
@@ -266,9 +301,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       emptyState.classList.add('hidden');
 
-      accountsBody.innerHTML = records.map((record, index) => {
+      accountsBody.innerHTML = records.map((record) => {
         const fields = record.fields || {};
-        const accountName = fields['Account Name'] || '<span class="text-slate-400 italic">N/A</span>';
+        const accountId = record.id;
+        const accountName = fields['Account Name'] || 'N/A';
         const accountOwner = fields['Account Owner'] || '<span class="text-slate-400 italic">N/A</span>';
         const phone = fields['Phone'] || '<span class="text-slate-400 italic">N/A</span>';
         const industry = fields['Industry'] || '<span class="text-slate-400 italic">N/A</span>';
@@ -276,8 +312,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         return `
           <tr data-account-id="${record.id}" class="cursor-pointer transition-colors hover:bg-slate-50 ${isSelected ? 'bg-blue-50 hover:bg-blue-100' : ''}">
-            <td class="px-6 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
-            <td class="px-6 py-4 text-sm text-slate-900">${accountName}</td>
+            <td class="px-6 py-4 text-sm font-medium text-slate-900">${accountId}</td>
+            <td class="px-6 py-4 text-sm text-slate-900">
+              <a href="/account-detail?id=${record.id}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+                ${accountName}
+              </a>
+            </td>
             <td class="px-6 py-4 text-sm text-slate-900">${accountOwner}</td>
             <td class="px-6 py-4 text-sm text-slate-900">${phone}</td>
             <td class="px-6 py-4 text-sm text-slate-900">${industry}</td>

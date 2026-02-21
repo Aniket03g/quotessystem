@@ -31,3 +31,7 @@ tables:
   accounts_copy:
     name: "Accounts Copy"
     operations: [read, create, update, delete]
+
+  cases:
+    name: "Cases"
+    operations: [read, create, update, delete, link]

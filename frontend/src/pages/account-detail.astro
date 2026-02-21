@@ -1,0 +1,428 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8080';
+---
+
+<AdminLayout title="Account Details" currentPage="accounts">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+      <a href="/accounts" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Accounts
+      </a>
+    </div>
+
+    <!-- Account Details Card -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h1 id="accountName" class="text-2xl font-bold text-gray-900">Loading...</h1>
+          <p id="accountIndustry" class="text-gray-600 mt-1"></p>
+        </div>
+        <div class="flex gap-2">
+          <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Create Quote
+          </button>
+        </div>
+      </div>
+
+      <!-- Account Information Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Contact Information -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 border-b pb-2">Contact Information</h2>
+          <div>
+            <label class="text-sm font-medium text-gray-600">Phone</label>
+            <p id="accountPhone" class="text-gray-900">-</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-600">Company Name</label>
+            <p id="accountCompany" class="text-gray-900">-</p>
+          </div>
+          <div>
+            <label class="text-sm font-medium text-gray-600">Website</label>
+            <p id="accountWebsite" class="text-gray-900">-</p>
+          </div>
+        </div>
+
+        <!-- Billing Address -->
+        <div class="space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900 border-b pb-2">Billing Address</h2>
+          <div>
+            <label class="text-sm font-medium text-gray-600">Street</label>
+            <p id="billingStreet" class="text-gray-900">-</p>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-600">City</label>
+              <p id="billingCity" class="text-gray-900">-</p>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">State</label>
+              <p id="billingState" class="text-gray-900">-</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-gray-600">Postal Code</label>
+              <p id="billingCode" class="text-gray-900">-</p>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Country</label>
+              <p id="billingCountry" class="text-gray-900">-</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cases Section -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Cases</h2>
+      <div id="casesSection">
+        <p class="text-gray-600">Loading cases...</p>
+      </div>
+    </div>
+
+    <!-- Quotes Section -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-xl font-bold text-gray-900 mb-4">Quotes</h2>
+      <div id="quotesSection">
+        <p class="text-gray-600">Loading quotes...</p>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <p class="text-red-800"></p>
+    </div>
+  </div>
+
+  <script define:vars={{ API_BASE_URL }}>
+    const urlParams = new URLSearchParams(window.location.search);
+    const accountId = urlParams.get('id');
+
+    if (!accountId) {
+      showError('No account ID provided');
+    } else {
+      loadAccountDetails(accountId);
+    }
+
+    async function loadAccountDetails(accountId) {
+      try {
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+          console.error('[ACCOUNT DETAIL] No token found');
+          window.location.href = '/login';
+          return;
+        }
+
+        const fields = 'Account Name,Phone,Industry,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Company Name,Website';
+        const url = `${API_BASE_URL}/proxy/accounts_copy/records/${accountId}?fields=${encodeURIComponent(fields)}`;
+        
+        console.log('[ACCOUNT DETAIL] ========================================');
+        console.log('[ACCOUNT DETAIL] Fetching account ID:', accountId);
+        console.log('[ACCOUNT DETAIL] URL:', url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        console.log('[ACCOUNT DETAIL] Response status:', response.status);
+
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[ACCOUNT DETAIL] Error:', errorText);
+          throw new Error(`Failed to fetch account: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('[ACCOUNT DETAIL] Account data:', data);
+        console.log('[ACCOUNT DETAIL] ========================================');
+
+        const fields_data = data.fields || {};
+        
+        // Display account information
+        document.getElementById('accountName').textContent = fields_data['Account Name'] || 'N/A';
+        document.getElementById('accountIndustry').textContent = fields_data['Industry'] || '';
+        document.getElementById('accountPhone').textContent = fields_data['Phone'] || '-';
+        document.getElementById('accountCompany').textContent = fields_data['Company Name'] || '-';
+        
+        const website = fields_data['Website'];
+        const websiteEl = document.getElementById('accountWebsite');
+        if (website) {
+          websiteEl.innerHTML = `<a href="${website.startsWith('http') ? website : 'https://' + website}" target="_blank" class="text-blue-600 hover:underline">${website}</a>`;
+        } else {
+          websiteEl.textContent = '-';
+        }
+        
+        document.getElementById('billingStreet').textContent = fields_data['Billing Street'] || '-';
+        document.getElementById('billingCity').textContent = fields_data['Billing City'] || '-';
+        document.getElementById('billingState').textContent = fields_data['Billing State'] || '-';
+        document.getElementById('billingCode').textContent = fields_data['Billing Code'] || '-';
+        document.getElementById('billingCountry').textContent = fields_data['Billing Country'] || '-';
+
+        // Load cases and quotes
+        await loadAccountCases(accountId, token);
+        await loadAccountQuotes(accountId, token);
+
+      } catch (error) {
+        console.error('[ACCOUNT DETAIL] Error:', error);
+        showError(error.message);
+      }
+    }
+
+    async function loadAccountCases(accountId, token) {
+      try {
+        // Fetch all cases and filter by linked account
+        const url = `${API_BASE_URL}/proxy/cases/records?fields=Id,Title,Status,Created,Accounts copy`;
+        console.log('[ACCOUNT DETAIL] Fetching all cases from:', url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const casesData = await response.json();
+          const allCases = casesData.records || [];
+          console.log('[ACCOUNT DETAIL] Total cases fetched:', allCases.length);
+          
+          // Filter cases that have this account linked
+          const accountCases = allCases.filter(caseRecord => {
+            const accountsField = caseRecord.fields?.['Accounts copy'];
+            if (!accountsField) return false;
+            
+            // Check if it's an object with id or an array
+            if (accountsField.id == accountId) return true;
+            if (Array.isArray(accountsField) && accountsField.some(acc => acc.id == accountId)) return true;
+            
+            return false;
+          });
+          
+          console.log('[ACCOUNT DETAIL] Cases for this account:', accountCases.length);
+          
+          if (accountCases.length > 0) {
+            displayCases(accountCases);
+          } else {
+            document.getElementById('casesSection').innerHTML = '<p class="text-gray-600">No cases found for this account.</p>';
+          }
+        } else {
+          console.error('[ACCOUNT DETAIL] Failed to fetch cases');
+          document.getElementById('casesSection').innerHTML = '<p class="text-gray-600">Unable to load cases.</p>';
+        }
+      } catch (error) {
+        console.error('[ACCOUNT DETAIL] Error loading cases:', error);
+        document.getElementById('casesSection').innerHTML = '<p class="text-gray-600">Error loading cases.</p>';
+      }
+    }
+
+    async function loadAccountQuotes(accountId, token) {
+      try {
+        // Fetch quotes via cases
+        const casesUrl = `${API_BASE_URL}/proxy/cases/records?fields=Id,Quotes`;
+        console.log('[ACCOUNT DETAIL] Fetching cases for quotes:', casesUrl);
+        
+        const casesResponse = await fetch(casesUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (casesResponse.ok) {
+          const casesData = await casesResponse.json();
+          const allCases = casesData.records || [];
+          
+          // Get all case IDs for this account
+          const accountCaseIds = allCases
+            .filter(caseRecord => {
+              const accountsField = caseRecord.fields?.['Accounts copy'];
+              if (!accountsField) return false;
+              if (accountsField.id == accountId) return true;
+              if (Array.isArray(accountsField) && accountsField.some(acc => acc.id == accountId)) return true;
+              return false;
+            })
+            .map(c => c.id);
+          
+          console.log('[ACCOUNT DETAIL] Case IDs for account:', accountCaseIds);
+          
+          if (accountCaseIds.length === 0) {
+            document.getElementById('quotesSection').innerHTML = '<p class="text-gray-600">No quotes found for this account.</p>';
+            return;
+          }
+          
+          // Fetch quotes for each case
+          const allQuotes = [];
+          for (const caseId of accountCaseIds) {
+            const quotesUrl = `${API_BASE_URL}/proxy/cases/links/quotes/${caseId}?fields=Id,Subject,Quote Version,Quote Status,Quote Date,Total Amount`;
+            const quotesResponse = await fetch(quotesUrl, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+            
+            if (quotesResponse.ok) {
+              const quotesData = await quotesResponse.json();
+              const quotes = quotesData.list || quotesData.records || [];
+              allQuotes.push(...quotes);
+            }
+          }
+          
+          console.log('[ACCOUNT DETAIL] Total quotes found:', allQuotes.length);
+          
+          if (allQuotes.length > 0) {
+            displayQuotes(allQuotes);
+          } else {
+            document.getElementById('quotesSection').innerHTML = '<p class="text-gray-600">No quotes found for this account.</p>';
+          }
+        } else {
+          console.error('[ACCOUNT DETAIL] Failed to fetch quotes');
+          document.getElementById('quotesSection').innerHTML = '<p class="text-gray-600">Unable to load quotes.</p>';
+        }
+      } catch (error) {
+        console.error('[ACCOUNT DETAIL] Error loading quotes:', error);
+        document.getElementById('quotesSection').innerHTML = '<p class="text-gray-600">Error loading quotes.</p>';
+      }
+    }
+
+    function displayCases(cases) {
+      const casesSection = document.getElementById('casesSection');
+      casesSection.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Case ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Created</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              ${cases.map(caseRecord => {
+                const fields = caseRecord.fields || {};
+                const caseId = caseRecord.id;
+                const title = fields['Title'] || 'N/A';
+                const status = fields['Status'] || 'N/A';
+                const created = fields['Created'] || 'N/A';
+                
+                let statusColor = 'bg-gray-100 text-gray-800';
+                if (status === 'Open') statusColor = 'bg-green-100 text-green-800';
+                else if (status === 'Close') statusColor = 'bg-red-100 text-red-800';
+
+                return `
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${caseId}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${title}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <span class="px-2 py-1 ${statusColor} rounded-full text-xs font-semibold">${status}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${created}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <a href="/case-quotes?id=${caseId}" class="text-blue-600 hover:text-blue-800 font-medium">View Quotes</a>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function displayQuotes(quotes) {
+      const quotesSection = document.getElementById('quotesSection');
+      
+      // Sort quotes by version
+      quotes.sort((a, b) => {
+        const versionA = a.fields?.['Quote Version'] || '0';
+        const versionB = b.fields?.['Quote Version'] || '0';
+        return versionA.localeCompare(versionB, undefined, { numeric: true });
+      });
+      
+      quotesSection.innerHTML = `
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quote ID</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Version</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              ${quotes.map(quote => {
+                const fields = quote.fields || {};
+                const quoteId = quote.id;
+                const subject = fields['Subject'] || 'N/A';
+                const version = fields['Quote Version'] || 'N/A';
+                const status = fields['Quote Status'] || 'N/A';
+                const date = fields['Quote Date'] || 'N/A';
+                const amount = fields['Total Amount'] || 0;
+                
+                let statusColor = 'bg-gray-100 text-gray-800';
+                if (status === 'Draft') statusColor = 'bg-yellow-100 text-yellow-800';
+                else if (status === 'Sent') statusColor = 'bg-blue-100 text-blue-800';
+                else if (status === 'Accepted') statusColor = 'bg-green-100 text-green-800';
+                else if (status === 'Rejected') statusColor = 'bg-red-100 text-red-800';
+
+                return `
+                  <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${quoteId}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${subject}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                        v${version}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <span class="px-2 py-1 ${statusColor} rounded-full text-xs font-semibold">
+                        ${status}
+                      </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹${amount.toLocaleString('en-IN')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                      <a href="/quote-detail?id=${quoteId}" class="text-blue-600 hover:text-blue-800 font-medium">View Details</a>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.querySelector('p').textContent = message;
+      errorDiv.classList.remove('hidden');
+    }
+  </script>
+</AdminLayout>

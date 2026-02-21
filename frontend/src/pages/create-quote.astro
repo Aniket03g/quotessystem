@@ -788,8 +788,44 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         if (!quoteId) throw new Error('Failed to get quote ID');
 
-        // Link account
-        await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${quoteId}`, {
+        // === NEW CASES FLOW ===
+        // Step 1: Auto-create Case (silent, user never sees this)
+        console.log('\n=== AUTO-CREATING CASE ===');
+        const casePayload = {
+          fields: {
+            'Title': `Quote for ${accountName}`,  // Same as quote subject
+            'Status': 'Open',
+            'Created': new Date().toISOString().split('T')[0]
+          }
+        };
+        
+        console.log('[CASE] Creating case with payload:', casePayload);
+        
+        const caseResponse = await fetch(`${API_BASE_URL}/proxy/cases/records`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(casePayload)
+        });
+
+        if (!caseResponse.ok) {
+          const errorText = await caseResponse.text();
+          console.error('[CASE] Error creating case:', errorText);
+          throw new Error('Failed to create case');
+        }
+
+        const caseResult = await safeJsonParse(caseResponse);
+        const caseId = caseResult.records ? caseResult.records[0]?.id : caseResult.id;
+        console.log('[CASE] Created case ID:', caseId);
+
+        if (!caseId) throw new Error('Failed to get case ID');
+
+        // Step 2: Link Account to Case
+        console.log('[CASE] Linking account', accountId, 'to case', caseId);
+        
+        const linkAccountResponse = await fetch(`${API_BASE_URL}/proxy/cases/links/accounts_copy/${caseId}`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -797,6 +833,35 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           },
           body: JSON.stringify([{ id: accountId }])
         });
+
+        if (!linkAccountResponse.ok) {
+          const errorText = await linkAccountResponse.text();
+          console.error('[CASE] Error linking account to case:', errorText);
+          throw new Error('Failed to link account to case');
+        }
+
+        console.log('[CASE] ✓ Account linked to case successfully');
+
+        // Step 3: Link Quote to Case
+        console.log('[CASE] Linking quote', quoteId, 'to case', caseId);
+        
+        const linkQuoteResponse = await fetch(`${API_BASE_URL}/proxy/cases/links/quotes/${caseId}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify([{ id: quoteId }])
+        });
+
+        if (!linkQuoteResponse.ok) {
+          const errorText = await linkQuoteResponse.text();
+          console.error('[CASE] Error linking quote to case:', errorText);
+          throw new Error('Failed to link quote to case');
+        }
+
+        console.log('[CASE] ✓ Quote linked to case successfully');
+        console.log('=== CASE FLOW COMPLETE ===\n');
 
         // Link products
         await fetch(`${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`, {

@@ -1,0 +1,235 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8080';
+---
+
+<DashboardLayout title="Case Quotes">
+  <div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <h1 class="text-2xl font-bold mb-6">Quotes for Case</h1>
+      
+      <!-- Case Info -->
+      <div id="caseInfo" class="mb-6 p-4 bg-gray-50 rounded-lg hidden">
+        <h2 class="text-lg font-semibold mb-2">Case Details</h2>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <span class="text-gray-600">Case ID:</span>
+            <span id="caseId" class="ml-2 font-medium"></span>
+          </div>
+          <div>
+            <span class="text-gray-600">Title:</span>
+            <span id="caseTitle" class="ml-2 font-medium"></span>
+          </div>
+          <div>
+            <span class="text-gray-600">Status:</span>
+            <span id="caseStatus" class="ml-2 font-medium"></span>
+          </div>
+          <div>
+            <span class="text-gray-600">Total Quotes:</span>
+            <span id="totalQuotes" class="ml-2 font-medium"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quotes Table -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quote ID</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="quotesTableBody" class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+                Loading quotes...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Error Message -->
+      <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-red-800"></p>
+      </div>
+    </div>
+  </div>
+
+  <script define:vars={{ API_BASE_URL }}>
+    // Get case ID from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const caseId = urlParams.get('id');
+
+    if (!caseId) {
+      showError('No case ID provided. Please add ?id=<caseId> to the URL.');
+    } else {
+      loadCaseQuotes(caseId);
+    }
+
+    async function loadCaseQuotes(caseId) {
+      try {
+        const token = localStorage.getItem('jwt_token');
+        if (!token) {
+          console.error('[CASE QUOTES] No token found, redirecting to login');
+          window.location.href = '/login';
+          return;
+        }
+
+        console.log('[CASE QUOTES] Token found, loading case quotes for ID:', caseId);
+
+        // Fetch case details
+        console.log('[CASE QUOTES] Fetching case details for ID:', caseId);
+        const caseResponse = await fetch(
+          `${API_BASE_URL}/proxy/cases/records/${caseId}?fields=Id,Title,Status,Created`,
+          {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!caseResponse.ok) {
+          throw new Error('Failed to fetch case details');
+        }
+
+        const caseData = await caseResponse.json();
+        const caseFields = caseData.fields || {};
+        
+        console.log('[CASE QUOTES] Case data:', caseData);
+
+        // Fetch all quotes linked to this case
+        console.log('[CASE QUOTES] Fetching quotes for case:', caseId);
+        const quotesUrl = `${API_BASE_URL}/proxy/cases/links/quotes/${caseId}?fields=Id,Subject,Quote Version,Quote Status,Quote Date,Total Amount,Quote Created By`;
+        console.log('[CASE QUOTES] URL:', quotesUrl);
+
+        const quotesResponse = await fetch(quotesUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!quotesResponse.ok) {
+          throw new Error('Failed to fetch quotes');
+        }
+
+        const quotesData = await quotesResponse.json();
+        const quotes = quotesData.list || quotesData.records || [];
+        
+        console.log('[CASE QUOTES] Quotes fetched:', quotes.length);
+        console.log('[CASE QUOTES] Quotes data:', quotes);
+
+        // Display case info
+        document.getElementById('caseId').textContent = caseId;
+        document.getElementById('caseTitle').textContent = caseFields['Title'] || 'N/A';
+        document.getElementById('caseStatus').textContent = caseFields['Status'] || 'N/A';
+        document.getElementById('totalQuotes').textContent = quotes.length;
+        document.getElementById('caseInfo').classList.remove('hidden');
+
+        // Display quotes in table
+        displayQuotes(quotes);
+
+      } catch (error) {
+        console.error('[CASE QUOTES] Error:', error);
+        showError(error.message);
+      }
+    }
+
+    function displayQuotes(quotes) {
+      const tbody = document.getElementById('quotesTableBody');
+      
+      if (quotes.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
+              No quotes found for this case.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      // Sort quotes by version
+      quotes.sort((a, b) => {
+        const versionA = a.fields['Quote Version'] || '0';
+        const versionB = b.fields['Quote Version'] || '0';
+        return versionA.localeCompare(versionB, undefined, { numeric: true });
+      });
+
+      tbody.innerHTML = quotes.map(quote => {
+        const fields = quote.fields || {};
+        const quoteId = quote.id;
+        const subject = fields['Subject'] || 'N/A';
+        const version = fields['Quote Version'] || 'N/A';
+        const status = fields['Quote Status'] || 'N/A';
+        const date = fields['Quote Date'] || 'N/A';
+        const amount = fields['Total Amount'] || 0;
+        
+        // Status badge color
+        let statusColor = 'bg-gray-100 text-gray-800';
+        if (status === 'Draft') statusColor = 'bg-yellow-100 text-yellow-800';
+        else if (status === 'Sent') statusColor = 'bg-blue-100 text-blue-800';
+        else if (status === 'Accepted') statusColor = 'bg-green-100 text-green-800';
+        else if (status === 'Rejected') statusColor = 'bg-red-100 text-red-800';
+
+        return `
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              ${quoteId}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              ${subject}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                v${version}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <span class="px-2 py-1 ${statusColor} rounded-full text-xs font-semibold">
+                ${status}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              ${date}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              ₹${amount.toLocaleString('en-IN')}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm">
+              <a href="/quote-detail?id=${quoteId}" class="text-blue-600 hover:text-blue-800 font-medium">
+                View Details
+              </a>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.querySelector('p').textContent = message;
+      errorDiv.classList.remove('hidden');
+      
+      const tbody = document.getElementById('quotesTableBody');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="px-6 py-4 text-center text-red-500">
+            Error loading quotes
+          </td>
+        </tr>
+      `;
+    }
+  </script>
+</DashboardLayout>

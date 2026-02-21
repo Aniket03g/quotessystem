@@ -290,39 +290,72 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const quoteData = await safeJsonParse(quoteResponse);
         const fields = quoteData.fields || {};
 
-        // Fetch linked account using same route as PDF generation
-        const accountResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${quoteId}?fields=Company Name,Phone,Billing Street,Billing City`,
-          {
+        let accountName = 'N/A';
+        let accountData = null;
+        let caseData = null;
+        const caseId = fields['nc_6n5b___Cases_id'];
+
+        console.log('[ACCOUNT FETCH] Quote caseId:', caseId);
+
+        // NEW: Fetch account via Case (if caseId exists)
+        if (caseId) {
+          console.log('[ACCOUNT FETCH] Using Cases flow');
+          
+          // Fetch account from case
+          const accountUrl = `${API_BASE_URL}/proxy/cases/links/accounts_copy/${caseId}?fields=Company Name,Phone,Billing Street,Billing City`;
+          console.log('[ACCOUNT FETCH] URL:', accountUrl);
+          
+          const accountResponse = await fetch(accountUrl, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
-          }
-        );
+          });
 
-        let accountName = 'N/A';
-        let accountData = null;
-        if (accountResponse.ok) {
-          const accountResult = await safeJsonParse(accountResponse);
-          console.log('[ACCOUNT FETCH] Response structure:', accountResult);
-          console.log('[ACCOUNT FETCH] Has list?', !!accountResult.list);
-          console.log('[ACCOUNT FETCH] Has records?', !!accountResult.records);
-          console.log('[ACCOUNT FETCH] Has record?', !!accountResult.record);
-          
-          const accounts = accountResult.list || accountResult.records || [];
-          console.log('[ACCOUNT FETCH] Accounts array length:', accounts.length);
-          
-          if (accounts.length > 0) {
-            accountData = accounts[0].fields;
-            accountName = accountData['Company Name'] || 'N/A';
-            console.log('[ACCOUNT FETCH] ✓ Account found:', accountName);
+          if (accountResponse.ok) {
+            const accountResult = await safeJsonParse(accountResponse);
+            const accounts = accountResult.list || accountResult.records || [];
+            
+            if (accounts.length > 0) {
+              accountData = accounts[0].fields;
+              accountName = accountData['Company Name'] || 'N/A';
+              console.log('[ACCOUNT FETCH] ✓ Account found via case:', accountName);
+            } else {
+              console.warn('[ACCOUNT FETCH] No accounts linked to case');
+            }
           } else {
-            console.warn('[ACCOUNT FETCH] No accounts in list/records array');
+            console.error('[ACCOUNT FETCH] Failed to fetch account from case');
           }
         } else {
-          console.error('[ACCOUNT FETCH] Response not OK:', accountResponse.status);
+          // LEGACY: Direct account fetch for old quotes
+          console.log('[ACCOUNT FETCH] Using LEGACY direct account link');
+          
+          const accountResponse = await fetch(
+            `${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${quoteId}?fields=Company Name,Phone,Billing Street,Billing City`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            }
+          );
+
+          if (accountResponse.ok) {
+            const accountResult = await safeJsonParse(accountResponse);
+            const accounts = accountResult.list || accountResult.records || [];
+            
+            if (accounts.length > 0) {
+              accountData = accounts[0].fields;
+              accountName = accountData['Company Name'] || 'N/A';
+              console.log('[ACCOUNT FETCH] ✓ Account found (legacy):', accountName);
+            } else {
+              console.warn('[ACCOUNT FETCH] No accounts in legacy link');
+            }
+          } else {
+            console.error('[ACCOUNT FETCH] Legacy account fetch failed');
+          }
         }
 
         // Step 1: Fetch catalog products via links endpoint (WITHOUT Unit Price)
@@ -1872,8 +1905,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Increment version (e.g., "1.2" -> "1.3")
         const currentVersion = currentFields['Quote Version'] || '1.0';
         const newVersion = incrementVersion(currentVersion);
-        
-        console.log('[VERSION] Current version:', currentVersion, '-> New version:', newVersion);
 
         // Step 2: Create new quote record
         const newQuotePayload = {
@@ -1891,7 +1922,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           }
         };
 
-        console.log('[VERSION] Creating new quote with payload:', newQuotePayload);
+        // Creating new quote version
 
         const createResponse = await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
           method: 'POST',
@@ -1914,60 +1945,148 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           throw new Error('No quote ID returned from create');
         }
 
-        console.log('[VERSION] New quote created with ID:', newQuoteId);
+        // New quote created
 
-        // Step 3: Link account to new quote (copy from current)
-        console.log('[VERSION] Step 3: Fetching account from current quote', quoteId);
-        const accountResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${quoteId}`,
-          {
+        // Step 3: Link new quote to SAME case (reuse caseId from parent)
+        const parentCaseId = currentFields['nc_6n5b___Cases_id'];
+        
+        console.log('[CASE LINK] Parent quote caseId:', parentCaseId);
+        console.log('[CASE LINK] New quote ID to link:', newQuoteId);
+        
+        if (parentCaseId) {
+          const linkUrl = `${API_BASE_URL}/proxy/cases/links/quotes/${parentCaseId}`;
+          const linkPayload = [{ id: newQuoteId }];
+          
+          console.log('[CASE LINK] URL:', linkUrl);
+          console.log('[CASE LINK] Payload:', JSON.stringify(linkPayload));
+          
+          const linkQuoteResponse = await fetch(linkUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(linkPayload)
+          });
+
+          console.log('[CASE LINK] Response status:', linkQuoteResponse.status);
+          
+          if (linkQuoteResponse.ok) {
+            console.log('[CASE LINK] ✓ Successfully linked quote to case');
+          } else {
+            const errorText = await linkQuoteResponse.text();
+            console.error('[CASE LINK] ✗ Failed:', errorText);
+          }
+        } else {
+          // LEGACY QUOTE: Create new Case for the new version
+          console.log('[CASE LINK] No caseId - creating new case for legacy quote');
+          
+          // First, get the account from the old quote
+          const legacyAccountUrl = `${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${quoteId}`;
+          console.log('[CASE LINK] Fetching legacy account from:', legacyAccountUrl);
+          
+          const accountResponse = await fetch(legacyAccountUrl, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
-          }
-        );
+          });
 
-        console.log('[VERSION] Account fetch response status:', accountResponse.status);
-        
-        if (accountResponse.ok) {
-          const accountData = await safeJsonParse(accountResponse);
-          console.log('[VERSION] Account data received:', accountData);
-          
-          const accounts = accountData.list || accountData.records || [];
-          console.log('[VERSION] Number of accounts found:', accounts.length);
-          
-          if (accounts.length > 0) {
-            const accountId = accounts[0].id;
-            console.log('[VERSION] Linking account', accountId, 'to new quote', newQuoteId);
+          console.log('[CASE LINK] Legacy account response status:', accountResponse.status);
+
+          if (accountResponse.ok) {
+            const accountData = await safeJsonParse(accountResponse);
+            console.log('[CASE LINK] Account data:', accountData);
             
-            const linkPayload = [{ id: accountId }];
-            console.log('[VERSION] Link payload:', JSON.stringify(linkPayload));
+            const accounts = accountData.list || accountData.records || [];
+            console.log('[CASE LINK] Found', accounts.length, 'account(s)');
             
-            const linkResponse = await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${newQuoteId}`, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(linkPayload)
-            });
-            
-            console.log('[VERSION] Account link response status:', linkResponse.status);
-            
-            if (linkResponse.ok) {
-              console.log('[VERSION] ✓ Account linked successfully');
+            if (accounts.length > 0) {
+              const accountId = accounts[0].id;
+              const accountName = accounts[0].fields?.['Company Name'] || 'Unknown Account';
+              console.log('[CASE LINK] Account ID:', accountId, 'Name:', accountName);
+              
+              // Create new Case for this version
+              const casePayload = {
+                fields: {
+                  'Title': currentFields['Subject'] || `Quote for ${accountName}`,
+                  'Status': 'Open',
+                  'Created': new Date().toISOString().split('T')[0]
+                }
+              };
+              
+              console.log('[CASE LINK] Creating case with payload:', casePayload);
+              
+              const caseResponse = await fetch(`${API_BASE_URL}/proxy/cases/records`, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(casePayload)
+              });
+
+              console.log('[CASE LINK] Case creation status:', caseResponse.status);
+
+              if (caseResponse.ok) {
+                const caseResult = await safeJsonParse(caseResponse);
+                const newCaseId = caseResult.records ? caseResult.records[0]?.id : caseResult.id;
+                console.log('[CASE LINK] Created case ID:', newCaseId);
+
+                // Link account to case
+                const linkAccountUrl = `${API_BASE_URL}/proxy/cases/links/accounts_copy/${newCaseId}`;
+                const linkAccountPayload = [{ id: accountId }];
+                
+                console.log('[CASE LINK] Linking account - URL:', linkAccountUrl);
+                console.log('[CASE LINK] Linking account - Payload:', JSON.stringify(linkAccountPayload));
+                
+                const linkAccountResp = await fetch(linkAccountUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(linkAccountPayload)
+                });
+                
+                console.log('[CASE LINK] Account link status:', linkAccountResp.status);
+
+                // Link new quote to case
+                const linkQuoteUrl = `${API_BASE_URL}/proxy/cases/links/quotes/${newCaseId}`;
+                const linkQuotePayload = [{ id: newQuoteId }];
+                
+                console.log('[CASE LINK] Linking quote - URL:', linkQuoteUrl);
+                console.log('[CASE LINK] Linking quote - Payload:', JSON.stringify(linkQuotePayload));
+                
+                const linkQuoteResp = await fetch(linkQuoteUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(linkQuotePayload)
+                });
+                
+                console.log('[CASE LINK] Quote link status:', linkQuoteResp.status);
+                
+                if (linkQuoteResp.ok) {
+                  console.log('[CASE LINK] ✓ Successfully created case and linked everything');
+                } else {
+                  const errorText = await linkQuoteResp.text();
+                  console.error('[CASE LINK] ✗ Failed to link quote:', errorText);
+                }
+              } else {
+                const errorText = await caseResponse.text();
+                console.error('[CASE LINK] ✗ Failed to create case:', errorText);
+              }
             } else {
-              const errorText = await linkResponse.text();
-              console.error('[VERSION] ✗ Failed to link account:', errorText);
+              console.error('[CASE LINK] ✗ No accounts found in legacy link');
             }
           } else {
-            console.warn('[VERSION] No accounts found to link');
+            const errorText = await accountResponse.text();
+            console.error('[CASE LINK] ✗ Failed to fetch legacy account:', errorText);
           }
-        } else {
-          const errorText = await accountResponse.text();
-          console.error('[VERSION] Failed to fetch account:', errorText);
         }
 
         // Step 4: Fetch current line items from ProductsForQuotes
@@ -1989,13 +2108,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const lineItemsData = await safeJsonParse(lineItemsResponse);
         const lineItems = lineItemsData.records || [];
         
-        console.log('[VERSION] Found', lineItems.length, 'line items to copy');
+        // Found line items to copy
 
         // Step 5: Link products to new quote first
         const productIds = lineItems.map((item: any) => item.fields['nc_76_d__Products_id']).filter(Boolean);
         
         if (productIds.length > 0) {
-          console.log('[VERSION] Linking', productIds.length, 'products to new quote');
+          // Linking products to new quote
           
           await fetch(`${API_BASE_URL}/proxy/quotes/links/products/${newQuoteId}`, {
             method: 'POST',
@@ -2026,8 +2145,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             }
           };
 
-          console.log('[VERSION] Creating line item:', lineItemPayload);
-
+          // Creating line item
           const lineItemResponse = await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {
             method: 'POST',
             headers: {
@@ -2042,7 +2160,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           }
         }
 
-        console.log('[VERSION] Successfully created new version. Redirecting to', newQuoteId);
+        console.log('✓ New version created. Redirecting...');
 
         // Success - redirect to new quote
         window.location.href = `/quote-detail?id=${newQuoteId}`;
