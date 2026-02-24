@@ -134,85 +134,129 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
 
     <!-- Edit Mode Panel (shown when editing) -->
-    <div id="editModePanel" class="hidden bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-6 mb-6">
-      <div class="flex items-start justify-between mb-6">
-        <div>
-          <h3 class="text-lg font-semibold text-slate-800 mb-1">Edit Quote</h3>
-          <p class="text-sm text-slate-600">Make changes to products and quote status</p>
-        </div>
-        <div class="flex gap-2">
-          <button id="cancelEditBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-            Cancel
-          </button>
-          <button id="saveEditBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Save Changes
-          </button>
-        </div>
-      </div>
-
-      <!-- Quote Status Section -->
-      <div class="bg-white rounded-xl p-4 mb-4 border border-slate-200">
-        <label class="block text-sm font-medium text-slate-700 mb-2">Quote Status</label>
-        <select id="editQuoteStatus" class="w-full max-w-xs px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-          <option value="Draft">Draft</option>
-          <option value="Sent">Sent</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
-          <option value="Final">Final</option>
-        </select>
-      </div>
-
-      <!-- Add Product Section -->
-      <div class="bg-white rounded-xl p-4 border border-slate-200">
-        <label class="block text-sm font-medium text-slate-700 mb-3">
-          <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Add Product to Quote
-        </label>
-        <div class="flex gap-3">
-          <div class="flex-1 relative">
-            <input 
-              type="text" 
-              id="newProductSearch" 
-              placeholder="Search by product name or code..." 
-              autocomplete="off"
-              class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
-            <div id="newProductDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-              <div id="newProductResults" class="py-1"></div>
-              <div id="newProductLoading" class="hidden px-4 py-3 text-sm text-slate-500 text-center">
-                <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <div id="editModePanel" class="hidden">
+      <!-- Sticky Header -->
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl shadow-xl mb-6 overflow-hidden">
+        <div class="px-8 py-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
-                Searching...
               </div>
-              <div id="newProductEmpty" class="hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
+              <div>
+                <h3 class="text-2xl font-bold text-white mb-1">Edit Quote</h3>
+                <p class="text-blue-100 text-sm">Modify products, quantities, pricing, and quote status</p>
+              </div>
+            </div>
+            <div class="flex gap-3">
+              <button id="cancelEditBtn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white text-sm font-semibold rounded-xl hover:bg-white/20 transition-all shadow-lg hover:shadow-xl">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Cancel
+              </button>
+              <button id="saveEditBtn" class="inline-flex items-center gap-2 px-6 py-2.5 bg-white text-blue-600 text-sm font-bold rounded-xl hover:bg-blue-50 transition-all shadow-lg hover:shadow-xl">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Save Changes
+              </button>
             </div>
           </div>
-          <button id="addProductToQuoteBtn" class="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Add
-          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Quote Status Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-800">Quote Status</label>
+              <p class="text-xs text-slate-500">Update the current status</p>
+            </div>
+          </div>
+          <select id="editQuoteStatus" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-slate-300">
+            <option value="Draft">📝 Draft</option>
+            <option value="Sent">📤 Sent</option>
+            <option value="Approved">✅ Approved</option>
+            <option value="Rejected">❌ Rejected</option>
+            <option value="Final">🎯 Final</option>
+          </select>
+        </div>
+
+        <!-- Add Product Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+              <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-800">Add Product</label>
+              <p class="text-xs text-slate-500">Search and add to quote</p>
+            </div>
+          </div>
+          <div class="flex gap-3">
+            <div class="flex-1 relative">
+              <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </div>
+              <input 
+                type="text" 
+                id="newProductSearch" 
+                placeholder="Search by name or code..." 
+                autocomplete="off"
+                class="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all hover:border-slate-300"
+              />
+              <div id="newProductDropdown" class="hidden absolute z-10 w-full mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                <div id="newProductResults" class="py-1"></div>
+                <div id="newProductLoading" class="hidden px-4 py-3 text-sm text-slate-500 text-center">
+                  <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Searching...
+                </div>
+                <div id="newProductEmpty" class="hidden px-4 py-3 text-sm text-slate-500 text-center">No products found</div>
+              </div>
+            </div>
+            <button id="addProductToQuoteBtn" class="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-md" disabled>
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Products Card -->
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-      <div class="flex items-center justify-between mb-5">
-        <h2 class="text-base font-semibold text-slate-800">Products</h2>
+    <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+      <div class="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-5 border-b border-slate-200">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Products</h2>
+            <p class="text-xs text-slate-500">Quote line items with pricing and quantities</p>
+          </div>
+        </div>
       </div>
-      <div id="productsContainer">
+      <div id="productsContainer" class="p-6">
         <div class="text-sm text-slate-500">Loading products...</div>
       </div>
     </div>
@@ -300,12 +344,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // NEW: Fetch account via Case (if caseId exists)
         if (caseId) {
           console.log('[ACCOUNT FETCH] Using Cases flow');
+          console.log('[ACCOUNT FETCH] Fetching case record to get linked account');
           
-          // Fetch account from case
-          const accountUrl = `${API_BASE_URL}/proxy/cases/links/accounts_copy/${caseId}?fields=Company Name,Phone,Billing Street,Billing City`;
-          console.log('[ACCOUNT FETCH] URL:', accountUrl);
+          // Fetch case record which includes the linked account data
+          const caseUrl = `${API_BASE_URL}/proxy/cases/records/${caseId}?fields=Title,Status,Accounts duplicate`;
+          console.log('[ACCOUNT FETCH] Case URL:', caseUrl);
           
-          const accountResponse = await fetch(accountUrl, {
+          const caseResponse = await fetch(caseUrl, {
             method: 'GET',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -313,26 +358,62 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             },
           });
 
-          if (accountResponse.ok) {
-            const accountResult = await safeJsonParse(accountResponse);
-            const accounts = accountResult.list || accountResult.records || [];
+          console.log('[ACCOUNT FETCH] Case response status:', caseResponse.status);
+
+          if (caseResponse.ok) {
+            const caseResult = await safeJsonParse(caseResponse);
+            console.log('[ACCOUNT FETCH] Case data:', caseResult);
             
-            if (accounts.length > 0) {
-              accountData = accounts[0].fields;
-              accountName = accountData['Company Name'] || 'N/A';
+            caseData = caseResult.fields || {};
+            const accountsField = caseData['Accounts duplicate'];
+            
+            console.log('[ACCOUNT FETCH] Accounts duplicate field:', accountsField);
+            
+            if (accountsField) {
+              // The account data is nested in the Accounts duplicate field
+              const accountId = accountsField.id;
+              const accountFields = accountsField.fields || {};
+              
+              accountName = accountFields['Account Name'] || 'N/A';
               console.log('[ACCOUNT FETCH] ✓ Account found via case:', accountName);
+              console.log('[ACCOUNT FETCH] Account ID:', accountId);
+              
+              // Now fetch full account details if needed
+              if (accountId) {
+                const fullAccountUrl = `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=Account Name,Company Name,Phone,Billing Street,Billing City,Billing State,Billing Code,Billing Country`;
+                console.log('[ACCOUNT FETCH] Fetching full account details:', fullAccountUrl);
+                
+                const fullAccountResponse = await fetch(fullAccountUrl, {
+                  method: 'GET',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                  },
+                });
+                
+                if (fullAccountResponse.ok) {
+                  const fullAccountResult = await safeJsonParse(fullAccountResponse);
+                  accountData = fullAccountResult.fields || {};
+                  console.log('[ACCOUNT FETCH] ✓ Full account data fetched:', accountData);
+                } else {
+                  console.warn('[ACCOUNT FETCH] Could not fetch full account details, using basic data');
+                  accountData = accountFields;
+                }
+              }
             } else {
-              console.warn('[ACCOUNT FETCH] No accounts linked to case');
+              console.warn('[ACCOUNT FETCH] ❌ No account linked to case');
             }
           } else {
-            console.error('[ACCOUNT FETCH] Failed to fetch account from case');
+            const errorText = await caseResponse.text();
+            console.error('[ACCOUNT FETCH] ❌ Failed to fetch case');
+            console.error('[ACCOUNT FETCH] Error response:', errorText);
           }
         } else {
           // LEGACY: Direct account fetch for old quotes
           console.log('[ACCOUNT FETCH] Using LEGACY direct account link');
           
           const accountResponse = await fetch(
-            `${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${quoteId}?fields=Company Name,Phone,Billing Street,Billing City`,
+            `${API_BASE_URL}/proxy/quotes/links/accounts_duplicate1/${quoteId}?fields=Company Name,Phone,Billing Street,Billing City`,
             {
               method: 'GET',
               headers: {
@@ -1982,7 +2063,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           console.log('[CASE LINK] No caseId - creating new case for legacy quote');
           
           // First, get the account from the old quote
-          const legacyAccountUrl = `${API_BASE_URL}/proxy/quotes/links/accounts_copy1/${quoteId}`;
+          const legacyAccountUrl = `${API_BASE_URL}/proxy/quotes/links/accounts_duplicate1/${quoteId}`;
           console.log('[CASE LINK] Fetching legacy account from:', legacyAccountUrl);
           
           const accountResponse = await fetch(legacyAccountUrl, {
@@ -2035,7 +2116,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 console.log('[CASE LINK] Created case ID:', newCaseId);
 
                 // Link account to case
-                const linkAccountUrl = `${API_BASE_URL}/proxy/cases/links/accounts_copy/${newCaseId}`;
+                const linkAccountUrl = `${API_BASE_URL}/proxy/cases/links/accounts_duplicate/${newCaseId}`;
                 const linkAccountPayload = [{ id: accountId }];
                 
                 console.log('[CASE LINK] Linking account - URL:', linkAccountUrl);

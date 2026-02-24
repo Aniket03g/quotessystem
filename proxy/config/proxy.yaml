@@ -1,7 +1,7 @@
 # Generic NocoDB Proxy Configuration
 # This file defines the schema-driven configuration for the proxy
 nocodb:
-  base_id: "pp4qzfe2jm84bdc"
+  base_id: "pd0tf8xobxcryk6"
 
 tables:
   quotes:
@@ -34,4 +34,8 @@ tables:
 
   cases:
     name: "Cases"
+    operations: [read, create, update, delete, link]
+
+  accounts_duplicate:
+    name: "Accounts Duplicate"
     operations: [read, create, update, delete, link]

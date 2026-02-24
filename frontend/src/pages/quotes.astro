@@ -317,7 +317,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Fetch linked account
         const accountResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}?fields=Account Name`,
+          `${API_BASE_URL}/proxy/quotes/links/accounts_duplicate/${quoteId}?fields=Account Name`,
           {
             method: 'GET',
             headers: {
@@ -472,7 +472,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Fetch linked account
         const accountResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}?fields=Account Name`,
+          `${API_BASE_URL}/proxy/quotes/links/accounts_duplicate/${quoteId}?fields=Account Name`,
           {
             method: 'GET',
             headers: {

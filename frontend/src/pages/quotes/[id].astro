@@ -159,7 +159,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
         // Fetch linked account
         const accountResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}?fields=Account Name,Phone,Billing Street,Billing City`,
+          `${API_BASE_URL}/proxy/quotes/links/accounts_duplicate/${quoteId}?fields=Account Name,Phone,Billing Street,Billing City`,
           {
             method: 'GET',
             headers: {
