@@ -1,340 +1,686 @@
 ---
+
 import AdminLayout from '../layouts/AdminLayout.astro';
+
 ---
 
+
+
 <AdminLayout title="Accounts" currentPage="accounts">
+
   <!-- Page Header -->
+
   <div class="mb-6">
+
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+
       <div>
+
         <h1 class="text-2xl font-semibold text-slate-800">Accounts</h1>
+
       </div>
+
       <div>
+
         <a href="/add-account" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+
           </svg>
+
           Add Account
+
         </a>
+
       </div>
+
     </div>
+
   </div>
 
+
+
   <!-- Search and Filter Bar -->
+
   <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+
     <div class="flex flex-col lg:flex-row gap-4">
+
       <!-- Search -->
+
       <div class="flex-1 relative">
-        <div class="absolute left-3 top-2.5 w-5 h-5 text-slate-400 flex items-center justify-center">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </div>
+
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+
+        </svg>
+
         <input 
+
           type="text" 
+
           id="searchInput" 
+
           placeholder="Search..." 
+
           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+
           autocomplete="off"
+
         />
+
         <!-- Search Status -->
+
         <div class="flex items-center gap-2 mt-2">
+
           <div id="searchSpinner" class="hidden animate-spin w-4 h-4 text-blue-600">
+
             <svg class="w-full h-full" fill="none" viewBox="0 0 24 24">
+
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+
             </svg>
+
           </div>
+
           <span id="searchStatus" class="text-sm text-slate-600"></span>
+
         </div>
+
       </div>
+
+      
+
+      <!-- Action Buttons -->
+
+      <div class="flex items-center gap-2">
+
+        <!-- Sort -->
+
+        <button class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+
+          <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path>
+
+          </svg>
+
+          <span class="text-sm text-slate-700">Sort</span>
+
+        </button>
+
+        
+
+        <!-- Filter -->
+
+        <button class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+
+          <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+
+          </svg>
+
+          <span class="text-sm text-slate-700">Filter</span>
+
+        </button>
+
+        
+
+      </div>
+
     </div>
+
   </div>
+
+
+
+  <!-- Results Count -->
+
+  <div class="mb-4">
+
+    <p class="text-sm text-slate-600">Showing <span id="accountCount">1068</span> account(s)</p>
+
+  </div>
+
 
 
   <!-- Accounts Table -->
+
   <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+
     <!-- Loading State -->
+
     <div id="loading" class="hidden py-12 text-center">
+
       <svg class="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+
       </svg>
+
       <p class="text-sm text-slate-600">Loading accounts...</p>
+
     </div>
+
+
 
     <!-- Error State -->
+
     <div id="error" class="hidden mx-6 my-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+
       <div class="flex items-start gap-3">
+
         <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+
         </svg>
+
         <p class="text-sm text-red-800" id="errorText"></p>
+
       </div>
+
     </div>
+
+
 
     <!-- Table -->
+
     <div id="accountsTable" class="hidden overflow-x-auto">
+
       <table class="w-full">
+
         <thead class="bg-slate-50 border-b border-slate-200">
+
           <tr>
+
             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
+
             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">ACCOUNT NAME</th>
+
             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">OWNER</th>
+
             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">PHONE</th>
+
             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">INDUSTRY</th>
+
           </tr>
+
         </thead>
+
         <tbody id="accountsBody" class="divide-y divide-slate-200"></tbody>
+
       </table>
+
     </div>
 
+
+
     <!-- Empty State -->
+
     <div id="emptyState" class="hidden py-12 text-center">
+
       <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+
       </svg>
+
       <p class="text-slate-600 font-medium mb-1">No accounts found</p>
+
       <p class="text-sm text-slate-500">Try adjusting your search or filters</p>
+
     </div>
+
   </div>
 
 
+
+
+
   <script>
+
     import { getToken, logout, safeJsonParse } from '../lib/api';
+
     import { debounce } from '../utils/debounce';
 
+
+
     // Wait for DOM to be ready
+
     document.addEventListener('DOMContentLoaded', () => {
+
       const API_BASE_URL = `http://${window.location.hostname}:8080`;
+
       const token = getToken();
 
+
+
       if (!token) {
+
         window.location.href = '/login';
+
         return;
+
       }
+
+
 
       const loadingDiv = document.getElementById('loading') as HTMLDivElement;
+
       const errorDiv = document.getElementById('error') as HTMLDivElement;
+
       const accountsTable = document.getElementById('accountsTable') as HTMLDivElement;
+
       const accountsBody = document.getElementById('accountsBody') as HTMLTableSectionElement;
+
       const emptyState = document.getElementById('emptyState') as HTMLDivElement;
+
       const searchInput = document.getElementById('searchInput') as HTMLInputElement;
 
-      if (!loadingDiv || !errorDiv || !accountsTable || !accountsBody || !emptyState || !searchInput) {
+      const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
+
+      const searchStatus = document.getElementById('searchStatus') as HTMLDivElement;
+
+
+
+      if (!loadingDiv || !errorDiv || !accountsTable || !accountsBody || !emptyState || !searchInput || !searchSpinner || !searchStatus) {
+
         console.error('[ACCOUNT LOOKUP] Some DOM elements not found');
+
         return;
+
       }
 
+
+
     /**
+
      * Build NocoDB search query with proper URL encoding
+
      * Supports both ID-based and name-based searches
+
      * - If searchTerm is numeric, search by ID
+
      * - Otherwise, search by Account Name
+
      */
+
     function buildSearchQuery(searchTerm: string): { url: string; isIdSearch: boolean } {
+
       if (!searchTerm.trim()) {
+
         return { url: '', isIdSearch: false };
+
       }
+
+
 
       // Check if search term is a number (ID search)
+
       const trimmedTerm = searchTerm.trim();
+
       const isNumeric = /^\d+$/.test(trimmedTerm);
 
+
+
       if (isNumeric) {
+
         // Direct ID fetch
+
         return { 
+
           url: `/${trimmedTerm}`,
+
           isIdSearch: true 
+
         };
+
       } else {
+
         // Name-based search
+
         const rawWhere = `(Account Name,like,%${trimmedTerm}%)`;
+
         const encodedWhere = encodeURIComponent(rawWhere);
+
         const queryString = `where=${encodedWhere}&pageSize=15`;
+
         return { 
+
           url: `?${queryString}`,
+
           isIdSearch: false 
+
         };
+
       }
+
     }
 
+
+
     /**
+
      * Search accounts via Generic Go Proxy
+
      * Supports both ID-based and name-based searches
+
      */
+
     async function searchAccounts(searchTerm: string) {
+
       try {
-        const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
-        const searchStatus = document.getElementById('searchStatus') as HTMLDivElement;
-        
-        if (searchSpinner) searchSpinner.classList.remove('hidden');
-        if (searchStatus) {
-          searchStatus.textContent = 'Searching...';
-          searchStatus.classList.add('text-blue-600');
-        }
+
+        searchSpinner.classList.remove('hidden');
+
+        searchStatus.textContent = 'Searching...';
+
+        searchStatus.classList.add('text-blue-600');
+
         errorDiv.classList.add('hidden');
+
         loadingDiv.classList.add('hidden');
 
+
+
         const { url: queryPath, isIdSearch } = buildSearchQuery(searchTerm);
+
         const url = queryPath 
+
           ? `${API_BASE_URL}/proxy/accounts_duplicate/records${queryPath}`
+
           : `${API_BASE_URL}/proxy/accounts_duplicate/records?pageSize=15`;
 
+
+
         console.log('[ACCOUNT LOOKUP] Search type:', isIdSearch ? 'ID' : 'Name');
+
         console.log('[ACCOUNT LOOKUP] URL:', url);
 
+
+
         const response = await fetch(url, {
+
           method: 'GET',
+
           headers: {
+
             'Authorization': `Bearer ${token}`,
+
             'Content-Type': 'application/json',
+
           },
+
         });
 
+
+
         if (response.status === 401) {
+
           logout();
+
           return;
+
         }
+
+
 
         if (response.status === 404 && isIdSearch) {
+
           console.log('[ACCOUNT LOOKUP] Account ID not found');
+
           displayResults([], searchTerm);
+
           return;
+
         }
+
+
 
         const data = await safeJsonParse(response);
+
         
+
         // Handle ID search response (single record)
+
         if (isIdSearch) {
+
           console.log('[ACCOUNT LOOKUP] ID search result:', data);
+
           // Wrap single record in array for display
+
           const records = data.id ? [data] : [];
+
           displayResults(records, searchTerm);
+
         } else {
+
           // Handle name search response (multiple records)
+
           console.log('[ACCOUNT LOOKUP] Response received, records count:', data.records?.length || 0);
+
           
+
           // Log only first 3 records for debugging
+
           if (data.records && data.records.length > 0) {
+
             console.log('[ACCOUNT LOOKUP] Sample records (first 3):', data.records.slice(0, 3));
+
           }
+
           
+
           displayResults(data.records || [], searchTerm);
+
         }
+
       } catch (error) {
+
         console.error('[ACCOUNT LOOKUP ERROR]', error);
-        const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
-        const searchStatus = document.getElementById('searchStatus') as HTMLDivElement;
-        
-        if (searchSpinner) searchSpinner.classList.add('hidden');
-        if (searchStatus) {
-          searchStatus.textContent = '';
-          searchStatus.classList.remove('text-blue-600');
-        }
+
+        searchSpinner.classList.add('hidden');
+
+        searchStatus.textContent = '';
+
+        searchStatus.classList.remove('text-blue-600');
+
         const errorText = errorDiv.querySelector('#errorText');
+
         if (errorText) {
+
           errorText.textContent = error instanceof Error ? error.message : 'Search failed';
+
         }
+
         errorDiv.classList.remove('hidden');
+
       }
+
     }
 
+
+
     /**
+
      * Display search results in the table
+
      */
+
     function displayResults(records: any[], searchTerm: string) {
-      const searchStatus = document.getElementById('searchStatus') as HTMLDivElement;
-      const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
-      
-      if (searchStatus) {
-        if (searchTerm) {
-          searchStatus.textContent = `Found ${records.length} account(s) matching "${searchTerm}"`;
-        } else {
-          searchStatus.textContent = `Showing ${records.length} account(s)`;
-        }
-      }
-      
-      if (searchSpinner) {
-        searchSpinner.classList.add('hidden');
+
+      searchSpinner.classList.add('hidden');
+
+      searchStatus.classList.remove('text-blue-600');
+
+
+
+      if (searchTerm) {
+
+        searchStatus.textContent = `Found ${records.length} account(s) matching "${searchTerm}"`;
+
+      } else {
+
+        searchStatus.textContent = `Showing ${records.length} account(s)`;
+
       }
 
+
+
       if (records.length === 0) {
+
         accountsTable.classList.add('hidden');
+
         emptyState.classList.remove('hidden');
+
         return;
+
       }
+
+
 
       emptyState.classList.add('hidden');
 
-      // Update account count display
-      if (searchStatus) {
-        searchStatus.textContent = searchTerm 
-          ? `Found ${records.length} account(s) matching "${searchTerm}"`
-          : `Showing ${records.length} account(s)`;
-      }
+
 
       accountsBody.innerHTML = records.map((record) => {
+
         const fields = record.fields || {};
+
         const accountId = record.id;
+
         const accountName = fields['Account Name'] || 'N/A';
+
         const accountOwner = fields['Account Owner'] || '<span class="text-slate-400 italic">N/A</span>';
+
         const phone = fields['Phone'] || '<span class="text-slate-400 italic">N/A</span>';
+
         const industry = fields['Industry'] || '<span class="text-slate-400 italic">N/A</span>';
 
+
+
         return `
+
           <tr data-account-id="${record.id}" class="transition-colors hover:bg-slate-50">
+
             <td class="px-6 py-4 text-sm font-medium text-slate-900">${accountId}</td>
+
             <td class="px-6 py-4 text-sm text-slate-900">
+
               <a href="/account-detail?id=${record.id}" class="text-blue-600 hover:text-blue-800 hover:underline font-medium">
+
                 ${accountName}
+
               </a>
+
             </td>
+
             <td class="px-6 py-4 text-sm text-slate-900">${accountOwner}</td>
+
             <td class="px-6 py-4 text-sm text-slate-900">${phone}</td>
+
             <td class="px-6 py-4 text-sm text-slate-900">${industry}</td>
+
           </tr>
+
         `;
+
       }).join('');
 
+
+
       accountsTable.classList.remove('hidden');
+
+      
+
+      // Update account count
+
+      const accountCountEl = document.getElementById('accountCount');
+
+      if (accountCountEl) {
+
+        accountCountEl.textContent = records.length;
+
+      }
+
     }
 
 
+
+
+
     // Debounced search function
+
     const debouncedSearch = debounce((searchTerm: string) => {
+
       searchAccounts(searchTerm);
+
     }, 400);
 
+
+
     // Handle search input changes
+
     searchInput.addEventListener('input', (e) => {
+
       const searchTerm = (e.target as HTMLInputElement).value;
-      const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
-      const searchStatus = document.getElementById('searchStatus') as HTMLDivElement;
+
       
+
       if (searchTerm) {
-        if (searchSpinner) searchSpinner.classList.remove('hidden');
-        if (searchStatus) {
-          searchStatus.textContent = 'Searching...';
-          searchStatus.classList.add('text-blue-600');
-        }
+
+        searchSpinner.classList.remove('hidden');
+
+        searchStatus.textContent = 'Searching...';
+
+        searchStatus.classList.add('text-blue-600');
+
       }
+
+
 
       debouncedSearch(searchTerm);
+
     });
 
+
+
     // Handle Enter key in search box
+
     searchInput.addEventListener('keydown', (e) => {
+
       if (e.key === 'Enter') {
+
         e.preventDefault();
+
         const searchTerm = searchInput.value;
+
         searchAccounts(searchTerm);
+
       }
+
     });
+
+
+
 
 
     // Initial load: Show all accounts
+
     searchAccounts('');
+
     }); // Close DOMContentLoaded event listener
+
   </script>
+
 </AdminLayout>
+

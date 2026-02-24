@@ -1,512 +1,399 @@
 import type { APIRoute } from 'astro';
-import PDFDocument from 'pdfkit';
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import fs from 'fs';
 import path from 'path';
 
 export const prerender = false;
 
-interface QuoteProduct {
-  name: string;
-  brand?: string;
-  price?: number;
-  discount?: number;
-  productCode?: string;
-  tax?: string;
-  hsnCode?: string;
-  warranty?: number;
-  quantity?: number;
-}
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || process.env.API_BASE_URL || 'http://localhost:8080';
 
 interface QuoteData {
   id: number;
-  subject: string;
-  date: string;
-  version?: string;
-  total: number;
-  account: {
-    name: string;
+  fields: {
+    Subject?: string;
+    'Quote Date'?: string;
+    'Quote Version'?: string;
+    'Total Amount'?: number;
+    'Valid Until'?: string;
+    'Quote Status'?: string;
+    Notes?: string;
   };
-  products: QuoteProduct[];
-  logo?: string;
 }
 
-export const POST: APIRoute = async ({ request }) => {
+interface AccountData {
+  id: number;
+  fields: {
+    'Account Name'?: string;
+    'Billing Street'?: string;
+    'Billing City'?: string;
+    'Billing State'?: string;
+    'Billing Code'?: string;
+    'Billing Country'?: string;
+    Phone?: string;
+  };
+}
+
+interface ProductData {
+  id: number;
+  fields: {
+    'Product Name'?: string;
+    'Unit Price'?: number;
+    'Product Code'?: string;
+    Brand?: string;
+    HSN?: string;
+  };
+}
+
+async function fetchQuote(quoteId: string, token: string): Promise<QuoteData | null> {
+  const response = await fetch(`${API_BASE_URL}/proxy/quotes/records/${quoteId}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) return null;
+  return await response.json();
+}
+
+async function fetchLinkedAccount(quoteId: string, token: string): Promise<AccountData | null> {
+  const response = await fetch(`${API_BASE_URL}/proxy/quotes/links/accounts_copy/${quoteId}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.list?.[0] || data[0] || null;
+}
+
+async function fetchLinkedProducts(quoteId: string, token: string): Promise<ProductData[]> {
+  const response = await fetch(`${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) return [];
+  const data = await response.json();
+  return data.list || data || [];
+}
+
+function formatINR(amount: number): string {
+  return `Rs. ${amount.toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+/**
+ * Detects the real image format from magic bytes (ignores file extension).
+ * Returns 'JPEG' or 'PNG'.
+ */
+function detectImageFormat(buf: Buffer): 'JPEG' | 'PNG' {
+  if (buf[0] === 0xff && buf[1] === 0xd8) return 'JPEG';
+  if (buf[0] === 0x89 && buf[1] === 0x50) return 'PNG';
+  return 'JPEG'; // safe fallback
+}
+
+/**
+ * Returns { width, height } in pixels.
+ * Works regardless of file extension by detecting format first.
+ */
+function getImageDimensions(buf: Buffer): { width: number; height: number } {
+  const fmt = detectImageFormat(buf);
+
+  if (fmt === 'PNG') {
+    // PNG: width @ bytes 16-19, height @ bytes 20-23
+    if (buf.length > 24) {
+      return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+    }
+  }
+
+  if (fmt === 'JPEG') {
+    // Scan JPEG markers for SOF0/SOF1/SOF2
+    let i = 2;
+    while (i + 8 < buf.length) {
+      if (buf[i] !== 0xff) break;
+      const marker = buf[i + 1];
+      if (
+        (marker >= 0xc0 && marker <= 0xc3) ||
+        (marker >= 0xc5 && marker <= 0xc7)
+      ) {
+        return {
+          width: buf.readUInt16BE(i + 7),
+          height: buf.readUInt16BE(i + 5),
+        };
+      }
+      const segLen = buf.readUInt16BE(i + 2);
+      i += 2 + segLen;
+    }
+  }
+
+  return { width: 250, height: 89 }; // fallback (Green O Care actual size)
+}
+
+export const GET: APIRoute = async ({ params, request }) => {
+  const quoteId = params.id;
+  if (!quoteId) return new Response('Quote ID required', { status: 400 });
+
+  const authHeader = request.headers.get('Authorization');
+  const token = authHeader?.replace('Bearer ', '') || '';
+  if (!token) return new Response('Unauthorized', { status: 401 });
+
   try {
-    const quoteData: QuoteData = await request.json();
+    const [quote, account, products] = await Promise.all([
+      fetchQuote(quoteId, token),
+      fetchLinkedAccount(quoteId, token),
+      fetchLinkedProducts(quoteId, token)
+    ]);
 
-    const doc = new PDFDocument({ 
-      size: 'A4', 
-      margin: 50,
-      bufferPages: true
-    });
+    if (!quote) return new Response('Quote not found', { status: 404 });
 
-    const chunks: Buffer[] = [];
-    doc.on('data', (chunk) => chunks.push(chunk));
-    
-    const pdfPromise = new Promise<Buffer>((resolve, reject) => {
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', reject);
-    });
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-    // === HEADER SECTION ===
-    
-    // Determine selected logo and company details
-    const selectedLogo = quoteData.logo || 'greenocare';
-    const companyName = selectedLogo === 'grove' ? 'Grove Systems Pvt. Ltd.' : 'GreenOCare Solutions Pvt. Ltd.';
-    
-    // Logo
+    const pageWidth = doc.internal.pageSize.getWidth(); // 210mm
+    const margin = 15;
+    const usableWidth = pageWidth - margin * 2; // 180mm
+    let currentY = margin;
+
+    // ── LOGO ─────────────────────────────────────────────────────────────────
+    const TARGET_LOGO_W = 65; // mm
+
     try {
-      const logoFileName = selectedLogo === 'grove' ? 'grove_logo.png' : 'green-o-care-logo.png';
-      
-      // Try multiple paths
+      const logoFileName = 'green-o-care-logo.png';
       const possiblePaths = [
         path.join(process.cwd(), logoFileName),
         path.join(process.cwd(), 'dist', 'client', logoFileName),
-        path.join(process.cwd(), 'public', logoFileName)
+        path.join(process.cwd(), 'public', logoFileName),
       ];
-      
-      let logoPath = null;
+
+      let logoPath: string | null = null;
       for (const p of possiblePaths) {
-        if (fs.existsSync(p)) {
-          logoPath = p;
-          break;
-        }
+        if (fs.existsSync(p)) { logoPath = p; break; }
       }
-      
+
       if (logoPath) {
-        doc.image(logoPath, 50, 35, { width: 130 });
+        const logoBuffer = fs.readFileSync(logoPath);
+        const logoExt = path.extname(logoFileName).toLowerCase();
+        const imgFormat = logoExt === '.png' ? 'PNG' : 'JPEG';
+
+        // Fixed logo box dimensions
+        const LOGO_BOX_W = 100;
+        const LOGO_BOX_H = 20;
+
+        // Get image dimensions from PNG header
+        let imgW = 100; // fallback
+        let imgH = 100; // fallback
+        
+        if (logoExt === '.png' && logoBuffer.length > 24) {
+          imgW = logoBuffer.readUInt32BE(16);
+          imgH = logoBuffer.readUInt32BE(20);
+        }
+
+        // Calculate scale to fit inside box
+        const scale = Math.min(LOGO_BOX_W / imgW, LOGO_BOX_H / imgH);
+
+        const renderW = imgW * scale;
+        const renderH = imgH * scale;
+
+        // Center inside box
+        const offsetX = margin + (LOGO_BOX_W - renderW) / 2;
+        const offsetY = currentY + (LOGO_BOX_H - renderH) / 2;
+
+        doc.addImage(
+          logoBuffer.toString('base64'),
+          imgFormat,
+          offsetX,
+          offsetY,
+          renderW,
+          renderH
+        );
+
+        // Move cursor by fixed box height
+        currentY += LOGO_BOX_H + 6;
       } else {
-        console.error('Logo not found in any of these paths:', possiblePaths);
+        currentY += 26;
       }
     } catch (error) {
-      console.error('Logo error:', error);
+      console.error('[PDF API] Logo error:', error);
+      currentY += 24;
     }
-    
-    // Company Name
-    doc.fontSize(20)
-       .font('Helvetica-Bold')
-       .fillColor('#000000')
-       .text(companyName, 50, 120);
-    
-    // Company Address
-    doc.fontSize(10)
-       .font('Helvetica')
-       .fillColor('#505050')
-       .text('F-85, Okhla Industrial Estate, Phase-III', 50, 147)
-       .text('New Delhi - 110020', 50, 161);
-    
-    // Header bottom border
-    doc.strokeColor('#000000')
-       .lineWidth(2)
-       .moveTo(50, 180)
-       .lineTo(545, 180)
-       .stroke();
-    
-    // === INFO SECTION ===
-    
-    const infoY = 200;
-    
-    // Customer Name (left)
-    doc.fontSize(12)
-       .font('Helvetica-Bold')
-       .fillColor('#000000')
-       .text('Customer Name', 50, infoY);
-    
-    doc.fontSize(11)
-       .font('Helvetica')
-       .text(quoteData.account.name, 50, infoY + 18);
-    
-    // Quote Info (right)
-    doc.fontSize(12)
-       .font('Helvetica-Bold')
-       .text('Quote', 495, infoY, { align: 'right', width: 50 });
-    
-    doc.fontSize(11)
-       .font('Helvetica')
-       .text(`Version: ${quoteData.version || '1.0'}`, 400, infoY + 18, { align: 'right', width: 145 })
-       .text(`Date: ${quoteData.date}`, 400, infoY + 33, { align: 'right', width: 145 });
-    
-    // Info section bottom border
-    doc.strokeColor('#000000')
-       .lineWidth(2)
-       .moveTo(50, infoY + 55)
-       .lineTo(545, infoY + 55)
-       .stroke();
-    
-    // === ITEMS TABLE ===
-    
-    const tableTop = infoY + 80;
-    const pageWidth = 545 - 50; // 495px
-    
-    // Column widths - balanced to fit all headers properly
-    const colWidths = {
-      sno: pageWidth * 0.04,        // 4%
-      product: pageWidth * 0.18,     // 18%
-      model: pageWidth * 0.10,       // 10%
-      warranty: pageWidth * 0.09,    // 9%
-      unitPrice: pageWidth * 0.13,   // 13%
-      qty: pageWidth * 0.05,         // 5%
-      discount: pageWidth * 0.12,    // 12% - new Discount column
-      tax: pageWidth * 0.12,         // 12%
-      total: pageWidth * 0.17        // 17%
-    };
-    
-    // Column X positions
-    const cols = {
-      sno: 50,
-      product: 50 + colWidths.sno,
-      model: 50 + colWidths.sno + colWidths.product,
-      warranty: 50 + colWidths.sno + colWidths.product + colWidths.model,
-      unitPrice: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty,
-      qty: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice,
-      discount: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty,
-      tax: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty + colWidths.discount,
-      total: 50 + colWidths.sno + colWidths.product + colWidths.model + colWidths.warranty + colWidths.unitPrice + colWidths.qty + colWidths.discount + colWidths.tax,
-      end: 545
-    };
-    
-    const headerHeight = 38; // Back to normal height for single-line headers
-    
-    // Table header background
-    doc.rect(50, tableTop, pageWidth, headerHeight)
-       .fillAndStroke('#f0f0f0', '#000000');
-    
-    // Header text - all on one line, same alignment
-    doc.fontSize(9)
-       .fillColor('#000000')
-       .font('Helvetica-Bold');
-    
-    const headerTextY = tableTop + 14;
-    doc.text('S.No.', cols.sno + 4, headerTextY, { width: colWidths.sno - 8, align: 'center' });
-    doc.text('Product Details', cols.product + 4, headerTextY, { width: colWidths.product - 8, align: 'left' });
-    doc.text('Product Code', cols.model + 4, headerTextY, { width: colWidths.model - 8, align: 'center' });
-    
-    // Warranty header - two lines with smaller font
-    doc.fontSize(8);
-    doc.text('Warranty', cols.warranty + 4, headerTextY - 1, { width: colWidths.warranty - 8, align: 'center', lineBreak: false });
-    doc.text('(mths)', cols.warranty + 4, headerTextY + 9, { width: colWidths.warranty - 8, align: 'center', lineBreak: false });
-    doc.fontSize(9);
-    
-    doc.text('Unit Price', cols.unitPrice + 4, headerTextY, { width: colWidths.unitPrice - 8, align: 'center' });
-    doc.text('Qty', cols.qty + 4, headerTextY, { width: colWidths.qty - 8, align: 'center' });
-    doc.text('Discount', cols.discount + 4, headerTextY, { width: colWidths.discount - 8, align: 'center' });
-    doc.text('Tax', cols.tax + 4, headerTextY, { width: colWidths.tax - 8, align: 'center' });
-    doc.text('Total', cols.total + 4, headerTextY, { width: colWidths.total - 8, align: 'center' });
-    
-    // Draw header vertical lines
-    Object.values(cols).forEach(x => {
-      doc.strokeColor('#000000').lineWidth(1);
-      doc.moveTo(x, tableTop).lineTo(x, tableTop + headerHeight).stroke();
-    });
-    
-    // Table rows
-    let currentY = tableTop + headerHeight;
-    let subtotalBeforeDiscount = 0;
+
+    // ── COMPANY NAME & ADDRESS ────────────────────────────────────────────────
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('GreenOCare Solutions Pvt. Ltd.', margin, currentY);
+    currentY += 7;
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(80, 80, 80);
+    doc.text('F-85, Okhla Industrial Estate, Phase-III', margin, currentY);
+    currentY += 5;
+    doc.text('New Delhi - 110020', margin, currentY);
+    currentY += 8;
+
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.5);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+    currentY += 8;
+
+    // ── CUSTOMER / QUOTE INFO ─────────────────────────────────────────────────
+    doc.setTextColor(0, 0, 0);
+    const rightX = pageWidth - margin;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Customer Name', margin, currentY);
+    doc.text('Quote', rightX, currentY, { align: 'right' });
+    currentY += 6;
+
+    doc.setFont('helvetica', 'normal');
+    doc.text(account?.fields['Account Name'] || 'N/A', margin, currentY);
+    doc.text(`Version: ${quote.fields['Quote Version'] || '1.0'}`, rightX, currentY, { align: 'right' });
+    currentY += 5;
+    doc.text(`Date: ${quote.fields['Quote Date'] || 'N/A'}`, rightX, currentY, { align: 'right' });
+    currentY += 8;
+
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+    currentY += 10;
+
+    // ── ITEMS TABLE ───────────────────────────────────────────────────────────
+    let subtotal = 0;
     let totalTax = 0;
-    let totalDiscount = 0;
-    
-    quoteData.products.forEach((product, index) => {
-      const price = product.price || 0;
-      const qty = product.quantity || 1;
-      const discount = product.discount || 0;
-      
-      // Calculate amounts
-      const itemSubtotalBeforeDiscount = price * qty;
-      const discountAmount = (itemSubtotalBeforeDiscount * discount) / 100;
-      const itemSubtotalAfterDiscount = itemSubtotalBeforeDiscount - discountAmount;
-      
-      // Extract tax rate - only apply if numeric value found
-      let taxRate = 0;
-      if (product.tax && typeof product.tax === 'string') {
-        const taxMatch = product.tax.match(/([0-9.]+)/);
-        if (taxMatch) {
-          taxRate = parseFloat(taxMatch[1]) / 100;
-        }
-      } else if (typeof product.tax === 'number') {
-        taxRate = product.tax / 100;
-      }
-      
-      // Calculate tax on discounted amount
-      const itemTax = itemSubtotalAfterDiscount * taxRate;
-      const itemTotal = itemSubtotalAfterDiscount + itemTax;
-      
-      // Accumulate totals
-      subtotalBeforeDiscount += itemSubtotalBeforeDiscount;
-      totalDiscount += discountAmount;
-      totalTax += itemTax;
-      
-      const cellPadding = 10;
-      const textY = currentY + cellPadding;
-      
-      // Calculate product details height first to determine row height
-      let productDetailsHeight = 0;
-      let tempY = textY;
-      
-      // Product name height
-      doc.fontSize(10).font('Helvetica-Bold');
-      const nameHeight = doc.heightOfString(product.name, { width: colWidths.product - 8 });
-      productDetailsHeight += nameHeight + 1;
-      
-      // Brand height (if exists)
-      if (product.brand) {
-        doc.fontSize(9).font('Helvetica');
-        const brandHeight = doc.heightOfString(product.brand, { width: colWidths.product - 8 });
-        productDetailsHeight += brandHeight + 1;
-      }
-      
-      // HSN code height
-      doc.fontSize(9);
-      const hsnText = product.hsnCode ? product.hsnCode : 'N/A';
-      const hsnHeight = doc.heightOfString(hsnText, { width: colWidths.product - 8 });
-      productDetailsHeight += hsnHeight;
-      
-      // Calculate row height: max of product details height or minimum height for other columns
-      const minRowHeight = 50;
-      const rowHeight = Math.max(minRowHeight, productDetailsHeight + (cellPadding * 2));
-      
-      // Draw row background
-      doc.rect(50, currentY, pageWidth, rowHeight)
-         .fillAndStroke('#ffffff', '#000000');
-      
-      // S.No
-      doc.fontSize(9)
-         .fillColor('#000000')
-         .font('Helvetica');
-      doc.text((index + 1).toString(), cols.sno + 4, textY + 8, { width: colWidths.sno - 8, align: 'center' });
-      
-      // Product Details
-      doc.fontSize(10)
-         .font('Helvetica-Bold');
-      let productY = textY;
-      doc.text(product.name, cols.product + 4, productY, { width: colWidths.product - 8 });
-      productY += doc.heightOfString(product.name, { width: colWidths.product - 8 }) + 1;
-      
-      // Brand (if exists)
-      if (product.brand) {
-        doc.fontSize(9)
-           .font('Helvetica');
-        doc.text(product.brand, cols.product + 4, productY, { width: colWidths.product - 8 });
-        productY += doc.heightOfString(product.brand, { width: colWidths.product - 8 }) + 1;
-      }
-      
-      // HSN Code
-      doc.fontSize(9)
-         .fillColor('#646464');
-      doc.text(hsnText, cols.product + 4, productY, { width: colWidths.product - 8 });
-      
-      // Product Code - centered
-      doc.fontSize(9)
-         .fillColor('#000000')
-         .font('Helvetica');
-      const productCodeText = product.productCode || '-';
-      doc.text(productCodeText, cols.model + 4, textY + 8, { width: colWidths.model - 8, align: 'center' });
-      
-      // Warranty - centered (all numbers at same Y position) - display in months
-      doc.fontSize(10)
-         .fillColor('#000000')
-         .font('Helvetica');
-      const warrantyInMonths = (product.warranty || 1) * 12;
-      doc.text(warrantyInMonths.toString(), cols.warranty + 4, textY + 8, { width: colWidths.warranty - 8, align: 'center' });
-      
-      // Unit Price - show original price (right aligned)
-      doc.fontSize(10)
-         .fillColor('#000000')
-         .font('Helvetica');
-      const priceText = `Rs. ${price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      doc.text(priceText, cols.unitPrice + 4, textY + 8, { width: colWidths.unitPrice - 8, align: 'right', lineBreak: false });
-      
-      // Qty - centered (same Y as other numbers)
-      doc.fontSize(10).fillColor('#000000').font('Helvetica');
-      doc.text(qty.toString(), cols.qty + 4, textY + 8, { width: colWidths.qty - 8, align: 'center' });
-      
-      // Discount (amount and percentage) - similar to Tax display
-      doc.fontSize(10).fillColor('#000000').font('Helvetica');
-      const discountAmountText = `Rs. ${discountAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      const discountAmountY = textY + 8;
-      doc.text(discountAmountText, cols.discount + 4, discountAmountY, { width: colWidths.discount - 8, align: 'right', lineBreak: false });
-      
-      // Calculate height of discount amount text to position percentage below it
-      const discountAmountHeight = doc.heightOfString(discountAmountText, { width: colWidths.discount - 8 });
-      doc.fontSize(8).fillColor('#505050');
-      const discountPercentText = discount > 0 ? `${discount}%` : '0%';
-      doc.text(discountPercentText, cols.discount + 4, discountAmountY + discountAmountHeight + 2, { width: colWidths.discount - 8, align: 'right' });
-      
-      // Tax (amount and rate) - ALIGNED with Unit Price and Total
-      doc.fontSize(10).fillColor('#000000').font('Helvetica');
-      const taxAmountText = `Rs. ${itemTax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      const taxAmountY = textY + 8;
-      doc.text(taxAmountText, cols.tax + 4, taxAmountY, { width: colWidths.tax - 8, align: 'right', lineBreak: false });
-      
-      // Calculate height of tax amount text to position percentage below it
-      const taxAmountHeight = doc.heightOfString(taxAmountText, { width: colWidths.tax - 8 });
-      doc.fontSize(8).fillColor('#505050');
-      let taxRateText = product.tax || 'GST-18.0%';
-      // Ensure tax rate has % symbol
-      if (taxRateText && !taxRateText.includes('%')) {
-        taxRateText = `${taxRateText}%`;
-      }
-      doc.text(taxRateText, cols.tax + 4, taxAmountY + taxAmountHeight + 2, { width: colWidths.tax - 8, align: 'right' });
-      
-      // Total - aligned with Warranty, Unit Price, Qty
-      doc.fontSize(10).fillColor('#000000').font('Helvetica');
-      const totalText = `Rs. ${itemTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-      doc.text(totalText, cols.total + 4, textY + 8, { width: colWidths.total - 8, align: 'right', lineBreak: false });
-      
-      // Draw row vertical lines
-      Object.values(cols).forEach(x => {
-        doc.strokeColor('#000000').lineWidth(1);
-        doc.moveTo(x, currentY).lineTo(x, currentY + rowHeight).stroke();
-      });
-      
-      currentY += rowHeight;
-    });
-    
-    // === SUMMARY SECTION ===
-    
-    const summaryX = 280;
-    const summaryLabelX = summaryX;
-    const summaryLabelWidth = 130;
-    
-    let summaryY = currentY + 20;
-    const grandTotal = subtotalBeforeDiscount - totalDiscount + totalTax;
-    
-    doc.fontSize(10)
-       .fillColor('#000000')
-       .font('Helvetica');
-    
-    // Helper function to right-align text at page edge
-    const rightAlignText = (text: string, x: number, y: number, fontSize: number) => {
-      doc.fontSize(fontSize).font('Helvetica');
-      const textWidth = doc.widthOfString(text);
-      doc.text(text, x - textWidth, y, { lineBreak: false });
-    };
-    
-    // Sub Total (before discount)
-    doc.text('Sub Total', summaryLabelX, summaryY, { width: summaryLabelWidth, align: 'left' });
-    const subTotalText = `Rs. ${subtotalBeforeDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    rightAlignText(subTotalText, 545, summaryY, 10);
-    summaryY += 20;
-    
-    // Tax
-    doc.text('Tax', summaryLabelX, summaryY, { width: summaryLabelWidth, align: 'left' });
-    const taxText = `Rs. ${totalTax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    rightAlignText(taxText, 545, summaryY, 10);
-    summaryY += 20;
-    
-    // Discount
-    doc.text('Discount', summaryLabelX, summaryY, { width: summaryLabelWidth, align: 'left' });
-    const discountText = `Rs. ${totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    rightAlignText(discountText, 545, summaryY, 10);
-    summaryY += 25;
-    
-    // Grand Total border
-    doc.strokeColor('#000000')
-       .lineWidth(1)
-       .moveTo(summaryX, summaryY)
-       .lineTo(545, summaryY)
-       .stroke();
-    
-    summaryY += 12;
-    
-    // Grand Total
-    const grandTotalY = summaryY;
-    doc.fontSize(12).font('Helvetica-Bold');
-    doc.text('Grand Total', summaryLabelX, grandTotalY, { lineBreak: false });
-    
-    const grandTotalAmount = `Rs. ${grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    const amountWidth = doc.widthOfString(grandTotalAmount);
-    const amountX = 545 - amountWidth;
-    doc.text(grandTotalAmount, amountX, grandTotalY, { lineBreak: false });
-    
-    summaryY += 22;
-    
-    // Bottom border
-    doc.strokeColor('#000000')
-       .lineWidth(3)
-       .moveTo(summaryX, summaryY)
-       .lineTo(545, summaryY)
-       .stroke();
-    
-    // === TERMS & CONDITIONS ===
-    
-    summaryY += 30;
-    
-    // Check if we have enough space left on the current page
-    // A4 page height is ~841 points, bottom margin 50 → safe limit around 750
-    if (summaryY > 750) {
-      doc.addPage();
-      summaryY = 50;
-    }
-    
-    // Top border
-    doc.strokeColor('#000000')
-       .lineWidth(2)
-       .moveTo(50, summaryY)
-       .lineTo(545, summaryY)
-       .stroke();
-    
-    summaryY += 15;
-    
-    // Title
-    doc.fontSize(13)
-       .font('Helvetica-Bold')
-       .fillColor('#000000')
-       .text('Terms and Conditions', 50, summaryY);
-    
-    summaryY += 22;
-    
-    // Terms list
-    doc.fontSize(10)
-       .font('Helvetica')
-       .fillColor('#000000');
-    
-    // Select terms based on logo (use selectedLogo from header section)
-    const terms = selectedLogo === 'grove' 
-      ? [
-          '1. Order to be placed on: Grove Systems Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
-          '2. Delivery Terms –',
-          '3. Payment Terms –',
-          '4. Bank Details – Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651',
-          '5. GST No- 07AAHCG5253F1ZO'
-        ]
-      : [
-          '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
-          '2. Delivery Terms –',
-          '3. Payment Terms –',
-          '4. Bank Details – Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651',
-          '5. GST No- 07AAECG5147M1ZB'
-        ];
-    
-    terms.forEach((term, index) => {
-      // Check if we need a page break for very long content
-      if (summaryY > 780) {
-        doc.addPage();
-        summaryY = 50;
-      }
-      
-      const termHeight = doc.heightOfString(term, { width: 495, lineGap: 2 });
-      doc.text(term, 50, summaryY, { width: 495, lineGap: 2, continued: false });
-      summaryY += termHeight + 8;
+
+    const tableData = products.map((product, index) => {
+      const unitPrice = product.fields['Unit Price'] || 0;
+      const qty = 1;
+      const itemTotal = unitPrice * qty;
+      const tax = itemTotal * 0.18;
+      const totalWithTax = itemTotal + tax;
+
+      subtotal += itemTotal;
+      totalTax += tax;
+
+      let productDetails = product.fields['Product Name'] || 'Unnamed Product';
+      if (product.fields['Brand']) productDetails += `\n${product.fields['Brand']}`;
+      if (product.fields['HSN']) productDetails += `\nHSN: ${product.fields['HSN']}`;
+
+      return [
+        (index + 1).toString(),
+        productDetails,
+        product.fields['Product Code'] || '-',
+        '12',
+        formatINR(unitPrice),
+        qty.toString(),
+        formatINR(tax),
+        formatINR(totalWithTax),
+      ];
     });
 
-    doc.end();
+    // Column widths: 10+48+24+20+28+10+22+18 = 180mm
+    autoTable(doc, {
+      startY: currentY,
+      head: [['S.No.', 'Product Details', 'Product Code', 'Warranty (months)', 'Unit Price', 'Qty', 'Tax', 'Total']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [240, 240, 240],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+        fontSize: 8,
+        halign: 'center',
+        valign: 'middle',
+      },
+      bodyStyles: {
+        fontSize: 8,
+        cellPadding: { top: 2, right: 2, bottom: 2, left: 2 },
+        minCellHeight: 12,
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 10 },
+        1: { halign: 'left',   cellWidth: 48 },
+        2: { halign: 'center', cellWidth: 24 },
+        3: { halign: 'center', cellWidth: 20 },
+        4: { halign: 'right',  cellWidth: 28 },
+        5: { halign: 'center', cellWidth: 10 },
+        6: { halign: 'right',  cellWidth: 22 },
+        7: { halign: 'right',  cellWidth: 18 },
+      },
+      margin: { left: margin, right: margin },
+      showHead: 'everyPage',
+      rowPageBreak: 'avoid',
+    });
 
-    const pdfBuffer = await pdfPromise;
+    currentY = (doc as any).lastAutoTable.finalY + 10;
 
-    return new Response(new Uint8Array(pdfBuffer), {
+    // ── SUMMARY ───────────────────────────────────────────────────────────────
+    const grandTotal = subtotal + totalTax;
+    const summaryLabelX = pageWidth - margin - 95;
+    const summaryValueX = pageWidth - margin;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+
+    doc.text('Sub Total', summaryLabelX, currentY);
+    doc.text(formatINR(subtotal), summaryValueX, currentY, { align: 'right' });
+    currentY += 6;
+
+    doc.text('Tax', summaryLabelX, currentY);
+    doc.text(formatINR(totalTax), summaryValueX, currentY, { align: 'right' });
+    currentY += 6;
+
+    doc.text('Adjustment', summaryLabelX, currentY);
+    doc.text('Rs. 0.00', summaryValueX, currentY, { align: 'right' });
+    currentY += 8;
+
+    doc.setLineWidth(0.5);
+    doc.line(summaryLabelX, currentY, summaryValueX, currentY);
+    currentY += 6;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Grand Total', summaryLabelX, currentY);
+    doc.text(formatINR(grandTotal), summaryValueX, currentY, { align: 'right' });
+    currentY += 6;
+
+    doc.setLineWidth(1);
+    doc.line(summaryLabelX, currentY, summaryValueX, currentY);
+    currentY += 15;
+
+    // ── TERMS & CONDITIONS ────────────────────────────────────────────────────
+    if (currentY > 250) { doc.addPage(); currentY = margin; }
+
+    doc.setLineWidth(0.5);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
+    currentY += 8;
+
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Terms and Conditions', margin, currentY);
+    currentY += 8;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+
+    const terms = [
+      '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
+      '2. Delivery Terms -',
+      '3. Payment Terms -',
+      '4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651',
+      '5. GST No- 07AAECG5147M1ZB',
+    ];
+
+    terms.forEach((term) => {
+      const lines = doc.splitTextToSize(term, usableWidth);
+      doc.text(lines, margin, currentY);
+      currentY += lines.length * 5 + 3;
+    });
+
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+
+    return new Response(pdfBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="quote-${quoteData.id}.pdf"`,
-        'Content-Length': pdfBuffer.length.toString()
-      }
+        'Content-Disposition': `attachment; filename="quote-${quoteId}.pdf"`,
+        'Content-Length': pdfBuffer.length.toString(),
+      },
     });
 
   } catch (error) {
     console.error('[PDF Generation Error]', error);
-    return new Response(JSON.stringify({ error: 'Failed to generate PDF' }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response('Failed to generate PDF', { status: 500 });
   }
 };

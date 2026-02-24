@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@astrojs/node": "^8.0.0",
-    "@types/pdfkit": "^0.17.4",
     "astro": "^4.0.0",
-    "pdfkit": "^0.17.2"
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.3.0",
