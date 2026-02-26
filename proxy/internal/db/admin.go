@@ -144,3 +144,48 @@ func GenerateSecurePassword(length int) (string, error) {
 
 	return string(password), nil
 }
+
+// ResetUserPassword resets a user's password to a new secure random password (admin-only operation)
+// Returns the new plaintext temporary password
+func (d *Database) ResetUserPassword(userID int64) (string, error) {
+	log.Printf("[DB] Admin resetting password for user ID: %d", userID)
+
+	// Check if user exists
+	user, err := d.GetUserByID(userID)
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to get user: %v", err)
+		return "", fmt.Errorf("user not found")
+	}
+	if user == nil {
+		return "", fmt.Errorf("user not found")
+	}
+
+	// Generate secure temporary password
+	tempPassword, err := GenerateSecurePassword(16)
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to generate temporary password: %v", err)
+		return "", fmt.Errorf("failed to generate temporary password: %w", err)
+	}
+
+	// Hash the temporary password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(tempPassword), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to hash password: %v", err)
+		return "", fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Update user password and set must_change_password = true
+	_, err = d.db.Exec(
+		"UPDATE users SET password_hash = ?, must_change_password = 1 WHERE id = ?",
+		string(hashedPassword), userID,
+	)
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to reset password: %v", err)
+		return "", fmt.Errorf("failed to reset password: %w", err)
+	}
+
+	log.Printf("[DB] Password reset successfully for user ID: %d, Email: %s", userID, user.Email)
+
+	// Return plaintext temporary password (only shown once)
+	return tempPassword, nil
+}

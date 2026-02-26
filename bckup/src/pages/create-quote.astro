@@ -795,8 +795,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           fields: {
             'Title': `Quote for ${accountName}`,  // Same as quote subject
             'Status': 'Open',
-            'Created': new Date().toISOString().split('T')[0],
-            'Case Created By': getUserEmail() || 'Unknown User'
+            'Created': new Date().toISOString().split('T')[0]
           }
         };
         

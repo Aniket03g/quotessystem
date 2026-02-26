@@ -212,11 +212,26 @@ func main() {
 	)
 	mux.Handle("/api/auth/change-password", protectedPasswordChangeHandler)
 
-	// Protected admin endpoints (admin-only user creation)
-	protectedAdminCreateUserHandler := middleware.AuthMiddleware(cfg.JWTSecret)(
-		http.HandlerFunc(adminHandler.CreateUser),
+	// Protected admin endpoints (admin-only user management)
+	protectedAdminUsersHandler := middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				adminHandler.ListUsers(w, r)
+			case http.MethodPost:
+				adminHandler.CreateUser(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
+		}),
 	)
-	mux.Handle("/api/admin/users", protectedAdminCreateUserHandler)
+	mux.Handle("/api/admin/users", protectedAdminUsersHandler)
+
+	// Protected admin password reset endpoint
+	protectedAdminResetPasswordHandler := middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(adminHandler.ResetPassword),
+	)
+	mux.Handle("/api/admin/users/reset-password", protectedAdminResetPasswordHandler)
 
 	// Protected secure ping endpoint (example)
 	protectedPingHandler := auth.AuthMiddleware(cfg.JWTSecret)(

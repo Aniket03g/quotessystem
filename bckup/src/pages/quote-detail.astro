@@ -2203,7 +2203,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(productIds.map((id: string) => ({ id })))
+            body: JSON.stringify(productIds.map(id => ({ id })))
           });
         }
 

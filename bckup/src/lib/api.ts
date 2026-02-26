@@ -292,42 +292,6 @@ export interface CreateUserResponse {
   temporary_password: string;
 }
 
-export interface UserListItem {
-  id: number;
-  email: string;
-  name: string;
-  role: string;
-  provider: string;
-  must_change_password: boolean;
-  created_at: string;
-}
-
-export interface ListUsersResponse {
-  users: UserListItem[];
-  total: number;
-}
-
-export async function listUsers(): Promise<ListUsersResponse> {
-  const token = getToken();
-  if (!token) {
-    throw new Error('No authentication token found');
-  }
-
-  const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (response.status === 403) {
-    throw new Error('Admin access required');
-  }
-
-  return await safeJsonParse<ListUsersResponse>(response);
-}
-
 export async function createUser(data: CreateUserRequest): Promise<CreateUserResponse> {
   const token = getToken();
   if (!token) {
@@ -352,43 +316,6 @@ export async function createUser(data: CreateUserRequest): Promise<CreateUserRes
   }
 
   return await safeJsonParse<CreateUserResponse>(response);
-}
-
-export interface ResetPasswordRequest {
-  user_id: number;
-}
-
-export interface ResetPasswordResponse {
-  message: string;
-  email: string;
-  user_id: number;
-  temporary_password: string;
-}
-
-export async function resetUserPassword(userId: number): Promise<ResetPasswordResponse> {
-  const token = getToken();
-  if (!token) {
-    throw new Error('No authentication token found');
-  }
-
-  const response = await fetch(`${API_BASE_URL}/api/admin/users/reset-password`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ user_id: userId }),
-  });
-
-  if (response.status === 403) {
-    throw new Error('Admin access required');
-  }
-
-  if (response.status === 404) {
-    throw new Error('User not found');
-  }
-
-  return await safeJsonParse<ResetPasswordResponse>(response);
 }
 
 // Change password

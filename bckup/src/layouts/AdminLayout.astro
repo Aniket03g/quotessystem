@@ -74,7 +74,7 @@ const { title, currentPage } = Astro.props;
 
       <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
 
-        <a href="/admin" id="dashboardLink" class={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}>
+        <a href="/admin" class={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}>
 
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -96,7 +96,7 @@ const { title, currentPage } = Astro.props;
 
           </svg>
 
-          <span id="quotesLabel">My Quotes</span>
+          <span>Quotes</span>
 
         </a>
 
@@ -146,7 +146,7 @@ const { title, currentPage } = Astro.props;
 
 
 
-        <a href="/admin/users" id="userManagementLink" class={`nav-link ${currentPage === 'users' ? 'active' : ''}`}>
+        <a href="/admin/users" class={`nav-link ${currentPage === 'users' ? 'active' : ''}`} id="userManagementLink">
 
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -306,7 +306,7 @@ const { title, currentPage } = Astro.props;
 
     <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
 
-      <a href="/admin" id="dashboardLinkMobile" class={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}>
+      <a href="/admin" class={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`}>
 
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -328,7 +328,7 @@ const { title, currentPage } = Astro.props;
 
         </svg>
 
-        <span id="quotesLabelMobile">My Quotes</span>
+        <span>Quotes</span>
 
       </a>
 
@@ -378,7 +378,7 @@ const { title, currentPage } = Astro.props;
 
 
 
-      <a href="/admin/users" id="userManagementLinkMobile" class={`nav-link ${currentPage === 'users' ? 'active' : ''}`}>
+      <a href="/admin/users" class={`nav-link ${currentPage === 'users' ? 'active' : ''}`} id="userManagementLinkMobile">
 
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
@@ -462,16 +462,6 @@ const { title, currentPage } = Astro.props;
 
     }
 
-    
-
-    /* Hide admin-only elements by default to prevent flash */
-    #dashboardLink,
-    #dashboardLinkMobile,
-    #userManagementLink,
-    #userManagementLinkMobile {
-      display: none;
-    }
-
   </style>
 
 
@@ -480,7 +470,7 @@ const { title, currentPage } = Astro.props;
 
     import { logout } from '../lib/api';
 
-    import { checkPasswordChangeRequired, getTokenClaims } from '../utils/jwt';
+    import { getTokenClaims, checkPasswordChangeRequired } from '../utils/jwt';
 
 
 
@@ -608,33 +598,17 @@ const { title, currentPage } = Astro.props;
 
 
 
-    // Customize sidebar based on user role
+    // Hide User Management link for non-admin users
 
-    function customizeSidebarForRole() {
+    function hideUserManagementForNonAdmin() {
 
       const claims = getTokenClaims();
 
-      if (!claims) return;
+      const isAdmin = claims?.role === 'admin';
 
       
 
-      const userRole = claims.role;
-
-      const quotesLabel = document.getElementById('quotesLabel');
-
-      const quotesLabelMobile = document.getElementById('quotesLabelMobile');
-
-      
-
-      // If user is admin, show admin-only elements and update labels
-
-      if (userRole === 'admin') {
-
-        // Show admin-only navigation links
-
-        const dashboardLink = document.getElementById('dashboardLink');
-
-        const dashboardLinkMobile = document.getElementById('dashboardLinkMobile');
+      if (!isAdmin) {
 
         const userManagementLink = document.getElementById('userManagementLink');
 
@@ -642,25 +616,9 @@ const { title, currentPage } = Astro.props;
 
         
 
-        if (dashboardLink) {
-
-          dashboardLink.style.display = 'flex';
-
-        }
-
-        
-
-        if (dashboardLinkMobile) {
-
-          dashboardLinkMobile.style.display = 'flex';
-
-        }
-
-        
-
         if (userManagementLink) {
 
-          userManagementLink.style.display = 'flex';
+          userManagementLink.style.display = 'none';
 
         }
 
@@ -668,29 +626,11 @@ const { title, currentPage } = Astro.props;
 
         if (userManagementLinkMobile) {
 
-          userManagementLinkMobile.style.display = 'flex';
-
-        }
-
-        
-
-        // Change 'My Quotes' to 'Quotes' for admin
-
-        if (quotesLabel) {
-
-          quotesLabel.textContent = 'Quotes';
-
-        }
-
-        if (quotesLabelMobile) {
-
-          quotesLabelMobile.textContent = 'Quotes';
+          userManagementLinkMobile.style.display = 'none';
 
         }
 
       }
-
-      // For non-admin users, admin links remain hidden by CSS
 
     }
 
@@ -700,11 +640,7 @@ const { title, currentPage } = Astro.props;
 
     loadUserInfo();
 
-    
-
-    // Customize sidebar based on user role
-
-    customizeSidebarForRole();
+    hideUserManagementForNonAdmin();
 
   </script>
 

@@ -1,5 +1,6 @@
 services:
   backend:
+    platform: linux/amd64
     build:
       context: ./proxy
       dockerfile: Dockerfile
@@ -7,23 +8,20 @@ services:
     env_file:
       - ./proxy/.env
     ports:
-      - "8080:8080"
+      - "8082:8082"
     environment:
       - DATABASE_PATH=/app/data/users.db
       - LOG_DIR=/app/logs
       - PROXY_CONFIG_PATH=/app/config/proxy.yaml
     volumes:
-      # Persistent SQLite database
       - ./data/db:/app/data
-      # Persistent logs
       - ./data/logs:/app/logs
-      # Config files (optional)
       - ./proxy/config:/app/config:ro
     restart: unless-stopped
     networks:
       - grove-network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8082/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -38,7 +36,7 @@ services:
       - "4321:4321"
     environment:
       - NODE_ENV=production
-      - PUBLIC_API_BASE_URL=http://backend:8080
+      - PUBLIC_API_BASE_URL=http://backend:8082
     depends_on:
       - backend
     restart: unless-stopped

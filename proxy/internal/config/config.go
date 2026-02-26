@@ -46,7 +46,7 @@ func Load() *Config {
 
 	return &Config{
 		// Server
-		Port: getEnv("PORT", "8080"),
+		Port: getEnv("PORT", "8082"),
 
 		// NocoDB
 		NocoDBURL:    getEnv("NOCODB_URL", "http://localhost:8090/api/v3/data/project/"),
@@ -59,12 +59,12 @@ func Load() *Config {
 		// OAuth - Google
 		GoogleClientID:     getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
-		GoogleCallbackURL:  getEnv("GOOGLE_CALLBACK_URL", "http://localhost:8080/auth/google/callback"),
+		GoogleCallbackURL:  getEnv("GOOGLE_CALLBACK_URL", "http://localhost:8082/auth/google/callback"),
 
 		// OAuth - GitHub
 		GitHubClientID:     getEnv("GITHUB_CLIENT_ID", ""),
 		GitHubClientSecret: getEnv("GITHUB_CLIENT_SECRET", ""),
-		GitHubCallbackURL:  getEnv("GITHUB_CALLBACK_URL", "http://localhost:8080/auth/github/callback"),
+		GitHubCallbackURL:  getEnv("GITHUB_CALLBACK_URL", "http://localhost:8082/auth/github/callback"),
 
 		// Database
 		DatabasePath: getEnv("DATABASE_PATH", "./users.db"),

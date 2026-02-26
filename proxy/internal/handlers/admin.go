@@ -34,6 +34,21 @@ type CreateUserResponse struct {
 	TemporaryPassword string `json:"temporary_password"`
 }
 
+type UserListItem struct {
+	ID                 int64  `json:"id"`
+	Email              string `json:"email"`
+	Name               string `json:"name"`
+	Role               string `json:"role"`
+	Provider           string `json:"provider"`
+	MustChangePassword bool   `json:"must_change_password"`
+	CreatedAt          string `json:"created_at"`
+}
+
+type ListUsersResponse struct {
+	Users []UserListItem `json:"users"`
+	Total int            `json:"total"`
+}
+
 // CreateUser handles admin-only user creation with temporary password
 // POST /api/admin/users
 func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -106,6 +121,141 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Email:             user.Email,
 		UserID:            user.ID,
 		Role:              user.Role,
+		TemporaryPassword: tempPassword,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+// ListUsers handles admin-only user listing
+// GET /api/admin/users
+func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[ADMIN] List users request from %s", r.RemoteAddr)
+
+	// Check if user is admin
+	role, ok := r.Context().Value(middleware.RoleKey).(string)
+	if !ok {
+		log.Printf("[ADMIN ERROR] Role not found in context")
+		respondWithError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if role != "admin" {
+		log.Printf("[ADMIN ERROR] Non-admin user attempted to list users: role=%s", role)
+		respondWithError(w, http.StatusForbidden, "admin access required")
+		return
+	}
+
+	// Get all users from database
+	users, err := h.database.GetAllUsers()
+	if err != nil {
+		log.Printf("[ADMIN ERROR] Failed to get users: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "failed to retrieve users")
+		return
+	}
+
+	// Convert to response format (exclude password hashes)
+	userList := make([]UserListItem, 0, len(users))
+	for _, user := range users {
+		userList = append(userList, UserListItem{
+			ID:                 user.ID,
+			Email:              user.Email,
+			Name:               user.Name,
+			Role:               user.Role,
+			Provider:           user.Provider,
+			MustChangePassword: user.MustChangePassword,
+			CreatedAt:          user.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	log.Printf("[ADMIN] Successfully retrieved %d users", len(userList))
+
+	// Return users list
+	w.Header().Set("Content-Type", "application/json")
+	response := ListUsersResponse{
+		Users: userList,
+		Total: len(userList),
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+type ResetPasswordRequest struct {
+	UserID int64 `json:"user_id"`
+}
+
+type ResetPasswordResponse struct {
+	Message           string `json:"message"`
+	Email             string `json:"email"`
+	UserID            int64  `json:"user_id"`
+	TemporaryPassword string `json:"temporary_password"`
+}
+
+// ResetPassword handles admin-only password reset
+// POST /api/admin/users/reset-password
+func (h *AdminHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[ADMIN] Reset password request from %s", r.RemoteAddr)
+
+	// Check if user is admin
+	role, ok := r.Context().Value(middleware.RoleKey).(string)
+	if !ok {
+		log.Printf("[ADMIN ERROR] Role not found in context")
+		respondWithError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if role != "admin" {
+		log.Printf("[ADMIN ERROR] Non-admin user attempted to reset password: role=%s", role)
+		respondWithError(w, http.StatusForbidden, "admin access required")
+		return
+	}
+
+	// Parse request body
+	var req ResetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("[ADMIN ERROR] Failed to decode request body: %v", err)
+		respondWithError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	// Validate user ID
+	if req.UserID <= 0 {
+		log.Printf("[ADMIN ERROR] Invalid user ID: %d", req.UserID)
+		respondWithError(w, http.StatusBadRequest, "valid user_id is required")
+		return
+	}
+
+	log.Printf("[ADMIN] Resetting password for user ID: %d", req.UserID)
+
+	// Reset password
+	tempPassword, err := h.database.ResetUserPassword(req.UserID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			log.Printf("[ADMIN ERROR] User not found: ID=%d", req.UserID)
+			respondWithError(w, http.StatusNotFound, "user not found")
+			return
+		}
+		log.Printf("[ADMIN ERROR] Failed to reset password: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "failed to reset password")
+		return
+	}
+
+	// Get user details for response
+	user, err := h.database.GetUserByID(req.UserID)
+	if err != nil {
+		log.Printf("[ADMIN ERROR] Failed to get user details: %v", err)
+		respondWithError(w, http.StatusInternalServerError, "failed to get user details")
+		return
+	}
+
+	log.Printf("[ADMIN] Password reset successfully for user ID: %d, Email: %s", req.UserID, user.Email)
+	// SECURITY NOTE: Temporary password is only returned once in this response
+
+	// Return success response with temporary password
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := ResetPasswordResponse{
+		Message:           "Password reset successfully",
+		Email:             user.Email,
+		UserID:            user.ID,
 		TemporaryPassword: tempPassword,
 	}
 	json.NewEncoder(w).Encode(response)

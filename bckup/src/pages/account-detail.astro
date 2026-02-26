@@ -199,119 +199,104 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
     </div>
 
     <!-- Account Details Card -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
       <!-- Account Header -->
-      <div class="bg-gradient-to-br from-blue-50 via-slate-50 to-white px-8 py-8 border-b border-slate-200">
+      <div class="bg-gradient-to-br from-slate-50 to-gray-50 px-8 py-6 border-b border-gray-200">
         <div class="flex justify-between items-start">
           <div class="flex-1">
-            <div class="flex items-center gap-3 mb-2">
-              <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <svg xmlns="http://www.w3.org/2000/svg" height="28px" viewBox="0 -960 960 960" width="28px" fill="#ffffff"><path d="M200-280v-280h80v280h-80Zm240 0v-280h80v280h-80ZM80-120v-80h800v80H80Zm600-160v-280h80v280h-80ZM80-640v-80l400-200 400 200v80H80Zm178-80h444-444Zm0 0h444L480-830 258-720Z"/></svg>
-              </div>
-              <div>
-                <h1 id="accountName" class="text-3xl font-bold text-slate-900 tracking-tight">Loading...</h1>
-                <div class="flex items-center gap-2 mt-1">
-                  <span id="accountIndustry" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"></span>
-                </div>
+            <div>
+              <h1 id="accountName" class="text-2xl font-bold text-gray-900 tracking-tight">Loading...</h1>
+              <div class="flex items-center gap-2 mt-1">
+                <span id="accountIndustry" class="text-sm text-gray-600 font-medium"></span>
               </div>
             </div>
           </div>
-          <a href="/create-quote" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 font-semibold shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-200 flex items-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
             Create Quote
-          </a>
+          </button>
         </div>
       </div>
 
       <!-- Account Information Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-gray-100">
         <!-- Contact Information -->
-        <div class="px-8 py-7 bg-gradient-to-br from-slate-50/50 to-white">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="px-8 py-6">
+          <div class="flex items-center gap-2 mb-5">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
               </svg>
             </div>
-            <h2 class="text-base font-bold text-slate-900 tracking-tight">Contact Information</h2>
+            <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Contact Information</h2>
           </div>
-          <div class="space-y-5">
+          <div class="space-y-4">
             <div class="group">
-              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Phone</label>
-              <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-blue-300 transition-colors">
-                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">Phone</label>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                 </svg>
-                <p id="accountPhone" class="text-sm font-semibold text-slate-900">-</p>
+                <p id="accountPhone" class="text-sm font-medium text-gray-900">-</p>
               </div>
             </div>
             <div class="group">
-              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Company Name</label>
-              <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-blue-300 transition-colors">
-                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">Company Name</label>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                 </svg>
                 <p id="accountCompany" class="text-sm font-medium text-gray-900">-</p>
               </div>
             </div>
             <div class="group">
-              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Website</label>
-              <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-blue-300 transition-colors">
-                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">Website</label>
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
                 </svg>
-                <p id="accountWebsite" class="text-sm font-medium text-slate-900">-</p>
+                <p id="accountWebsite" class="text-sm font-medium text-gray-900">-</p>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Billing Address -->
-        <div class="px-8 py-7 bg-gradient-to-br from-slate-50/50 to-white">
-          <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="px-8 py-6">
+          <div class="flex items-center gap-2 mb-5">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+              <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
             </div>
-            <h2 class="text-base font-bold text-slate-900 tracking-tight">Billing Address</h2>
+            <h2 class="text-sm font-semibold text-gray-900 uppercase tracking-wide">Billing Address</h2>
           </div>
-          <div class="space-y-5">
+          <div class="space-y-4">
             <div class="group">
-              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Street</label>
-              <div class="p-3 bg-white rounded-lg border border-slate-200 hover:border-green-300 transition-colors">
-                <p id="billingStreet" class="text-sm font-medium text-slate-900 leading-relaxed">-</p>
+              <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">Street</label>
+              <p id="billingStreet" class="text-sm font-medium text-gray-900 leading-relaxed">-</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="group">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">City</label>
+                <p id="billingCity" class="text-sm font-medium text-gray-900">-</p>
+              </div>
+              <div class="group">
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">State</label>
+                <p id="billingState" class="text-sm font-medium text-gray-900">-</p>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div class="group">
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">City</label>
-                <div class="p-3 bg-white rounded-lg border border-slate-200 hover:border-green-300 transition-colors">
-                  <p id="billingCity" class="text-sm font-medium text-slate-900">-</p>
-                </div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">Postal Code</label>
+                <p id="billingCode" class="text-sm font-medium text-gray-900">-</p>
               </div>
               <div class="group">
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">State</label>
-                <div class="p-3 bg-white rounded-lg border border-slate-200 hover:border-green-300 transition-colors">
-                  <p id="billingState" class="text-sm font-medium text-slate-900">-</p>
-                </div>
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="group">
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Postal Code</label>
-                <div class="p-3 bg-white rounded-lg border border-slate-200 hover:border-green-300 transition-colors">
-                  <p id="billingCode" class="text-sm font-medium text-slate-900">-</p>
-                </div>
-              </div>
-              <div class="group">
-                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Country</label>
-                <div class="p-3 bg-white rounded-lg border border-slate-200 hover:border-green-300 transition-colors">
-                  <p id="billingCountry" class="text-sm font-medium text-slate-900">-</p>
-                </div>
+                <label class="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1.5">Country</label>
+                <p id="billingCountry" class="text-sm font-medium text-gray-900">-</p>
               </div>
             </div>
           </div>
@@ -331,27 +316,6 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
   </div>
 
   <script define:vars={{ API_BASE_URL }}>
-    /**
-     * Get the logged-in user's email from localStorage
-     */
-    function getUserEmail() {
-      return localStorage.getItem('user_email');
-    }
-
-    /**
-     * Get the logged-in user's role from localStorage
-     */
-    function getUserRole() {
-      const userInfoStr = localStorage.getItem('user_info');
-      if (!userInfoStr) return null;
-      try {
-        const userInfo = JSON.parse(userInfoStr);
-        return userInfo.role || null;
-      } catch {
-        return null;
-      }
-    }
-
     const urlParams = new URLSearchParams(window.location.search);
     const accountId = urlParams.get('id');
 
@@ -405,32 +369,26 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
         const fields_data = data.fields || {};
         
         // Display account information
-        const accountName = data.fields?.['Account Name'] || 'Unknown Account';
-        const accountIndustry = data.fields?.['Industry'] || '';
-        const accountPhone = data.fields?.['Phone'] || '-';
-        const accountCompany = data.fields?.['Company Name'] || '-';
-        const accountWebsite = data.fields?.['Website'] || '-';
-        
-        // Billing Address
-        const billingStreet = data.fields?.['Billing Street'] || '-';
-        const billingCity = data.fields?.['Billing City'] || '-';
-        const billingState = data.fields?.['Billing State'] || '-';
-        const billingCode = data.fields?.['Billing Code'] || '-';
-        const billingCountry = data.fields?.['Billing Country'] || '-';
-        
-        // Update DOM
+        const accountName = fields_data['Account Name'] || 'N/A';
         document.getElementById('accountName').textContent = accountName;
-        document.getElementById('accountIndustry').textContent = accountIndustry;
-        document.getElementById('accountPhone').textContent = accountPhone;
-        document.getElementById('accountCompany').textContent = accountCompany;
-        document.getElementById('accountWebsite').textContent = accountWebsite;
         
+        document.getElementById('accountIndustry').textContent = fields_data['Industry'] || '';
+        document.getElementById('accountPhone').textContent = fields_data['Phone'] || '-';
+        document.getElementById('accountCompany').textContent = fields_data['Company Name'] || '-';
         
-        document.getElementById('billingStreet').textContent = billingStreet;
-        document.getElementById('billingCity').textContent = billingCity;
-        document.getElementById('billingState').textContent = billingState;
-        document.getElementById('billingCode').textContent = billingCode;
-        document.getElementById('billingCountry').textContent = billingCountry;
+        const website = fields_data['Website'];
+        const websiteEl = document.getElementById('accountWebsite');
+        if (website) {
+          websiteEl.innerHTML = `<a href="${website.startsWith('http') ? website : 'https://' + website}" target="_blank" class="text-blue-600 hover:underline">${website}</a>`;
+        } else {
+          websiteEl.textContent = '-';
+        }
+        
+        document.getElementById('billingStreet').textContent = fields_data['Billing Street'] || '-';
+        document.getElementById('billingCity').textContent = fields_data['Billing City'] || '-';
+        document.getElementById('billingState').textContent = fields_data['Billing State'] || '-';
+        document.getElementById('billingCode').textContent = fields_data['Billing Code'] || '-';
+        document.getElementById('billingCountry').textContent = fields_data['Billing Country'] || '-';
 
         // Load cases (which includes quotes in accordion)
         await loadAccountCases(accountId, token);
@@ -446,23 +404,9 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
 
     async function loadAccountCases(accountId, token) {
       try {
-        const userEmail = getUserEmail();
-        const userRole = getUserRole();
-        
-        // Build URL with filtering for non-admin users
-        let url = `${API_BASE_URL}/proxy/cases/records?fields=Id,Title,Status,Created,Accounts duplicate,Case Created By`;
-        
-        if (userRole === 'admin') {
-          console.log('[ACCOUNT DETAIL] Admin user detected - loading all cases');
-        } else {
-          // Filter cases by Case Created By for non-admin users
-          const rawWhere = `(Case Created By,eq,${userEmail})`;
-          const encodedWhere = encodeURIComponent(rawWhere);
-          url = `${url}&where=${encodedWhere}`;
-          console.log('[ACCOUNT DETAIL] Loading cases for user:', userEmail);
-        }
-        
-        console.log('[ACCOUNT DETAIL] Fetching cases from:', url);
+        // Fetch all cases and filter by linked account
+        const url = `${API_BASE_URL}/proxy/cases/records?fields=Id,Title,Status,Created,Accounts duplicate`;
+        console.log('[ACCOUNT DETAIL] Fetching all cases from:', url);
         
         const response = await fetch(url, {
           method: 'GET',
@@ -635,10 +579,7 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
     async function loadCaseQuotes(caseId) {
       try {
         const token = localStorage.getItem('jwt_token');
-        const userEmail = getUserEmail();
-        const userRole = getUserRole();
-        
-        const url = `${API_BASE_URL}/proxy/cases/links/quotes/${caseId}?fields=Id,Subject,Quote Version,Quote Status,Quote Date,Total Amount,Quote Created By`;
+        const url = `${API_BASE_URL}/proxy/cases/links/quotes/${caseId}?fields=Id,Subject,Quote Version,Quote Status,Quote Date,Total Amount`;
         
         console.log(`[ACCOUNT DETAIL] Loading quotes for case ${caseId}`);
         
@@ -652,16 +593,7 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
         
         if (response.ok) {
           const data = await response.json();
-          let quotes = data.records || [];
-          
-          // Filter quotes for non-admin users
-          if (userRole !== 'admin') {
-            quotes = quotes.filter(quote => {
-              const createdBy = quote.fields?.['Quote Created By'];
-              return createdBy === userEmail;
-            });
-            console.log(`[ACCOUNT DETAIL] Filtered to ${quotes.length} quotes for user ${userEmail}`);
-          }
+          const quotes = data.records || [];
           
           // Cache the quotes
           caseQuotesCache.set(caseId, quotes);

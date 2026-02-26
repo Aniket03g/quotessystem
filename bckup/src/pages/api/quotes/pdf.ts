@@ -121,7 +121,7 @@ export const POST: APIRoute = async ({ request }) => {
         } else {
           // GreenOCare logo: use full width with fixed aspect ratio
           renderW = availableW;
-          const aspectRatio = 35 / 8; // Fixed aspect ratio
+          const aspectRatio = 100 / 70; // Fixed aspect ratio
           renderH = renderW / aspectRatio;
         }
 
@@ -132,8 +132,8 @@ export const POST: APIRoute = async ({ request }) => {
           offsetY = currentY + (LOGO_BOX_H - renderH) / 3;
         } else {
           // GreenOCare
-          offsetX = margin + LOGO_PADDING - 3;
-          offsetY = currentY + (LOGO_BOX_H - renderH) - 2;
+          offsetX = margin + LOGO_PADDING - 8;
+          offsetY = currentY + (LOGO_BOX_H - renderH) / 3;
         }
 
         doc.addImage(logoData, imgFormat, offsetX, offsetY, renderW, renderH);

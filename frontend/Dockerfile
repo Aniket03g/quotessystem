@@ -1,44 +1,31 @@
-# Frontend Dockerfile for Astro hybrid mode
-FROM node:20-alpine AS builder
+FROM node:20 AS builder
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
 
-# Install dependencies
 RUN npm ci
 
-# Copy source code
 COPY . .
 
-# Build the application
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
-# Copy built application
-COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 
-# Copy logo files for PDF generation to multiple locations
-COPY --from=builder /app/public/*.png ./
-
-# Create client directory and copy logos there too
-RUN mkdir -p ./dist/client && cp *.png ./dist/client/ || true
-
-# Install only production dependencies
 RUN npm ci --only=production
 
-# Expose port
+COPY --from=builder /app/dist ./dist
+
+COPY --from=builder /app/public ./public
+
 EXPOSE 4321
 
-# Set environment variables
 ENV HOST=0.0.0.0
 ENV PORT=4321
+ENV NODE_ENV=production
 
-# Start the application
 CMD ["node", "./dist/server/entry.mjs"]
