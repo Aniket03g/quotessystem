@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grove Systems CRM - Admin User Guide</title>
+    <style>
+        @page {
+            size: 16in 9in;
+            margin: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .slide {
+            width: 1200px;
+            height: 675px;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+        .slide-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 60px;
+            text-align: center;
+        }
+        .slide-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .slide-subtitle {
+            font-size: 24px;
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .slide-content {
+            padding: 50px 60px;
+        }
+        .content-title {
+            font-size: 36px;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .bullet-list {
+            font-size: 22px;
+            line-height: 1.8;
+            color: #333;
+        }
+        .bullet-list li {
+            margin-bottom: 15px;
+        }
+        .bullet-list strong {
+            color: #667eea;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .feature-box {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .feature-box h3 {
+            color: #667eea;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .feature-box p {
+            margin: 0;
+            font-size: 18px;
+            color: #555;
+        }
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .workflow-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            font-size: 20px;
+        }
+        .highlight-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .highlight-box strong {
+            color: #856404;
+        }
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            right: 60px;
+            font-size: 16px;
+            color: #999;
+        }
+        .icon {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+        }
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .card-desc {
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title Slide -->
+<div class="slide">
+    <div class="slide-header" style="padding: 150px 60px;">
+        <h1 class="slide-title">Grove Systems CRM</h1>
+        <p class="slide-subtitle">Administrator User Guide</p>
+        <p style="font-size: 20px; margin-top: 30px; opacity: 0.8;">Complete Guide to System Administration & Management</p>
+    </div>
+    <div class="footer">Grove Systems © 2024</div>
+</div>
+
+<!-- Slide 2: Table of Contents -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📋 What You'll Learn</h2>
+        <div class="two-column">
+            <div>
+                <div class="feature-box">
+                    <h3>1. System Overview</h3>
+                    <p>Understanding the CRM platform</p>
+                </div>
+                <div class="feature-box">
+                    <h3>2. User Management</h3>
+                    <p>Creating and managing users</p>
+                </div>
+                <div class="feature-box">
+                    <h3>3. Quote Management</h3>
+                    <p>Creating and tracking quotes</p>
+                </div>
+            </div>
+            <div>
+                <div class="feature-box">
+                    <h3>4. Account Management</h3>
+                    <p>Managing customer accounts</p>
+                </div>
+                <div class="feature-box">
+                    <h3>5. Product Catalog</h3>
+                    <p>Managing products and pricing</p>
+                </div>
+                <div class="feature-box">
+                    <h3>6. Best Practices</h3>
+                    <p>Tips for efficient administration</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 2</div>
+</div>
+
+<!-- Slide 3: System Overview -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🏢 System Overview</h2>
+        <ul class="bullet-list">
+            <li><strong>Purpose:</strong> Comprehensive CRM system for managing customer relationships, quotes, and sales processes</li>
+            <li><strong>Key Features:</strong>
+                <ul style="margin-top: 10px;">
+                    <li>User authentication with role-based access (Admin & User)</li>
+                    <li>Quote creation and management with PDF generation</li>
+                    <li>Account and contact management</li>
+                    <li>Product catalog with pricing tiers</li>
+                    <li>Integration with NocoDB backend</li>
+                </ul>
+            </li>
+            <li><strong>Admin Privileges:</strong> Full access to all features including user management, viewing all quotes, and system configuration</li>
+        </ul>
+    </div>
+    <div class="footer">Page 3</div>
+</div>
+
+<!-- Slide 4: Getting Started - Login -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔐 Getting Started: Login</h2>
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Access the System</strong><br>
+                Navigate to the CRM URL (e.g., http://localhost:4321)
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Choose Login Method</strong><br>
+                • Email/Password login<br>
+                • OAuth (Google or GitHub)
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Enter Credentials</strong><br>
+                Use your admin account credentials
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Access Dashboard</strong><br>
+                Upon successful login, you'll see the main dashboard with navigation menu
+            </div>
+        </div>
+        <div class="highlight-box">
+            <strong>⚠️ Important:</strong> Admin accounts have special privileges. Keep credentials secure and never share with unauthorized users.
+        </div>
+    </div>
+    <div class="footer">Page 4</div>
+</div>
+
+<!-- Slide 5: User Management - Overview -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">👥 User Management Overview</h2>
+        <p style="font-size: 22px; margin-bottom: 30px;">As an administrator, you can create and manage user accounts for your team.</p>
+        
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">➕</div>
+                <div class="card-title">Create Users</div>
+                <div class="card-desc">Add new team members with email and role assignment</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👁️</div>
+                <div class="card-title">View All Users</div>
+                <div class="card-desc">See complete list of all system users</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔄</div>
+                <div class="card-title">Reset Passwords</div>
+                <div class="card-desc">Generate temporary passwords for users</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <h3 style="color: #667eea; font-size: 24px; margin-bottom: 15px;">User Roles:</h3>
+            <ul class="bullet-list">
+                <li><strong>Admin:</strong> Full system access, can manage users and view all data</li>
+                <li><strong>User:</strong> Standard access, can create quotes and manage assigned accounts</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">Page 5</div>
+</div>
+
+<!-- Slide 6: Creating a New User -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">➕ Creating a New User</h2>
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Navigate to User Management</strong><br>
+                Click "Admin" → "Users" in the navigation menu
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Click "Create User" Button</strong><br>
+                Located at the top right of the users page
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Fill in User Details</strong><br>
+                • Email address (required)<br>
+                • Full name<br>
+                • Role (Admin or User)
+            </div>
+        </div>
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Submit and Get Temporary Password</strong><br>
+                System generates a secure temporary password - share this with the new user securely
+            </div>
+        </div>
+        <div class="highlight-box">
+            <strong>🔒 Security Note:</strong> The temporary password is shown only once. Users must change it on first login.
+        </div>
+    </div>
+    <div class="footer">Page 6</div>
+</div>
+
+<!-- Slide 7: Managing Existing Users -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">⚙️ Managing Existing Users</h2>
+        
+        <div class="feature-box">
+            <h3>View All Users</h3>
+            <p>The users list shows: Email, Name, Role, Provider (local/OAuth), Password Change Status, and Creation Date</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>Reset User Password</h3>
+            <p><strong>Steps:</strong></p>
+            <ul style="margin-top: 10px; font-size: 18px;">
+                <li>Click "Reset Password" button next to the user</li>
+                <li>Confirm the action</li>
+                <li>Copy the new temporary password</li>
+                <li>Securely share with the user (email, secure message, etc.)</li>
+            </ul>
+        </div>
+
+        <div class="feature-box">
+            <h3>User Status Indicators</h3>
+            <p>• <strong>Must Change Password:</strong> User needs to update their temporary password<br>
+            • <strong>Provider:</strong> Shows if user logs in via local account or OAuth (Google/GitHub)</p>
+        </div>
+    </div>
+    <div class="footer">Page 7</div>
+</div>
+
+<!-- Slide 8: Quote Management Overview -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📄 Quote Management Overview</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">Quotes are the core business documents in the CRM. Admins can view and manage all quotes in the system.</p>
+
+        <div class="two-column">
+            <div>
+                <h3 style="color: #667eea; font-size: 24px; margin-bottom: 20px;">What Admins Can Do:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>View all quotes from all users</li>
+                    <li>Create new quotes</li>
+                    <li>Edit existing quotes</li>
+                    <li>Generate PDF versions</li>
+                    <li>Track quote status</li>
+                    <li>Create quote versions</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: #667eea; font-size: 24px; margin-bottom: 20px;">Quote Information:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Quote number and subject</li>
+                    <li>Associated account</li>
+                    <li>Products and pricing</li>
+                    <li>Quote date and validity</li>
+                    <li>Status (Draft, Sent, Approved, Final)</li>
+                    <li>Total amount</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 8</div>
+</div>
+
+<!-- Slide 9: Creating a Quote - Part 1 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Creating a Quote - Account Selection</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Navigate to Quotes</strong><br>
+                Click "Quotes" in the navigation menu, then "Create Quote" button
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Search and Select Account</strong><br>
+                • Type customer/company name in the search box<br>
+                • System searches existing accounts<br>
+                • Select the appropriate account from dropdown
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Account Details Auto-Populate</strong><br>
+                Once selected, the following fields fill automatically:<br>
+                • Company Name<br>
+                • Phone Number<br>
+                • Billing Street and City<br>
+                • Shipping City
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>💡 Tip:</strong> If the account doesn't exist, create it first via "Accounts" → "Add Account"
+        </div>
+    </div>
+    <div class="footer">Page 9</div>
+</div>
+
+<!-- Slide 10: Creating a Quote - Part 2 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Creating a Quote - Quote Details</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Set Quote Dates</strong><br>
+                • <strong>Quote Date:</strong> Defaults to today (can be changed)<br>
+                • <strong>Valid Until:</strong> Defaults to 30 days from today (can be changed)
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">5</span>
+            <div>
+                <strong>Select Quote Status</strong><br>
+                • <strong>Draft:</strong> Quote is being prepared<br>
+                • <strong>Sent:</strong> Quote has been sent to customer<br>
+                • <strong>Approved:</strong> Customer has approved the quote<br>
+                • <strong>Final:</strong> Quote is finalized
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">6</span>
+            <div>
+                <strong>Choose Quote Type</strong><br>
+                • <strong>Customer:</strong> Uses customer pricing<br>
+                • <strong>Dealer:</strong> Uses dealer pricing (typically lower)
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>⚠️ Important:</strong> Quote type determines which product prices are used. Choose carefully!
+        </div>
+    </div>
+    <div class="footer">Page 10</div>
+</div>
+
+<!-- Slide 11: Creating a Quote - Part 3 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Creating a Quote - Adding Products</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">7</span>
+            <div>
+                <strong>Search for Products</strong><br>
+                Type product name in the search box - system shows matching products with prices
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">8</span>
+            <div>
+                <strong>Select Product</strong><br>
+                Click on the desired product - details auto-populate:<br>
+                • Brand, Product Code, HSN Code<br>
+                • Model, Tax Rate, Description<br>
+                • Unit Price (based on quote type)
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">9</span>
+            <div>
+                <strong>Adjust Price and Quantity</strong><br>
+                • Modify unit price if needed (for discounts/negotiations)<br>
+                • Set quantity required
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">10</span>
+            <div>
+                <strong>Add Multiple Products</strong><br>
+                Click "Add Product" button to add more items to the quote
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 11</div>
+</div>
+
+<!-- Slide 12: Creating a Quote - Part 4 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Creating a Quote - Finalizing</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">11</span>
+            <div>
+                <strong>Add Notes (Optional)</strong><br>
+                Include any additional terms, conditions, or special instructions
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">12</span>
+            <div>
+                <strong>Review Quote</strong><br>
+                Double-check all information:<br>
+                • Account details are correct<br>
+                • Products and quantities are accurate<br>
+                • Prices are appropriate<br>
+                • Dates are set correctly
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">13</span>
+            <div>
+                <strong>Submit Quote</strong><br>
+                Click "Create Quote" button - system calculates totals and saves the quote
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>✅ Success:</strong> After creation, you'll be redirected to the quote detail page where you can view, edit, or generate PDF.
+        </div>
+    </div>
+    <div class="footer">Page 12</div>
+</div>
+
+<!-- Slide 13: Quote Management Features -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔧 Quote Management Features</h2>
+        
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">📄</div>
+                <div class="card-title">View Quote Details</div>
+                <div class="card-desc">See complete quote information, products, and pricing breakdown</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">✏️</div>
+                <div class="card-title">Edit Quotes</div>
+                <div class="card-desc">Modify quote details, add/remove products, update pricing</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📑</div>
+                <div class="card-title">Create Versions</div>
+                <div class="card-desc">Create new versions while preserving quote history</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📥</div>
+                <div class="card-title">Generate PDF</div>
+                <div class="card-desc">Create professional PDF documents for customers</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👁️</div>
+                <div class="card-title">Preview PDF</div>
+                <div class="card-desc">View PDF before downloading or sending</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔍</div>
+                <div class="card-title">Search Quotes</div>
+                <div class="card-desc">Find quotes by name, account, or other criteria</div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 13</div>
+</div>
+
+<!-- Slide 14: Account Management -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🏢 Account Management</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">Accounts represent your customers and business relationships.</p>
+
+        <div class="two-column">
+            <div>
+                <h3 style="color: #667eea; font-size: 24px; margin-bottom: 20px;">Key Features:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Search accounts by name or ID</li>
+                    <li>View account details</li>
+                    <li>Add new accounts</li>
+                    <li>Link accounts to quotes</li>
+                    <li>Track account activity</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: #667eea; font-size: 24px; margin-bottom: 20px;">Account Information:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Company Name</li>
+                    <li>Contact Information</li>
+                    <li>Billing Address</li>
+                    <li>Shipping Address</li>
+                    <li>Industry Type</li>
+                    <li>Account Owner</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 30px;">
+            <strong>💡 Best Practice:</strong> Keep account information up-to-date for accurate quote generation and communication.
+        </div>
+    </div>
+    <div class="footer">Page 14</div>
+</div>
+
+<!-- Slide 15: Adding a New Account -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">➕ Adding a New Account</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Navigate to Accounts</strong><br>
+                Click "Accounts" in the navigation menu
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Click "Add Account"</strong><br>
+                Button located at the top right of the accounts page
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Fill in Account Details</strong><br>
+                • Company Name (required)<br>
+                • Phone and Email<br>
+                • Billing Address (Street, City, State, ZIP)<br>
+                • Shipping Address<br>
+                • Industry, Account Owner, etc.
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Save Account</strong><br>
+                Click "Save" - account is now available for quote creation
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 15</div>
+</div>
+
+<!-- Slide 16: Product Catalog Management -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📦 Product Catalog Management</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">The product catalog contains all items available for quotes.</p>
+
+        <div class="feature-box">
+            <h3>Product Information Includes:</h3>
+            <ul style="margin-top: 10px; font-size: 18px;">
+                <li><strong>Product Name:</strong> Clear, descriptive name</li>
+                <li><strong>Brand:</strong> Manufacturer or brand name</li>
+                <li><strong>Product Code:</strong> Internal SKU or product code</li>
+                <li><strong>HSN Code:</strong> Tax classification code</li>
+                <li><strong>Model:</strong> Specific model number</li>
+                <li><strong>Tax Rate:</strong> Applicable tax percentage</li>
+                <li><strong>Description:</strong> Detailed product description</li>
+                <li><strong>Customer Unit Price:</strong> Standard customer pricing</li>
+                <li><strong>Dealer Unit Price:</strong> Dealer/wholesale pricing</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box">
+            <strong>💰 Pricing Strategy:</strong> Maintain two price tiers (Customer & Dealer) for flexible quote generation.
+        </div>
+    </div>
+    <div class="footer">Page 16</div>
+</div>
+
+<!-- Slide 17: Admin Dashboard Overview -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📊 Admin Dashboard Overview</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">The admin dashboard provides quick access to all system features.</p>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">📄</div>
+                <div class="card-title">Quotes</div>
+                <div class="card-desc">View all quotes, create new, track status</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏢</div>
+                <div class="card-title">Accounts</div>
+                <div class="card-desc">Manage customer accounts and contacts</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📦</div>
+                <div class="card-title">Products</div>
+                <div class="card-desc">Browse and manage product catalog</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👥</div>
+                <div class="card-title">Users</div>
+                <div class="card-desc">Admin-only: Manage system users</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👤</div>
+                <div class="card-title">Contacts</div>
+                <div class="card-desc">Manage individual contacts</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📋</div>
+                <div class="card-title">Cases</div>
+                <div class="card-desc">Track customer cases and issues</div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 17</div>
+</div>
+
+<!-- Slide 18: Best Practices for Admins -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">✨ Best Practices for Administrators</h2>
+        
+        <div class="feature-box">
+            <h3>🔐 Security</h3>
+            <p>• Use strong passwords and change them regularly<br>
+            • Never share admin credentials<br>
+            • Review user access periodically<br>
+            • Ensure temporary passwords are changed promptly</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>📊 Data Management</h3>
+            <p>• Keep account information current and accurate<br>
+            • Regularly update product pricing<br>
+            • Maintain consistent naming conventions<br>
+            • Archive old quotes appropriately</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>👥 User Support</h3>
+            <p>• Provide training to new users<br>
+            • Respond promptly to password reset requests<br>
+            • Monitor system usage and address issues<br>
+            • Document common procedures</p>
+        </div>
+    </div>
+    <div class="footer">Page 18</div>
+</div>
+
+<!-- Slide 19: Common Admin Tasks -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">⚡ Common Admin Tasks</h2>
+        
+        <div class="two-column">
+            <div>
+                <h3 style="color: #667eea; font-size: 24px; margin-bottom: 20px;">Daily Tasks:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Review new quotes</li>
+                    <li>Respond to user requests</li>
+                    <li>Monitor system activity</li>
+                    <li>Update quote statuses</li>
+                </ul>
+
+                <h3 style="color: #667eea; font-size: 24px; margin: 30px 0 20px 0;">Weekly Tasks:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Review user accounts</li>
+                    <li>Update product pricing</li>
+                    <li>Generate reports</li>
+                    <li>Clean up draft quotes</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: #667eea; font-size: 24px; margin-bottom: 20px;">Monthly Tasks:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Audit user access</li>
+                    <li>Review system performance</li>
+                    <li>Update documentation</li>
+                    <li>Archive old records</li>
+                </ul>
+
+                <h3 style="color: #667eea; font-size: 24px; margin: 30px 0 20px 0;">As Needed:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Create new users</li>
+                    <li>Reset passwords</li>
+                    <li>Add new products</li>
+                    <li>Troubleshoot issues</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 19</div>
+</div>
+
+<!-- Slide 20: Troubleshooting Tips -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔧 Troubleshooting Tips</h2>
+        
+        <div class="feature-box">
+            <h3>User Can't Login</h3>
+            <p>• Verify account exists in user management<br>
+            • Check if password needs to be reset<br>
+            • Ensure user is using correct email address<br>
+            • Verify account is not locked</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>Quote Not Saving</h3>
+            <p>• Check all required fields are filled<br>
+            • Verify account is selected<br>
+            • Ensure at least one product is added<br>
+            • Check for valid dates</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>PDF Generation Issues</h3>
+            <p>• Verify quote has all required information<br>
+            • Check product details are complete<br>
+            • Ensure account information is present<br>
+            • Try refreshing the page and regenerating</p>
+        </div>
+    </div>
+    <div class="footer">Page 20</div>
+</div>
+
+<!-- Slide 21: System Access Levels -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔑 Understanding Access Levels</h2>
+        
+        <div class="two-column">
+            <div>
+                <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3 style="color: #2e7d32; margin: 0 0 15px 0; font-size: 28px;">👑 Admin Access</h3>
+                    <ul style="font-size: 18px; color: #333; line-height: 1.8;">
+                        <li>View ALL quotes (all users)</li>
+                        <li>Create and manage users</li>
+                        <li>Reset user passwords</li>
+                        <li>Full account access</li>
+                        <li>Product catalog management</li>
+                        <li>System configuration</li>
+                        <li>All standard user features</li>
+                    </ul>
+                </div>
+            </div>
+            <div>
+                <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 25px; border-radius: 8px;">
+                    <h3 style="color: #1565c0; margin: 0 0 15px 0; font-size: 28px;">👤 User Access</h3>
+                    <ul style="font-size: 18px; color: #333; line-height: 1.8;">
+                        <li>View own quotes only</li>
+                        <li>Create new quotes</li>
+                        <li>Edit own quotes</li>
+                        <li>View accounts</li>
+                        <li>Search products</li>
+                        <li>Generate PDFs</li>
+                        <li>Manage own profile</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 21</div>
+</div>
+
+<!-- Slide 22: Quote Workflow & Business Logic -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔄 Quote Workflow & Business Logic</h2>
+        
+        <div style="background: #f8f9ff; padding: 30px; border-radius: 12px; border: 2px solid #667eea;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #667eea; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">1</div>
+                    <div style="font-size: 18px; font-weight: bold;">Draft</div>
+                    <div style="font-size: 14px; color: #666;">Initial creation</div>
+                </div>
+                <div style="font-size: 32px; color: #667eea;">→</div>
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #2196f3; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">2</div>
+                    <div style="font-size: 18px; font-weight: bold;">Sent</div>
+                    <div style="font-size: 14px; color: #666;">Sent to customer</div>
+                </div>
+                <div style="font-size: 32px; color: #667eea;">→</div>
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #4caf50; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">3</div>
+                    <div style="font-size: 18px; font-weight: bold;">Approved</div>
+                    <div style="font-size: 14px; color: #666;">Customer approved</div>
+                </div>
+                <div style="font-size: 32px; color: #667eea;">→</div>
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #9c27b0; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">4</div>
+                    <div style="font-size: 18px; font-weight: bold;">Final</div>
+                    <div style="font-size: 14px; color: #666;">Completed</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <h3 style="color: #667eea; font-size: 24px; margin-bottom: 15px;">Key Business Rules:</h3>
+            <ul class="bullet-list" style="font-size: 20px;">
+                <li>Quote type (Customer/Dealer) determines pricing automatically</li>
+                <li>Total amount is calculated from all products (quantity × unit price)</li>
+                <li>Quote versions preserve history - create new version instead of overwriting</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">Page 22</div>
+</div>
+
+<!-- Slide 23: Support & Resources -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📞 Support & Resources</h2>
+        
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">📚</div>
+                <div class="card-title">Documentation</div>
+                <div class="card-desc">Refer to README.md and system documentation files</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🔍</div>
+                <div class="card-title">Logs</div>
+                <div class="card-desc">Check application logs in ./data/logs/ for troubleshooting</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">💾</div>
+                <div class="card-title">Database</div>
+                <div class="card-desc">User database located at ./data/db/users.db</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; background: #f0f4ff; padding: 30px; border-radius: 12px; border: 2px solid #667eea;">
+            <h3 style="color: #667eea; font-size: 28px; margin-bottom: 20px; text-align: center;">📧 Need Help?</h3>
+            <p style="font-size: 20px; text-align: center; color: #333; margin: 0;">
+                Contact your system administrator or IT support team<br>
+                <span style="font-size: 18px; color: #666;">For technical issues, check logs and documentation first</span>
+            </p>
+        </div>
+    </div>
+    <div class="footer">Page 23</div>
+</div>
+
+<!-- Slide 24: Summary -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Summary - Key Takeaways</h2>
+        
+        <div class="feature-box">
+            <h3>✅ As an Admin, You Can:</h3>
+            <ul style="margin-top: 10px; font-size: 20px; line-height: 1.8;">
+                <li>Create and manage user accounts with role assignment</li>
+                <li>View and manage all quotes across the entire system</li>
+                <li>Create professional quotes with automatic pricing</li>
+                <li>Generate PDF documents for customers</li>
+                <li>Manage accounts, contacts, and products</li>
+                <li>Reset user passwords and maintain security</li>
+            </ul>
+        </div>
+
+        <div class="feature-box" style="margin-top: 30px;">
+            <h3>🎯 Remember:</h3>
+            <ul style="margin-top: 10px; font-size: 20px; line-height: 1.8;">
+                <li>Keep user credentials secure</li>
+                <li>Maintain accurate account and product data</li>
+                <li>Follow the quote workflow for consistency</li>
+                <li>Provide support to regular users</li>
+                <li>Monitor system activity regularly</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">Page 24</div>
+</div>
+
+<!-- Slide 25: Thank You -->
+<div class="slide">
+    <div class="slide-header" style="padding: 200px 60px;">
+        <h1 class="slide-title" style="font-size: 56px;">Thank You!</h1>
+        <p class="slide-subtitle" style="font-size: 28px; margin-top: 30px;">You're ready to manage the Grove Systems CRM</p>
+        <p style="font-size: 20px; margin-top: 40px; opacity: 0.8;">
+            Questions? Refer to this guide or contact support
+        </p>
+    </div>
+    <div class="footer">Grove Systems © 2024</div>
+</div>
+
+</body>
+</html>

@@ -169,7 +169,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
           >
             <option value="Customer">Customer</option>
-            <option value="Dealer">Dealer</option>
+            <option value="Dealer ">Dealer</option>
           </select>
         </div>
       </div>
@@ -240,7 +240,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <input type="text" class="product-brand-display w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-md text-sm text-slate-700" readonly placeholder="-" />
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Product Code</label>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Model No</label>
                 <input type="text" class="product-code-display w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-md text-sm text-slate-700" readonly placeholder="-" />
               </div>
               <div>
@@ -249,10 +249,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Model</label>
-                <input type="text" class="product-model-display w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-md text-sm text-slate-700" readonly placeholder="-" />
-              </div>
               <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1">Tax</label>
                 <input type="text" class="product-tax-display w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-md text-sm text-slate-700" readonly placeholder="-" />
@@ -451,7 +447,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     async function fetchProductDetails(productId: number, productItem: HTMLElement) {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/proxy/products/records/${productId}?fields=Id,Product Name,Brand,HSN Code,Model,Product Code,Tax,Description,Customer Unit Price,Dealer Unit Price`,
+          `${API_BASE_URL}/proxy/products/records/${productId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description,Customer Unit Price,Dealer Unit Price`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -482,16 +478,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const brandDisplay = productItem.querySelector('.product-brand-display') as HTMLInputElement;
         const codeDisplay = productItem.querySelector('.product-code-display') as HTMLInputElement;
         const hsnDisplay = productItem.querySelector('.product-hsn-display') as HTMLInputElement;
-        const modelDisplay = productItem.querySelector('.product-model-display') as HTMLInputElement;
         const taxDisplay = productItem.querySelector('.product-tax-display') as HTMLInputElement;
         const descriptionDisplay = productItem.querySelector('.product-description-display') as HTMLTextAreaElement;
 
         // Populate hidden inputs
         if (productNameInput) productNameInput.value = fields['Product Name'] || '';
         if (productBrandInput) productBrandInput.value = fields['Brand'] || '';
-        if (productHsnInput) productHsnInput.value = fields['HSN Code'] || '';
-        if (productModelInput) productModelInput.value = fields['Model'] || '';
-        if (productCodeInput) productCodeInput.value = fields['Product Code'] || '';
+        if (productHsnInput) productHsnInput.value = fields['HSN/SAC Code'] || '';
+        if (productModelInput) productModelInput.value = '';
+        if (productCodeInput) productCodeInput.value = fields['Model No'] || '';
         if (productTaxInput) productTaxInput.value = fields['Tax'] || '';
         if (productDescriptionInput) productDescriptionInput.value = fields['Description'] || '';
         if (productCustomerPriceInput) productCustomerPriceInput.value = fields['Customer Unit Price'] || '0';
@@ -499,9 +494,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Populate visible display fields
         if (brandDisplay) brandDisplay.value = fields['Brand'] || '-';
-        if (codeDisplay) codeDisplay.value = fields['Product Code'] || '-';
-        if (hsnDisplay) hsnDisplay.value = fields['HSN Code'] || '-';
-        if (modelDisplay) modelDisplay.value = fields['Model'] || '-';
+        if (codeDisplay) codeDisplay.value = fields['Model No'] || '-';
+        if (hsnDisplay) hsnDisplay.value = fields['HSN/SAC Code'] || '-';
         if (taxDisplay) taxDisplay.value = fields['Tax'] || '-';
         if (descriptionDisplay) descriptionDisplay.value = fields['Description'] || '-';
 
@@ -511,7 +505,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (quoteType === 'Customer') {
           if (customPriceInput) customPriceInput.value = fields['Customer Unit Price'] || '0';
           console.log('[PRODUCT] Set Customer price:', fields['Customer Unit Price']);
-        } else if (quoteType === 'Dealer') {
+        } else if (quoteType === 'Dealer ' || quoteType === 'Dealer') {
           if (customPriceInput) customPriceInput.value = fields['Dealer Unit Price'] || '0';
           console.log('[PRODUCT] Set Dealer price:', fields['Dealer Unit Price']);
         }
@@ -519,9 +513,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         console.log('[PRODUCT] Fetched product details:', {
           name: fields['Product Name'],
           brand: fields['Brand'],
-          hsn: fields['HSN Code'],
-          model: fields['Model'],
-          code: fields['Product Code'],
+          hsn: fields['HSN/SAC Code'],
+          model: '-',
+          code: fields['Model No'],
           tax: fields['Tax'],
           customerPrice: fields['Customer Unit Price'],
           dealerPrice: fields['Dealer Unit Price']
@@ -545,7 +539,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (customerPriceInput && dealerPriceInput && customPriceInput) {
           if (quoteType === 'Customer') {
             customPriceInput.value = customerPriceInput.value || '0';
-          } else if (quoteType === 'Dealer') {
+          } else if (quoteType === 'Dealer ' || quoteType === 'Dealer') {
             customPriceInput.value = dealerPriceInput.value || '0';
           }
         }
@@ -594,7 +588,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         dropdown.classList.remove('hidden');
 
         try {
-          const response = await fetch(`${API_BASE_URL}/proxy/products/records?where=(Product Name,like,${encodeURIComponent(query)})&limit=10&fields=Id,Product Name,Customer Unit Price,Dealer Unit Price`, {
+          // Search by Product Name OR Model No
+          const rawWhere = `(Product Name,like,%${query}%)~or(Model No,like,%${query}%)`;
+          const encodedWhere = encodeURIComponent(rawWhere);
+          const response = await fetch(`${API_BASE_URL}/proxy/products/records?where=${encodedWhere}&limit=10&fields=Id,Product Name,Model No,Customer Unit Price,Dealer Unit Price`, {
             headers: {
               'Authorization': `Bearer ${token}`,
             }

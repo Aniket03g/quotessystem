@@ -39,3 +39,7 @@ tables:
   accounts_duplicate:
     name: "Accounts Duplicate"
     operations: [read, create, update, delete, link]
+
+  leads:
+    name: "Leads"
+    operations: [read, create, update, delete, link]

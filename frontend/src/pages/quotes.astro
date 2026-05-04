@@ -329,7 +329,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
           // Fetch catalog products
           const catalogResponse = await fetch(
-            `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Unit Price,Brand,HSN Code,Model,Product Code,Tax,Description`,
+            `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Unit Price,Brand,HSN/SAC Code,Model No,Tax,Description`,
             {
               method: 'GET',
               headers: {
@@ -358,7 +358,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                   price: junctionMatch.fields['Custom Unit Price'] || 0,
                   discount: junctionMatch.fields['Discount'] || 0,
                   tax: catalogProduct.fields['Tax'] || 0,
-                  hsnCode: catalogProduct.fields['HSN Code'],
+                  hsnCode: catalogProduct.fields['HSN/SAC Code'],
                   description: catalogProduct.fields['Description']
                 };
               }
@@ -464,7 +464,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Fetch linked products
         const productsResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Product Name,Unit Price,Brand,HSN Code,Model,Tax,Description`,
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Product Name,Unit Price,Brand,HSN/SAC Code,Model No,Tax,Description`,
           {
             method: 'GET',
             headers: {
@@ -483,9 +483,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             price: record.fields['Unit Price'] 
               ? parseFloat(String(record.fields['Unit Price'])) 
               : undefined,
-            model: record.fields['Model'] || undefined,
+            model: record.fields['Model No'] || undefined,
             tax: record.fields['Tax'] || undefined,
-            hsnCode: record.fields['HSN Code'] || undefined
+            hsnCode: record.fields['HSN/SAC Code'] || undefined
           }));
         }
 

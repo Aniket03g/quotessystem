@@ -1,0 +1,333 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Add New Lead - Grove Systems" currentPage="leads">
+  <!-- Header -->
+  <div class="mb-6">
+    <a href="/leads" class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors mb-4">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Back to Leads
+    </a>
+    <h1 class="text-2xl font-bold text-slate-800">Add New Lead</h1>
+    <p class="text-sm text-slate-600 mt-1">Fill in the details to create a new lead</p>
+  </div>
+
+  <!-- Alert -->
+  <div id="alert" class="hidden mb-6"></div>
+
+  <!-- Create Lead Form -->
+  <form id="createLeadForm" class="space-y-6">
+    <!-- Lead Information Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h2 class="text-base font-semibold text-slate-800 mb-4">Lead Information</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Lead Name -->
+        <div>
+          <label for="leadName" class="block text-sm font-medium text-slate-700 mb-2">Name *</label>
+          <input 
+            type="text" 
+            id="leadName" 
+            required 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+            placeholder="Enter lead name"
+          />
+        </div>
+
+        <!-- Company -->
+        <div>
+          <label for="company" class="block text-sm font-medium text-slate-700 mb-2">Company</label>
+          <input 
+            type="text" 
+            id="company" 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+            placeholder="Enter company name"
+          />
+        </div>
+
+        <!-- Contact Person -->
+        <div>
+          <label for="contactPerson" class="block text-sm font-medium text-slate-700 mb-2">Contact Person</label>
+          <input 
+            type="text" 
+            id="contactPerson" 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+            placeholder="Enter contact person"
+          />
+        </div>
+
+        <!-- Phone Number -->
+        <div>
+          <label for="phoneNumber" class="block text-sm font-medium text-slate-700 mb-2">Phone Number *</label>
+          <input 
+            type="tel" 
+            id="phoneNumber" 
+            required 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+            placeholder="Enter phone number"
+          />
+        </div>
+
+        <!-- Email -->
+        <div>
+          <label for="email" class="block text-sm font-medium text-slate-700 mb-2">Email</label>
+          <input 
+            type="email" 
+            id="email" 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+            placeholder="Enter email address"
+          />
+        </div>
+
+        <!-- Lead Source -->
+        <div>
+          <label for="source" class="block text-sm font-medium text-slate-700 mb-2">Lead Source *</label>
+          <select 
+            id="source" 
+            required 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          >
+            <option value="">Select Lead Source</option>
+            <option value="Website">Website</option>
+            <option value="Referral">Referral</option>
+            <option value="Cold Call">Cold Call</option>
+            <option value="IndiaMart">IndiaMart</option>
+            <option value="Event">Event</option>
+          </select>
+        </div>
+
+        <!-- Status -->
+        <div>
+          <label for="status" class="block text-sm font-medium text-slate-700 mb-2">Status *</label>
+          <select 
+            id="status" 
+            required 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          >
+            <option value="New">New</option>
+            <option value="Contacted">Contacted</option>
+            <option value="Qualified">Qualified</option>
+            <option value="Proposal Sent">Proposal Sent</option>
+            <option value="Negotiation">Negotiation</option>
+            <option value="Converted">Converted</option>
+            <option value="Lost">Lost</option>
+          </select>
+        </div>
+
+        <!-- Assign To -->
+        <div>
+          <label for="assignedTo" class="block text-sm font-medium text-slate-700 mb-2">Assign To (Optional)</label>
+          <select 
+            id="assignedTo" 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          >
+            <option value="">Select User (Optional)</option>
+          </select>
+        </div>
+
+        <!-- Last Contacted -->
+        <div>
+          <label for="lastContacted" class="block text-sm font-medium text-slate-700 mb-2">Last Contacted</label>
+          <input 
+            type="date" 
+            id="lastContacted" 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+          />
+        </div>
+
+        <!-- Next Follow-up -->
+        <div>
+          <label for="nextFollowUp" class="block text-sm font-medium text-slate-700 mb-2">Next Follow-up</label>
+          <input 
+            type="date" 
+            id="nextFollowUp" 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes Card -->
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h2 class="text-base font-semibold text-slate-800 mb-4">Notes</h2>
+      <textarea 
+        id="notes" 
+        rows="4" 
+        class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+        placeholder="Additional notes about the lead..."
+      ></textarea>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex gap-3 justify-end">
+      <a 
+        href="/leads" 
+        class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+      >
+        Cancel
+      </a>
+      <button 
+        type="submit" 
+        id="submitBtn"
+        class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Create Lead
+      </button>
+    </div>
+  </form>
+
+  <script>
+    import { getToken, logout, safeJsonParse } from '../lib/api';
+
+    const API_BASE_URL = `http://${window.location.hostname}:8082`;
+    
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+    }
+
+    function getUserEmail(): string | null {
+      return localStorage.getItem('user_email');
+    }
+
+    function getUserRole(): string | null {
+      return localStorage.getItem('user_role');
+    }
+
+    const createLeadForm = document.getElementById('createLeadForm') as HTMLFormElement;
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const alertDiv = document.getElementById('alert') as HTMLDivElement;
+    const assignedToSelect = document.getElementById('assignedTo') as HTMLSelectElement;
+
+    function showAlert(message: string, type: 'success' | 'error') {
+      alertDiv.textContent = message;
+      alertDiv.className = `mb-6 p-4 rounded-lg ${
+        type === 'success' 
+          ? 'bg-green-50 text-green-800 border border-green-200' 
+          : 'bg-red-50 text-red-800 border border-red-200'
+      }`;
+      alertDiv.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideAlert() {
+      alertDiv.classList.add('hidden');
+    }
+
+    // Load users for "Assign To" dropdown
+    async function loadUsers() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch users');
+
+        const data = await response.json();
+        const users = data.users || [];
+
+        users.forEach((user: any) => {
+          const option = document.createElement('option');
+          option.value = user.email;
+          option.textContent = `${user.name} (${user.email})`;
+          assignedToSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      }
+    }
+
+    // Form submission
+    createLeadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+
+      const leadName = (document.getElementById('leadName') as HTMLInputElement).value;
+      const company = (document.getElementById('company') as HTMLInputElement).value;
+      const contactPerson = (document.getElementById('contactPerson') as HTMLInputElement).value;
+      const phoneNumber = (document.getElementById('phoneNumber') as HTMLInputElement).value;
+      const email = (document.getElementById('email') as HTMLInputElement).value;
+      const source = (document.getElementById('source') as HTMLSelectElement).value;
+      const status = (document.getElementById('status') as HTMLSelectElement).value;
+      const assignedTo = (document.getElementById('assignedTo') as HTMLSelectElement).value;
+      const lastContacted = (document.getElementById('lastContacted') as HTMLInputElement).value;
+      const nextFollowUp = (document.getElementById('nextFollowUp') as HTMLInputElement).value;
+      const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
+
+      if (!leadName || !phoneNumber || !source || !status) {
+        showAlert('Please fill in all required fields', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating Lead...';
+
+      try {
+        const userRole = getUserRole();
+        const userEmail = getUserEmail();
+        
+        // Auto-assign to non-admin users if they don't explicitly assign to someone else
+        const finalAssignedTo = assignedTo || (userRole !== 'admin' ? userEmail : '') || '';
+        
+        const leadPayload = {
+          fields: {
+            'Lead Name': leadName,
+            'Company': company || '',
+            'Contact Person': contactPerson || '',
+            'Phone Number': phoneNumber,
+            'Email': email || '',
+            'Source': source,
+            'Status': status,
+            'Assigned to': finalAssignedTo,
+            'Last Contacted': lastContacted || null,
+            'Next Follow-up': nextFollowUp || null,
+            'Notes': notes || '',
+            'Lead Created By': userEmail || 'Unknown User'
+          }
+        };
+
+        console.log('[LEAD CREATE] Payload:', JSON.stringify(leadPayload, null, 2));
+
+        const createResponse = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(leadPayload)
+        });
+
+        console.log('[LEAD CREATE] Response status:', createResponse.status);
+
+        if (!createResponse.ok) {
+          const errorText = await createResponse.text();
+          console.error('[LEAD CREATE] Error response:', errorText);
+          throw new Error('Failed to create lead');
+        }
+
+        const result = await safeJsonParse(createResponse);
+        console.log('[LEAD CREATE] Response data:', result);
+
+        showAlert('Lead created successfully!', 'success');
+        
+        // Redirect to leads page after 1.5 seconds
+        setTimeout(() => {
+          window.location.href = '/leads';
+        }, 1500);
+      } catch (error) {
+        console.error('[LEAD CREATE] Error:', error);
+        showAlert(error instanceof Error ? error.message : 'Failed to create lead', 'error');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Lead';
+      }
+    });
+
+    // Initialize
+    loadUsers();
+  </script>
+</AdminLayout>

@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grove Systems CRM - User Guide</title>
+    <style>
+        @page {
+            size: 16in 9in;
+            margin: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        .slide {
+            width: 1200px;
+            height: 675px;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+        }
+        .slide-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px 60px;
+            text-align: center;
+        }
+        .slide-title {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .slide-subtitle {
+            font-size: 24px;
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .slide-content {
+            padding: 50px 60px;
+        }
+        .content-title {
+            font-size: 36px;
+            color: #4facfe;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .bullet-list {
+            font-size: 22px;
+            line-height: 1.8;
+            color: #333;
+        }
+        .bullet-list li {
+            margin-bottom: 15px;
+        }
+        .bullet-list strong {
+            color: #4facfe;
+        }
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .feature-box {
+            background: #f0f9ff;
+            border-left: 4px solid #4facfe;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .feature-box h3 {
+            color: #4facfe;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        .feature-box p {
+            margin: 0;
+            font-size: 18px;
+            color: #555;
+        }
+        .step-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: #4facfe;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        .workflow-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            font-size: 20px;
+        }
+        .highlight-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .highlight-box strong {
+            color: #856404;
+        }
+        .footer {
+            position: absolute;
+            bottom: 20px;
+            right: 60px;
+            font-size: 16px;
+            color: #999;
+        }
+        .icon {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #4facfe;
+        }
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .card-desc {
+            font-size: 16px;
+            color: #666;
+        }
+        .success-box {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .success-box strong {
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Slide 1: Title Slide -->
+<div class="slide">
+    <div class="slide-header" style="padding: 150px 60px;">
+        <h1 class="slide-title">Grove Systems CRM</h1>
+        <p class="slide-subtitle">User Guide</p>
+        <p style="font-size: 20px; margin-top: 30px; opacity: 0.8;">Your Complete Guide to Creating Quotes & Managing Accounts</p>
+    </div>
+    <div class="footer">Grove Systems © 2024</div>
+</div>
+
+<!-- Slide 2: Welcome -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">👋 Welcome to Grove Systems CRM!</h2>
+        
+        <p style="font-size: 24px; margin-bottom: 40px; color: #333;">
+            This guide will help you master the CRM system and create professional quotes efficiently.
+        </p>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">📄</div>
+                <div class="card-title">Create Quotes</div>
+                <div class="card-desc">Generate professional quotes for customers quickly</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏢</div>
+                <div class="card-title">Manage Accounts</div>
+                <div class="card-desc">Access and search customer information</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📥</div>
+                <div class="card-title">Generate PDFs</div>
+                <div class="card-desc">Create beautiful PDF documents</div>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 50px;">
+            <strong>🎯 Your Goal:</strong> By the end of this guide, you'll be able to create complete quotes from start to finish!
+        </div>
+    </div>
+    <div class="footer">Page 2</div>
+</div>
+
+<!-- Slide 3: Table of Contents -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📋 What You'll Learn</h2>
+        <div class="two-column">
+            <div>
+                <div class="feature-box">
+                    <h3>1. Getting Started</h3>
+                    <p>Login and navigation basics</p>
+                </div>
+                <div class="feature-box">
+                    <h3>2. Understanding Your Dashboard</h3>
+                    <p>Overview of available features</p>
+                </div>
+                <div class="feature-box">
+                    <h3>3. Creating Quotes</h3>
+                    <p>Step-by-step quote creation</p>
+                </div>
+                <div class="feature-box">
+                    <h3>4. Managing Your Quotes</h3>
+                    <p>View, edit, and track quotes</p>
+                </div>
+            </div>
+            <div>
+                <div class="feature-box">
+                    <h3>5. Working with Accounts</h3>
+                    <p>Finding and viewing customer info</p>
+                </div>
+                <div class="feature-box">
+                    <h3>6. Products & Pricing</h3>
+                    <p>Understanding the product catalog</p>
+                </div>
+                <div class="feature-box">
+                    <h3>7. Generating PDFs</h3>
+                    <p>Creating professional documents</p>
+                </div>
+                <div class="feature-box">
+                    <h3>8. Tips & Best Practices</h3>
+                    <p>Work smarter and faster</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 3</div>
+</div>
+
+<!-- Slide 4: Getting Started - Login -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔐 Getting Started: Login</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Open the CRM</strong><br>
+                Navigate to the CRM URL provided by your administrator
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Choose Your Login Method</strong><br>
+                • <strong>Email & Password:</strong> Use credentials provided by admin<br>
+                • <strong>OAuth:</strong> Sign in with Google or GitHub account
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>First-Time Login</strong><br>
+                If you received a temporary password, you'll be prompted to change it
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Access Your Dashboard</strong><br>
+                After login, you'll see the main dashboard with navigation menu
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>🔒 Security Tip:</strong> Choose a strong password and never share your login credentials!
+        </div>
+    </div>
+    <div class="footer">Page 4</div>
+</div>
+
+<!-- Slide 5: Dashboard Overview -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📊 Your Dashboard</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">The dashboard is your central hub for all CRM activities.</p>
+
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">📄</div>
+                <div class="card-title">Quotes</div>
+                <div class="card-desc">View and create your quotes</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏢</div>
+                <div class="card-title">Accounts</div>
+                <div class="card-desc">Search customer accounts</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📦</div>
+                <div class="card-title">Products</div>
+                <div class="card-desc">Browse product catalog</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">👤</div>
+                <div class="card-title">Contacts</div>
+                <div class="card-desc">View contact information</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📋</div>
+                <div class="card-title">Cases</div>
+                <div class="card-desc">Track customer cases</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">⚙️</div>
+                <div class="card-title">Profile</div>
+                <div class="card-desc">Manage your account</div>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 30px;">
+            <strong>💡 Note:</strong> You can only view quotes that you created. Admins can see all quotes.
+        </div>
+    </div>
+    <div class="footer">Page 5</div>
+</div>
+
+<!-- Slide 6: Understanding Quotes -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📄 Understanding Quotes</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">A quote is a formal document showing products and pricing for a customer.</p>
+
+        <div class="two-column">
+            <div>
+                <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 20px;">What's in a Quote?</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Customer account information</li>
+                    <li>Quote date and validity period</li>
+                    <li>List of products with prices</li>
+                    <li>Quantities and totals</li>
+                    <li>Additional notes or terms</li>
+                    <li>Quote status</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 20px;">Quote Statuses:</h3>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong style="color: #6c757d;">Draft</strong> - Being prepared
+                </div>
+                <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong style="color: #1976d2;">Sent</strong> - Sent to customer
+                </div>
+                <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong style="color: #388e3c;">Approved</strong> - Customer approved
+                </div>
+                <div style="background: #f3e5f5; padding: 15px; border-radius: 8px;">
+                    <strong style="color: #7b1fa2;">Final</strong> - Completed
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 6</div>
+</div>
+
+<!-- Slide 7: Creating a Quote - Step 1 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Creating a Quote: Step 1 - Start</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Go to Quotes Page</strong><br>
+                Click "Quotes" in the navigation menu
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Click "Create Quote" Button</strong><br>
+                Look for the green "Create Quote" button at the top right
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>You'll See the Quote Creation Form</strong><br>
+                The form has several sections to fill out
+            </div>
+        </div>
+
+        <div style="background: #e8f5e9; padding: 30px; border-radius: 12px; margin-top: 40px; border: 2px solid #4caf50;">
+            <h3 style="color: #2e7d32; font-size: 24px; margin-bottom: 15px;">✅ Before You Start:</h3>
+            <ul style="font-size: 20px; color: #333; line-height: 1.8;">
+                <li>Know which customer the quote is for</li>
+                <li>Have a list of products they need</li>
+                <li>Know the quantities required</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">Page 7</div>
+</div>
+
+<!-- Slide 8: Creating a Quote - Step 2 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Step 2: Select Account</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Search for the Customer Account</strong><br>
+                In the "Account" field, start typing the customer's company name
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Select from Dropdown</strong><br>
+                As you type, matching accounts will appear - click on the correct one
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Account Details Auto-Fill</strong><br>
+                Once selected, these fields populate automatically:<br>
+                • Company Name<br>
+                • Phone Number<br>
+                • Billing Address<br>
+                • Shipping Address
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>❓ Can't Find the Account?</strong><br>
+            If the customer account doesn't exist, contact your administrator to add it first.
+        </div>
+    </div>
+    <div class="footer">Page 8</div>
+</div>
+
+<!-- Slide 9: Creating a Quote - Step 3 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Step 3: Set Quote Details</h2>
+        
+        <div class="two-column">
+            <div>
+                <div class="feature-box">
+                    <h3>📅 Quote Date</h3>
+                    <p>• Defaults to today's date<br>
+                    • You can change if needed<br>
+                    • This is when the quote is created</p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>⏰ Valid Until</h3>
+                    <p>• Defaults to 30 days from today<br>
+                    • Adjust based on your needs<br>
+                    • Quote expires after this date</p>
+                </div>
+            </div>
+            <div>
+                <div class="feature-box">
+                    <h3>📊 Quote Status</h3>
+                    <p>• Choose: Draft, Sent, Approved, or Final<br>
+                    • Usually start with "Draft"<br>
+                    • Update as quote progresses</p>
+                </div>
+
+                <div class="feature-box">
+                    <h3>🏷️ Quote Type</h3>
+                    <p>• <strong>Customer:</strong> Standard pricing<br>
+                    • <strong>Dealer:</strong> Wholesale pricing<br>
+                    • This affects product prices!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlight-box" style="margin-top: 20px;">
+            <strong>⚠️ Important:</strong> Quote Type determines pricing! Choose "Customer" for regular customers, "Dealer" for resellers.
+        </div>
+    </div>
+    <div class="footer">Page 9</div>
+</div>
+
+<!-- Slide 10: Creating a Quote - Step 4 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Step 4: Add Products</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Search for a Product</strong><br>
+                In the product search box, type the product name
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Select Product from Dropdown</strong><br>
+                Click on the product you want - you'll see customer and dealer prices
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Product Details Auto-Fill</strong><br>
+                The system automatically fills in:<br>
+                • Brand, Product Code, HSN Code<br>
+                • Model, Tax Rate<br>
+                • Description<br>
+                • Unit Price (based on quote type)
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Adjust Price and Quantity</strong><br>
+                • You can modify the unit price if needed (for discounts)<br>
+                • Enter the quantity customer needs
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 10</div>
+</div>
+
+<!-- Slide 11: Creating a Quote - Step 5 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Step 5: Add More Products</h2>
+        
+        <div style="text-align: center; margin-bottom: 40px;">
+            <div style="font-size: 64px; margin-bottom: 20px;">📦 + 📦 + 📦</div>
+            <p style="font-size: 24px; color: #333;">Most quotes have multiple products!</p>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Click "Add Product" Button</strong><br>
+                Located below the product list
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>A New Product Row Appears</strong><br>
+                Repeat the search and selection process for each product
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Remove Products if Needed</strong><br>
+                Click the trash icon (🗑️) next to any product to remove it
+            </div>
+        </div>
+
+        <div class="success-box" style="margin-top: 40px;">
+            <strong>💡 Pro Tip:</strong> Add all products before submitting. You can always edit the quote later!
+        </div>
+    </div>
+    <div class="footer">Page 11</div>
+</div>
+
+<!-- Slide 12: Creating a Quote - Step 6 -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Step 6: Add Notes & Submit</h2>
+        
+        <div class="feature-box">
+            <h3>📝 Notes Section (Optional)</h3>
+            <p>Add any additional information:<br>
+            • Payment terms<br>
+            • Delivery conditions<br>
+            • Special instructions<br>
+            • Warranty information<br>
+            • Any other relevant details</p>
+        </div>
+
+        <div class="workflow-step" style="margin-top: 30px;">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Review Everything</strong><br>
+                Double-check all information before submitting
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Click "Create Quote"</strong><br>
+                The blue button at the bottom right
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Quote is Created!</strong><br>
+                You'll be taken to the quote detail page
+            </div>
+        </div>
+
+        <div class="success-box">
+            <strong>🎉 Congratulations!</strong> You've created your first quote!
+        </div>
+    </div>
+    <div class="footer">Page 12</div>
+</div>
+
+<!-- Slide 13: Viewing Your Quotes -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">👁️ Viewing Your Quotes</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Go to Quotes Page</strong><br>
+                Click "Quotes" in the navigation menu
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>See Your Quote List</strong><br>
+                You'll see all quotes you've created with:<br>
+                • Quote number and name<br>
+                • Date created<br>
+                • Status<br>
+                • Total amount
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Search for Specific Quotes</strong><br>
+                Use the search box to find quotes by name or details
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Click on Any Quote</strong><br>
+                Opens the detailed view where you can see all information
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 13</div>
+</div>
+
+<!-- Slide 14: Quote Detail Page -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📋 Quote Detail Page</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">The detail page shows complete quote information and available actions.</p>
+
+        <div class="two-column">
+            <div>
+                <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 20px;">What You Can See:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Quote number and subject</li>
+                    <li>Account information</li>
+                    <li>All products with details</li>
+                    <li>Pricing breakdown</li>
+                    <li>Total amount</li>
+                    <li>Status and dates</li>
+                    <li>Notes</li>
+                </ul>
+            </div>
+            <div>
+                <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 20px;">What You Can Do:</h3>
+                <ul class="bullet-list" style="font-size: 20px;">
+                    <li>Edit the quote</li>
+                    <li>Preview PDF</li>
+                    <li>Download PDF</li>
+                    <li>Create new version</li>
+                    <li>Update status</li>
+                    <li>Add/remove products</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 14</div>
+</div>
+
+<!-- Slide 15: Editing Quotes -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">✏️ Editing Quotes</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Open the Quote</strong><br>
+                Go to the quote detail page
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Click "Edit" Button</strong><br>
+                Usually at the top of the page
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Make Your Changes</strong><br>
+                • Update product quantities or prices<br>
+                • Add or remove products<br>
+                • Change status<br>
+                • Modify notes
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Save Changes</strong><br>
+                Click "Save" to update the quote
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>💡 Tip:</strong> For major changes, consider creating a new version instead of editing the original!
+        </div>
+    </div>
+    <div class="footer">Page 15</div>
+</div>
+
+<!-- Slide 16: Creating Quote Versions -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔄 Creating Quote Versions</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">Versions help you track changes and maintain quote history.</p>
+
+        <div style="background: #f0f9ff; padding: 30px; border-radius: 12px; border: 2px solid #4facfe; margin-bottom: 30px;">
+            <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 15px;">Why Create Versions?</h3>
+            <ul style="font-size: 20px; color: #333; line-height: 1.8;">
+                <li>Customer requests different products or quantities</li>
+                <li>Prices change</li>
+                <li>You want to offer multiple options</li>
+                <li>Keep history of negotiations</li>
+            </ul>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Open Original Quote</strong><br>
+                Go to the quote you want to create a version of
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Click "Create Version"</strong><br>
+                System creates a copy linked to the original
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>Make Changes to New Version</strong><br>
+                Edit as needed - original remains unchanged
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 16</div>
+</div>
+
+<!-- Slide 17: Generating PDFs -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📥 Generating PDF Documents</h2>
+        
+        <p style="font-size: 22px; margin-bottom: 30px;">Create professional PDF documents to send to customers.</p>
+
+        <div class="two-column">
+            <div>
+                <div class="feature-box">
+                    <h3>👁️ Preview PDF</h3>
+                    <p><strong>Steps:</strong><br>
+                    1. Open quote detail page<br>
+                    2. Click "Preview PDF" button<br>
+                    3. PDF opens in new tab<br>
+                    4. Review before sending</p>
+                </div>
+            </div>
+            <div>
+                <div class="feature-box">
+                    <h3>💾 Download PDF</h3>
+                    <p><strong>Steps:</strong><br>
+                    1. Open quote detail page<br>
+                    2. Click "Download PDF"<br>
+                    3. File saves to your computer<br>
+                    4. Send to customer via email</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #e8f5e9; padding: 30px; border-radius: 12px; margin-top: 30px; border: 2px solid #4caf50;">
+            <h3 style="color: #2e7d32; font-size: 24px; margin-bottom: 15px;">📄 PDF Includes:</h3>
+            <ul style="font-size: 20px; color: #333; line-height: 1.8;">
+                <li>Company logo and branding</li>
+                <li>Quote number and date</li>
+                <li>Customer information</li>
+                <li>Detailed product list with pricing</li>
+                <li>Total amount</li>
+                <li>Terms and notes</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">Page 17</div>
+</div>
+
+<!-- Slide 18: Working with Accounts -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🏢 Working with Accounts</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Go to Accounts Page</strong><br>
+                Click "Accounts" in the navigation menu
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Search for Accounts</strong><br>
+                • Type company name in search box<br>
+                • Or enter account ID number<br>
+                • Results appear as you type
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>View Account Details</strong><br>
+                Click on any account to see:<br>
+                • Complete contact information<br>
+                • Address details<br>
+                • Related quotes<br>
+                • Account history
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>📝 Note:</strong> You can view accounts but cannot create or edit them. Contact your administrator if account information needs updating.
+        </div>
+    </div>
+    <div class="footer">Page 18</div>
+</div>
+
+<!-- Slide 19: Understanding Products -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📦 Understanding Products & Pricing</h2>
+        
+        <div class="feature-box">
+            <h3>Product Information</h3>
+            <p>Each product in the catalog includes:<br>
+            • Product Name and Description<br>
+            • Brand and Model<br>
+            • Product Code and HSN Code<br>
+            • Tax Rate<br>
+            • Two price tiers (Customer & Dealer)</p>
+        </div>
+
+        <div class="two-column" style="margin-top: 30px;">
+            <div style="background: #e3f2fd; padding: 25px; border-radius: 12px; border: 2px solid #2196f3;">
+                <h3 style="color: #1565c0; font-size: 24px; margin-bottom: 15px;">💰 Customer Pricing</h3>
+                <ul style="font-size: 18px; color: #333; line-height: 1.8;">
+                    <li>Standard retail price</li>
+                    <li>Use for regular customers</li>
+                    <li>Higher profit margin</li>
+                    <li>Default for most quotes</li>
+                </ul>
+            </div>
+            <div style="background: #fff3e0; padding: 25px; border-radius: 12px; border: 2px solid #ff9800;">
+                <h3 style="color: #e65100; font-size: 24px; margin-bottom: 15px;">🏪 Dealer Pricing</h3>
+                <ul style="font-size: 18px; color: #333; line-height: 1.8;">
+                    <li>Wholesale price</li>
+                    <li>Use for resellers/dealers</li>
+                    <li>Lower price point</li>
+                    <li>Bulk purchase pricing</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 19</div>
+</div>
+
+<!-- Slide 20: Quote Workflow -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔄 Typical Quote Workflow</h2>
+        
+        <div style="background: #f8f9ff; padding: 30px; border-radius: 12px; border: 2px solid #4facfe;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #6c757d; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">1</div>
+                    <div style="font-size: 18px; font-weight: bold;">Create Draft</div>
+                    <div style="font-size: 14px; color: #666;">Prepare quote</div>
+                </div>
+                <div style="font-size: 32px; color: #4facfe;">→</div>
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #2196f3; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">2</div>
+                    <div style="font-size: 18px; font-weight: bold;">Review</div>
+                    <div style="font-size: 14px; color: #666;">Check details</div>
+                </div>
+                <div style="font-size: 32px; color: #4facfe;">→</div>
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #ff9800; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">3</div>
+                    <div style="font-size: 18px; font-weight: bold;">Generate PDF</div>
+                    <div style="font-size: 14px; color: #666;">Create document</div>
+                </div>
+                <div style="font-size: 32px; color: #4facfe;">→</div>
+                <div style="text-align: center; flex: 1;">
+                    <div style="width: 80px; height: 80px; background: #4caf50; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 32px; font-weight: bold;">4</div>
+                    <div style="font-size: 18px; font-weight: bold;">Send</div>
+                    <div style="font-size: 14px; color: #666;">Email to customer</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 15px;">After Sending:</h3>
+            <ul class="bullet-list" style="font-size: 20px;">
+                <li>Update status to "Sent"</li>
+                <li>Wait for customer response</li>
+                <li>If approved, update to "Approved"</li>
+                <li>Create new version if changes needed</li>
+                <li>Mark as "Final" when complete</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer">Page 20</div>
+</div>
+
+<!-- Slide 21: Best Practices -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">✨ Best Practices for Success</h2>
+        
+        <div class="feature-box">
+            <h3>✅ Before Creating a Quote</h3>
+            <p>• Verify the account exists and information is current<br>
+            • Confirm product availability<br>
+            • Know the correct pricing tier (Customer vs Dealer)<br>
+            • Have all quantities ready</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>📝 While Creating</h3>
+            <p>• Double-check account selection<br>
+            • Verify all product details<br>
+            • Review prices and quantities carefully<br>
+            • Add clear notes about terms and conditions</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>🎯 After Creating</h3>
+            <p>• Preview PDF before sending<br>
+            • Keep quote status updated<br>
+            • Create versions for changes, don't overwrite<br>
+            • Follow up with customers promptly</p>
+        </div>
+    </div>
+    <div class="footer">Page 21</div>
+</div>
+
+<!-- Slide 22: Common Mistakes to Avoid -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">⚠️ Common Mistakes to Avoid</h2>
+        
+        <div style="background: #fff3cd; padding: 25px; border-radius: 12px; border: 2px solid #ffc107; margin-bottom: 20px;">
+            <h3 style="color: #856404; font-size: 24px; margin-bottom: 15px;">❌ Wrong Quote Type</h3>
+            <p style="font-size: 18px; color: #333; margin: 0;">
+                <strong>Problem:</strong> Selecting "Dealer" for regular customer or vice versa<br>
+                <strong>Solution:</strong> Always verify customer type before selecting quote type
+            </p>
+        </div>
+
+        <div style="background: #fff3cd; padding: 25px; border-radius: 12px; border: 2px solid #ffc107; margin-bottom: 20px;">
+            <h3 style="color: #856404; font-size: 24px; margin-bottom: 15px;">❌ Incorrect Quantities</h3>
+            <p style="font-size: 18px; color: #333; margin: 0;">
+                <strong>Problem:</strong> Entering wrong product quantities<br>
+                <strong>Solution:</strong> Confirm quantities with customer before creating quote
+            </p>
+        </div>
+
+        <div style="background: #fff3cd; padding: 25px; border-radius: 12px; border: 2px solid #ffc107;">
+            <h3 style="color: #856404; font-size: 24px; margin-bottom: 15px;">❌ Forgetting to Update Status</h3>
+            <p style="font-size: 18px; color: #333; margin: 0;">
+                <strong>Problem:</strong> Quote status doesn't reflect actual state<br>
+                <strong>Solution:</strong> Update status as quote progresses through workflow
+            </p>
+        </div>
+    </div>
+    <div class="footer">Page 22</div>
+</div>
+
+<!-- Slide 23: Tips for Efficiency -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">⚡ Tips for Working Faster</h2>
+        
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">🔍</div>
+                <div class="card-title">Use Search</div>
+                <div class="card-desc">Search accounts and products quickly instead of scrolling</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📋</div>
+                <div class="card-title">Copy Similar Quotes</div>
+                <div class="card-desc">Create versions of existing quotes for similar customers</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">⌨️</div>
+                <div class="card-title">Keyboard Shortcuts</div>
+                <div class="card-desc">Use Tab to move between fields quickly</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📝</div>
+                <div class="card-title">Save Templates</div>
+                <div class="card-desc">Keep common notes saved for copy-paste</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🎯</div>
+                <div class="card-title">Batch Work</div>
+                <div class="card-desc">Create multiple quotes in one session</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">✅</div>
+                <div class="card-title">Double-Check</div>
+                <div class="card-desc">Review before submitting to avoid edits later</div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 23</div>
+</div>
+
+<!-- Slide 24: Troubleshooting -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">🔧 Quick Troubleshooting</h2>
+        
+        <div class="feature-box">
+            <h3>Can't Find an Account?</h3>
+            <p>• Make sure you're spelling the name correctly<br>
+            • Try searching with partial name<br>
+            • Contact admin if account doesn't exist</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>Product Not Showing Price?</h3>
+            <p>• Check if you selected the quote type first<br>
+            • Verify product has pricing in catalog<br>
+            • Refresh the page and try again</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>Quote Won't Save?</h3>
+            <p>• Ensure all required fields are filled (marked with *)<br>
+            • Check that account is selected<br>
+            • Verify at least one product is added<br>
+            • Make sure dates are valid</p>
+        </div>
+
+        <div class="feature-box">
+            <h3>PDF Not Generating?</h3>
+            <p>• Ensure quote is saved first<br>
+            • Check that all product details are complete<br>
+            • Try refreshing the page<br>
+            • Contact admin if problem persists</p>
+        </div>
+    </div>
+    <div class="footer">Page 24</div>
+</div>
+
+<!-- Slide 25: Your Profile -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">👤 Managing Your Profile</h2>
+        
+        <div class="workflow-step">
+            <span class="step-number">1</span>
+            <div>
+                <strong>Access Your Profile</strong><br>
+                Click on your name or profile icon in the top right
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">2</span>
+            <div>
+                <strong>Change Password</strong><br>
+                If you need to update your password, use the "Change Password" option
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">3</span>
+            <div>
+                <strong>View Your Information</strong><br>
+                See your email, name, and role
+            </div>
+        </div>
+
+        <div class="workflow-step">
+            <span class="step-number">4</span>
+            <div>
+                <strong>Logout</strong><br>
+                Always logout when finished, especially on shared computers
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>🔒 Security Reminder:</strong> Use a strong password and change it regularly. Never share your login credentials!
+        </div>
+    </div>
+    <div class="footer">Page 25</div>
+</div>
+
+<!-- Slide 26: Getting Help -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">❓ Getting Help</h2>
+        
+        <div class="two-column">
+            <div>
+                <div style="background: #e3f2fd; padding: 25px; border-radius: 12px; border: 2px solid #2196f3; margin-bottom: 20px;">
+                    <h3 style="color: #1565c0; font-size: 24px; margin-bottom: 15px;">📚 Self-Help</h3>
+                    <ul style="font-size: 18px; color: #333; line-height: 1.8;">
+                        <li>Review this guide</li>
+                        <li>Check system documentation</li>
+                        <li>Try the troubleshooting steps</li>
+                        <li>Ask a colleague</li>
+                    </ul>
+                </div>
+            </div>
+            <div>
+                <div style="background: #e8f5e9; padding: 25px; border-radius: 12px; border: 2px solid #4caf50;">
+                    <h3 style="color: #2e7d32; font-size: 24px; margin-bottom: 15px;">👥 Contact Support</h3>
+                    <ul style="font-size: 18px; color: #333; line-height: 1.8;">
+                        <li>Contact your administrator</li>
+                        <li>Email IT support</li>
+                        <li>Submit a help ticket</li>
+                        <li>Request training session</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: #fff3e0; padding: 30px; border-radius: 12px; margin-top: 30px; border: 2px solid #ff9800;">
+            <h3 style="color: #e65100; font-size: 24px; margin-bottom: 15px; text-align: center;">💡 Pro Tip</h3>
+            <p style="font-size: 20px; text-align: center; color: #333; margin: 0;">
+                Keep this guide handy for reference. The more you use the system, the easier it becomes!
+            </p>
+        </div>
+    </div>
+    <div class="footer">Page 26</div>
+</div>
+
+<!-- Slide 27: Quick Reference -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📌 Quick Reference Guide</h2>
+        
+        <div class="two-column">
+            <div>
+                <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 20px;">Common Tasks:</h3>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>Create Quote:</strong> Quotes → Create Quote
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>View Quotes:</strong> Quotes → Click on quote
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>Edit Quote:</strong> Open quote → Edit button
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>Generate PDF:</strong> Open quote → Preview/Download PDF
+                </div>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+                    <strong>Search Account:</strong> Accounts → Search box
+                </div>
+            </div>
+            <div>
+                <h3 style="color: #4facfe; font-size: 24px; margin-bottom: 20px;">Remember:</h3>
+                <ul class="bullet-list" style="font-size: 18px;">
+                    <li>Select account first</li>
+                    <li>Choose correct quote type</li>
+                    <li>Add all products needed</li>
+                    <li>Review before submitting</li>
+                    <li>Preview PDF before sending</li>
+                    <li>Update status regularly</li>
+                    <li>Create versions for changes</li>
+                    <li>Always logout when done</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer">Page 27</div>
+</div>
+
+<!-- Slide 28: Summary -->
+<div class="slide">
+    <div class="slide-content">
+        <h2 class="content-title">📝 Summary - You've Learned:</h2>
+        
+        <div class="grid-3">
+            <div class="card">
+                <div class="card-icon">🔐</div>
+                <div class="card-title">Login & Navigation</div>
+                <div class="card-desc">Access the system and find your way around</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📄</div>
+                <div class="card-title">Create Quotes</div>
+                <div class="card-desc">Build complete quotes step-by-step</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">✏️</div>
+                <div class="card-title">Manage Quotes</div>
+                <div class="card-desc">Edit, version, and track quotes</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">📥</div>
+                <div class="card-title">Generate PDFs</div>
+                <div class="card-desc">Create professional documents</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🏢</div>
+                <div class="card-title">Work with Accounts</div>
+                <div class="card-desc">Find and use customer information</div>
+            </div>
+            <div class="card">
+                <div class="card-icon">✨</div>
+                <div class="card-title">Best Practices</div>
+                <div class="card-desc">Work efficiently and avoid mistakes</div>
+            </div>
+        </div>
+
+        <div class="success-box" style="margin-top: 40px;">
+            <strong>🎉 Congratulations!</strong> You're now ready to use the Grove Systems CRM effectively!
+        </div>
+    </div>
+    <div class="footer">Page 28</div>
+</div>
+
+<!-- Slide 29: Thank You -->
+<div class="slide">
+    <div class="slide-header" style="padding: 180px 60px;">
+        <h1 class="slide-title" style="font-size: 56px;">Thank You!</h1>
+        <p class="slide-subtitle" style="font-size: 28px; margin-top: 30px;">You're Ready to Create Amazing Quotes</p>
+        <div style="margin-top: 60px; font-size: 20px; opacity: 0.9;">
+            <p style="margin: 10px 0;">📧 Need help? Contact your administrator</p>
+            <p style="margin: 10px 0;">📚 Keep this guide for reference</p>
+            <p style="margin: 10px 0;">💪 Practice makes perfect!</p>
+        </div>
+    </div>
+    <div class="footer">Grove Systems © 2024</div>
+</div>
+
+</body>
+</html>

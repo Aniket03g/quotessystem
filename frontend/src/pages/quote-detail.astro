@@ -442,7 +442,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Step 1: Fetch catalog products via links endpoint (WITHOUT Unit Price)
         console.log('[QUOTE DETAIL] Step 1: Fetching catalog products from links endpoint...');
         const catalogResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Brand,HSN Code,Model,Product Code,Tax,Description`,
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description`,
           {
             method: 'GET',
             headers: {
@@ -510,9 +510,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               catalogUnitPrice: null, // Not fetched from catalog anymore
               productName: catalogProduct.fields['Product Name'],
               brand: catalogProduct.fields['Brand'],
-              hsnCode: catalogProduct.fields['HSN Code'],
-              model: catalogProduct.fields['Model'],
-              productCode: catalogProduct.fields['Product Code'],
+              hsnCode: catalogProduct.fields['HSN/SAC Code'],
+              model: '',
+              productCode: catalogProduct.fields['Model No'],
               tax: catalogProduct.fields['Tax'],
               description: catalogProduct.fields['Description']
             };
@@ -527,9 +527,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               catalogUnitPrice: null,
               productName: catalogProduct.fields['Product Name'],
               brand: catalogProduct.fields['Brand'],
-              hsnCode: catalogProduct.fields['HSN Code'],
-              model: catalogProduct.fields['Model'],
-              productCode: catalogProduct.fields['Product Code'],
+              hsnCode: catalogProduct.fields['HSN/SAC Code'],
+              model: '',
+              productCode: catalogProduct.fields['Model No'],
               tax: catalogProduct.fields['Tax'],
               description: catalogProduct.fields['Description']
             };
@@ -541,6 +541,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Map for PDF generation compatibility
         products = productRecords.map((record: any) => ({
           name: record.productName || 'Unnamed Product',
+          brand: record.brand,
           price: record.customUnitPrice || 0,
           quantity: record.quantity || 1,
           discount: record.discount || 0,
@@ -748,7 +749,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <tr>
                 <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Product</th>
                 <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Brand</th>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Product Code</th>
+                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Model No</th>
                 <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">HSN Code</th>
                 <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Qty</th>
                 <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Unit Price</th>
@@ -1508,11 +1509,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Get quote type from current quote to determine which price field to fetch
         const quoteType = currentQuoteFields['Quote Type'] || 'Customer';
-        const priceField = quoteType === 'Dealer' ? 'Dealer Unit Price' : 'Customer Unit Price';
+        const priceField = (quoteType === 'Dealer ' || quoteType === 'Dealer') ? 'Dealer Unit Price' : 'Customer Unit Price';
 
-        const rawWhere = `(Product Name,like,%${searchTerm}%)~or(Product Code,like,%${searchTerm}%)`;
+        const rawWhere = `(Product Name,like,%${searchTerm}%)~or(Model No,like,%${searchTerm}%)`;
         const encodedWhere = encodeURIComponent(rawWhere);
-        const fieldsParam = encodeURIComponent(`Id,Product Name,Brand,Product Code,HSN Code,Tax,${priceField}`);
+        const fieldsParam = encodeURIComponent(`Id,Product Name,Brand,Model No,HSN/SAC Code,Tax,${priceField}`);
         const queryString = `where=${encodedWhere}&pageSize=15&fields=${fieldsParam}`;
 
         const response = await fetch(`${API_BASE_URL}/proxy/products/records?${queryString}`, {

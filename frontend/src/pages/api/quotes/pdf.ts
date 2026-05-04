@@ -9,6 +9,7 @@ export const prerender = false;
 interface QuoteProduct {
   name: string;
   brand?: string;
+  description?: string;
   price?: number;
   discount?: number;
   productCode?: string;
@@ -157,7 +158,10 @@ export const POST: APIRoute = async ({ request }) => {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(80, 80, 80);
-    doc.text('F-85, Okhla Industrial Estate, Phase-III', margin, currentY);
+    const addressLine1 = selectedLogo === 'greenocare' 
+      ? 'F-85, Second Floor, Okhla Industrial Estate, Phase-III'
+      : 'F-85, Okhla Industrial Estate, Phase-III';
+    doc.text(addressLine1, margin, currentY);
     currentY += 5;
     doc.text('New Delhi - 110020', margin, currentY);
     currentY += 8;
@@ -221,9 +225,11 @@ export const POST: APIRoute = async ({ request }) => {
       totalDiscount += discountAmount;
       totalTax += itemTax;
 
+      // Build product details with proper formatting
+      const productNameBold = { content: product.name, styles: { fontStyle: 'bold' } };
       let productDetails = product.name;
-      if (product.brand) productDetails += `\n${product.brand}`;
-      if (product.hsnCode) productDetails += `\nHSN: ${product.hsnCode}`;
+      if (product.brand) productDetails += `\nBrand: ${product.brand}`;
+      if (product.description) productDetails += `\n${product.description}`;
 
       const warrantyMonths = (product.warranty || 1) * 12;
       const taxLabel = product.tax || 'GST-18%';
@@ -233,29 +239,27 @@ export const POST: APIRoute = async ({ request }) => {
         productDetails,
         product.productCode || '-',
         warrantyMonths.toString(),
-        formatINR(price),
+        price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         qty.toString(),
-        `${formatINR(discountAmount)}\n${discount}%`,
-        `${formatINR(itemTax)}\n${taxLabel}`,
-        formatINR(itemTotal),
+        taxLabel,
+        itemTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       ];
     });
 
     // Column widths sum to 180mm (usableWidth)
-    // S.No(9) + Details(40) + Code(19) + Warranty(22) + UnitPrice(24) + Qty(8) + Discount(20) + Tax(20) + Total(18) = 180
+    // Sr.No(9) + Details(58) + Code(19) + Warranty(22) + UnitPrice(24) + Qty/UOM(14) + Tax(16) + Total(18) = 180
     autoTable(doc, {
       startY: currentY,
       head: [
         [
-          'S.No.',
+          'Sr. No',
           'Product Details',
           'Product Code',
           'Warranty (months)',
-          'Unit Price',
-          'Qty',
-          'Discount',
+          'Unit Price (Rs.)',
+          'Qty/UOM',
           'Tax',
-          'Total',
+          'Total (Rs.)',
         ],
       ],
       body: tableData,
@@ -267,6 +271,8 @@ export const POST: APIRoute = async ({ request }) => {
         fontSize: 8,
         halign: 'center',
         valign: 'middle',
+        lineColor: [0, 0, 0],
+        lineWidth: 0.3,
       },
       bodyStyles: {
         fontSize: 8,
@@ -275,18 +281,51 @@ export const POST: APIRoute = async ({ request }) => {
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 9 },
-        1: { halign: 'left',   cellWidth: 40 },
+        1: { halign: 'left',   cellWidth: 58 },
         2: { halign: 'center', cellWidth: 19 },
         3: { halign: 'center', cellWidth: 22 },
         4: { halign: 'right',  cellWidth: 24 },
-        5: { halign: 'center', cellWidth: 8 },
-        6: { halign: 'right',  cellWidth: 20 },
-        7: { halign: 'right',  cellWidth: 20 },
-        8: { halign: 'right',  cellWidth: 18 },
+        5: { halign: 'center', cellWidth: 14 },
+        6: { halign: 'center', cellWidth: 16 },
+        7: { halign: 'right',  cellWidth: 18 },
+      },
+      styles: {
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
       },
       margin: { left: margin, right: margin },
       showHead: 'everyPage',
       rowPageBreak: 'avoid',
+      didDrawCell: (data) => {
+        // Overlay bold product name on Product Details column
+        if (data.column.index === 1 && data.section === 'body') {
+          const cell = data.cell;
+          const rawText = cell.raw as string;
+          
+          if (rawText) {
+            const lines = rawText.split('\n');
+            if (lines.length > 0) {
+              // Draw the first line (product name) in bold over the existing text
+              const productName = lines[0];
+              doc.setFontSize(8);
+              doc.setFont('helvetica', 'bold');
+              doc.setTextColor(0, 0, 0);
+              
+              // Position at the start of the cell text
+              const textX = cell.x + 2;
+              const textY = cell.y + 4;
+              
+              // Draw white rectangle to cover the normal text of product name
+              const textWidth = doc.getTextWidth(productName);
+              doc.setFillColor(255, 255, 255);
+              doc.rect(textX - 0.5, textY - 3, textWidth + 1, 4, 'F');
+              
+              // Draw bold product name
+              doc.text(productName, textX, textY);
+            }
+          }
+        }
+      },
     });
 
     currentY = (doc as any).lastAutoTable.finalY + 10;

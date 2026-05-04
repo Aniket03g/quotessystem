@@ -1,0 +1,1227 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Manage Leads - Grove Systems" currentPage="leads">
+  <!-- Page Header -->
+  <div class="mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-slate-800">Lead Management</h1>
+      </div>
+      <a href="/create-lead" class="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Add New Lead
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <!-- Total Leads -->
+    <div class="bg-blue-500 rounded-lg p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium opacity-90">Total Leads</p>
+          <p id="totalLeads" class="text-3xl font-bold mt-1">0</p>
+        </div>
+        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Active Leads -->
+    <div class="bg-green-500 rounded-lg p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium opacity-90">Active Leads</p>
+          <p id="activeLeads" class="text-3xl font-bold mt-1">0</p>
+        </div>
+        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Sales -->
+    <div class="bg-yellow-500 rounded-lg p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium opacity-90">Sales</p>
+          <p id="salesLeads" class="text-3xl font-bold mt-1">0</p>
+        </div>
+        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Closed -->
+    <div class="bg-slate-500 rounded-lg p-6 text-white">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium opacity-90">Closed</p>
+          <p id="closedLeads" class="text-3xl font-bold mt-1">0</p>
+        </div>
+        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Bar -->
+  <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <!-- Search -->
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Name, company, phone..." 
+          class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- Status Filter -->
+      <div>
+        <select 
+          id="statusFilter" 
+          class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        >
+          <option value="">All Status</option>
+          <option value="New">New</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Qualified">Qualified</option>
+          <option value="Proposal Sent">Proposal Sent</option>
+          <option value="Negotiation">Negotiation</option>
+          <option value="Converted">Converted</option>
+          <option value="Lost">Lost</option>
+        </select>
+      </div>
+
+      <!-- Lead Source Filter -->
+      <div>
+        <select 
+          id="sourceFilter" 
+          class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        >
+          <option value="">All Types</option>
+          <option value="Website">Website</option>
+          <option value="Referral">Referral</option>
+          <option value="Cold Call">Cold Call</option>
+          <option value="IndiaMart">IndiaMart</option>
+          <option value="Event">Event</option>
+        </select>
+      </div>
+
+      <!-- Assigned To Filter -->
+      <div>
+        <select 
+          id="assignedToFilter" 
+          class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        >
+          <option value="">All Users</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Filter Button -->
+    <div class="mt-4 flex gap-2">
+      <button 
+        id="filterBtn"
+        class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+        Filter
+      </button>
+      <button 
+        id="clearBtn"
+        class="px-4 py-2 bg-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-300 transition-colors"
+      >
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <!-- Leads Table -->
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <!-- Loading State -->
+    <div id="loading" class="py-12 text-center">
+      <svg class="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm text-slate-600">Loading leads...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="error" class="hidden mx-6 my-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-sm text-red-800" id="errorText"></p>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div id="leadsTable" class="hidden">
+      <table class="w-full table-fixed">
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="w-[20%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Lead Info</th>
+            <th class="w-[18%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Contact</th>
+            <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+            <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Type</th>
+            <th class="w-[12%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned</th>
+            <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Last Contact</th>
+            <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Follow-up</th>
+            <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="leadsBody" class="divide-y divide-slate-200"></tbody>
+      </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden py-12 text-center">
+      <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+      </svg>
+      <p class="text-slate-600 font-medium mb-1">No leads found</p>
+      <p class="text-sm text-slate-500">Click "Add New Lead" to get started</p>
+    </div>
+  </div>
+
+  <!-- View Lead Modal -->
+  <div id="viewLeadModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-slate-800" id="viewLeadTitle">Lead Details</h2>
+          <p class="text-xs text-slate-500 mt-0.5" id="viewLeadId"></p>
+        </div>
+        <button id="closeViewModalBtn" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-6">
+        <!-- Status + Source badges -->
+        <div class="flex flex-wrap gap-2">
+          <span id="viewStatus" class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold"></span>
+          <span id="viewSource" class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold"></span>
+        </div>
+
+        <!-- Lead Info -->
+        <div>
+          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Lead Information</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Lead Name</p>
+              <p class="text-sm font-medium text-slate-800" id="viewLeadName">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Company</p>
+              <p class="text-sm font-medium text-slate-800" id="viewCompany">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Contact Person</p>
+              <p class="text-sm font-medium text-slate-800" id="viewContactPerson">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Assigned To</p>
+              <p class="text-sm font-medium text-slate-800" id="viewAssignedTo">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div>
+          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Contact</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Phone Number</p>
+              <p class="text-sm font-medium text-slate-800" id="viewPhone">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Email</p>
+              <p class="text-sm font-medium text-slate-800" id="viewEmail">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dates -->
+        <div>
+          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Dates</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Last Contacted</p>
+              <p class="text-sm font-medium text-slate-800" id="viewLastContacted">—</p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500 mb-0.5">Next Follow-up</p>
+              <p class="text-sm font-medium" id="viewNextFollowUp">—</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div id="viewNotesSection">
+          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Notes / Requirements</h3>
+          <p class="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 rounded-lg p-4 border border-slate-200" id="viewNotes"></p>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 pt-2 border-t border-slate-200">
+          <button
+            id="viewToEditBtn"
+            class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors"
+          >
+            Edit Lead
+          </button>
+          <button
+            id="closeViewModalBtnBottom"
+            class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Lead Modal -->
+  <div id="editLeadModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <h2 class="text-xl font-bold text-slate-800">Edit Lead</h2>
+        <button id="closeModalBtn" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form id="editLeadForm" class="p-6 space-y-6">
+        <input type="hidden" id="editLeadId" />
+
+        <!-- Lead Information -->
+        <div>
+          <h3 class="text-base font-semibold text-slate-800 mb-4">Lead Information</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Lead Name -->
+            <div>
+              <label for="editLeadName" class="block text-sm font-medium text-slate-700 mb-2">Lead Name *</label>
+              <input 
+                type="text" 
+                id="editLeadName" 
+                required 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+              />
+            </div>
+
+            <!-- Company -->
+            <div>
+              <label for="editCompany" class="block text-sm font-medium text-slate-700 mb-2">Company</label>
+              <input 
+                type="text" 
+                id="editCompany" 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+              />
+            </div>
+
+            <!-- Contact Person -->
+            <div>
+              <label for="editContactPerson" class="block text-sm font-medium text-slate-700 mb-2">Contact Person</label>
+              <input 
+                type="text" 
+                id="editContactPerson" 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+              />
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+              <label for="editPhoneNumber" class="block text-sm font-medium text-slate-700 mb-2">Phone Number *</label>
+              <input 
+                type="tel" 
+                id="editPhoneNumber" 
+                required 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+              />
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label for="editEmail" class="block text-sm font-medium text-slate-700 mb-2">Email</label>
+              <input 
+                type="email" 
+                id="editEmail" 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+              />
+            </div>
+
+            <!-- Lead Source -->
+            <div>
+              <label for="editSource" class="block text-sm font-medium text-slate-700 mb-2">Lead Source *</label>
+              <select 
+                id="editSource" 
+                required 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              >
+                <option value="">Select Lead Source</option>
+                <option value="Website">Website</option>
+                <option value="Referral">Referral</option>
+                <option value="Cold Call">Cold Call</option>
+                <option value="IndiaMart">IndiaMart</option>
+                <option value="Event">Event</option>
+              </select>
+            </div>
+
+            <!-- Status -->
+            <div>
+              <label for="editStatus" class="block text-sm font-medium text-slate-700 mb-2">Status <span class="text-xs text-slate-500"></span></label>
+              <select 
+                id="editStatus" 
+                required 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              >
+                <option value="New">New</option>
+                <option value="Contacted">Contacted</option>
+                <option value="Qualified">Qualified</option>
+                <option value="Proposal Sent">Proposal Sent</option>
+                <option value="Negotiation">Negotiation</option>
+                <option value="Converted">Converted</option>
+                <option value="Lost">Lost</option>
+              </select>
+            </div>
+
+            <!-- Assign To (Admin Only) -->
+            <div id="editAssignedToContainer">
+              <label for="editAssignedTo" class="block text-sm font-medium text-slate-700 mb-2">
+                Assign To 
+                <span class="text-xs text-orange-600"></span>
+              </label>
+              <select 
+                id="editAssignedTo" 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              >
+                <option value="">Select User (Optional)</option>
+              </select>
+            </div>
+
+            <!-- Last Contacted -->
+            <div>
+              <label for="editLastContacted" class="block text-sm font-medium text-slate-700 mb-2">Last Contacted</label>
+              <input 
+                type="date" 
+                id="editLastContacted" 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+              />
+            </div>
+
+            <!-- Next Follow-up -->
+            <div>
+              <label for="editNextFollowUp" class="block text-sm font-medium text-slate-700 mb-2">Next Follow-up</label>
+              <input 
+                type="date" 
+                id="editNextFollowUp" 
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div>
+          <label for="editNotes" class="block text-sm font-medium text-slate-700 mb-2">Notes / Requirements</label>
+          <textarea 
+            id="editNotes" 
+            rows="4" 
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+            placeholder="Additional notes about the lead..."
+          ></textarea>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex gap-3 justify-end pt-4 border-t border-slate-200">
+          <button 
+            type="button"
+            id="cancelEditBtn"
+            class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            id="saveEditBtn"
+            class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    import { getToken, logout, safeJsonParse, getUserInfo } from '../lib/api';
+    import { debounce } from '../utils/debounce';
+
+    const API_BASE_URL = `http://${window.location.hostname}:8082`;
+
+    function getUserEmail(): string | null {
+      return localStorage.getItem('user_email');
+    }
+
+    function getUserRole(): string | null {
+      const userInfo = getUserInfo();
+      return userInfo ? userInfo.role : null;
+    }
+
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+    }
+
+    const loadingDiv = document.getElementById('loading') as HTMLDivElement;
+    const errorDiv = document.getElementById('error') as HTMLDivElement;
+    const leadsTable = document.getElementById('leadsTable') as HTMLDivElement;
+    const leadsBody = document.getElementById('leadsBody') as HTMLTableSectionElement;
+    const emptyState = document.getElementById('emptyState') as HTMLDivElement;
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const statusFilter = document.getElementById('statusFilter') as HTMLSelectElement;
+    const sourceFilter = document.getElementById('sourceFilter') as HTMLSelectElement;
+    const assignedToFilter = document.getElementById('assignedToFilter') as HTMLSelectElement;
+    const filterBtn = document.getElementById('filterBtn') as HTMLButtonElement;
+    const clearBtn = document.getElementById('clearBtn') as HTMLButtonElement;
+
+    let allLeads: any[] = [];
+    let usersMap: Map<string, string> = new Map(); // email -> name mapping
+
+    // Relative date formatting
+    function getRelativeTime(dateString: string): { relative: string; exact: string } {
+      if (!dateString) return { relative: '-', exact: '' };
+      
+      const date = new Date(dateString);
+      const now = new Date();
+      const diffMs = date.getTime() - now.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      
+      let relative = '';
+      
+      if (diffDays === 0) {
+        if (diffHours === 0) {
+          relative = 'Today';
+        } else if (diffHours > 0) {
+          relative = `In ${diffHours}h`;
+        } else {
+          relative = `${Math.abs(diffHours)}h ago`;
+        }
+      } else if (diffDays === 1) {
+        relative = 'Tomorrow';
+      } else if (diffDays === -1) {
+        relative = 'Yesterday';
+      } else if (diffDays > 1 && diffDays <= 7) {
+        relative = `In ${diffDays} days`;
+      } else if (diffDays > 7 && diffDays <= 30) {
+        const weeks = Math.floor(diffDays / 7);
+        relative = `In ${weeks} week${weeks > 1 ? 's' : ''}`;
+      } else if (diffDays > 30) {
+        const months = Math.floor(diffDays / 30);
+        relative = `In ${months} month${months > 1 ? 's' : ''}`;
+      } else if (diffDays < -1 && diffDays >= -7) {
+        relative = `${Math.abs(diffDays)} days ago`;
+      } else if (diffDays < -7 && diffDays >= -30) {
+        const weeks = Math.floor(Math.abs(diffDays) / 7);
+        relative = `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+      } else if (diffDays < -30) {
+        const months = Math.floor(Math.abs(diffDays) / 30);
+        relative = `${months} month${months > 1 ? 's' : ''} ago`;
+      }
+      
+      const exact = date.toLocaleDateString('en-IN', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Kolkata'
+      });
+      
+      return { relative, exact };
+    }
+
+    async function loadUsers() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch users');
+
+        const data = await response.json();
+        const users = data.users || [];
+
+        users.forEach((user: any) => {
+          // Build email -> name mapping
+          usersMap.set(user.email, user.name);
+          
+          // Populate filter dropdown
+          const option = document.createElement('option');
+          option.value = user.email;
+          option.textContent = user.name;
+          assignedToFilter.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      }
+    }
+
+    async function loadLeads() {
+      try {
+        const userEmail = getUserEmail();
+        const userRole = getUserRole();
+        
+        let url = `${API_BASE_URL}/proxy/leads/records`;
+        
+        if (userRole === 'admin') {
+          console.log('[LEADS] Admin user detected - loading all leads');
+        } else {
+          const rawWhere = `(Lead Created By,eq,${userEmail})~or(Assigned to,eq,${userEmail})`;
+          const encodedWhere = encodeURIComponent(rawWhere);
+          url = `${url}?where=${encodedWhere}`;
+          console.log('[LEADS] Loading leads for user:', userEmail);
+        }
+        
+        console.log('[LEADS] Query URL:', url);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch leads');
+        }
+
+        const data = await safeJsonParse(response);
+        console.log('[LEADS] Response received, records count:', data.records?.length || 0);
+        
+        allLeads = data.records || [];
+
+        loadingDiv.classList.add('hidden');
+
+        updateStats(allLeads);
+        renderLeads(allLeads);
+      } catch (error) {
+        loadingDiv.classList.add('hidden');
+        const errorText = errorDiv.querySelector('#errorText');
+        if (errorText) {
+          errorText.textContent = error instanceof Error ? error.message : 'Failed to load leads';
+        }
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    function updateStats(leads: any[]) {
+      const total = leads.length;
+      const active = leads.filter((l: any) => 
+        ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation'].includes(l.fields?.['Status'])
+      ).length;
+      const sales = leads.filter((l: any) => l.fields?.['Status'] === 'Converted').length;
+      const closed = leads.filter((l: any) => ['Converted', 'Lost'].includes(l.fields?.['Status'])).length;
+
+      (document.getElementById('totalLeads') as HTMLElement).textContent = total.toString();
+      (document.getElementById('activeLeads') as HTMLElement).textContent = active.toString();
+      (document.getElementById('salesLeads') as HTMLElement).textContent = sales.toString();
+      (document.getElementById('closedLeads') as HTMLElement).textContent = closed.toString();
+    }
+
+    function renderLeads(leads: any[]) {
+      if (leads.length === 0) {
+        leadsTable.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      leadsBody.innerHTML = leads.map((record: any) => {
+        const fields = record.fields || {};
+        const leadName = fields['Lead Name'] || '<span class="text-slate-400 italic">N/A</span>';
+        const company = fields['Company'] || '';
+        const contactPerson = fields['Contact Person'] || '';
+        const email = fields['Email'] || '';
+        const phone = fields['Phone Number'] || '';
+        const source = fields['Source'] || 'N/A';
+        const status = fields['Status'] || 'New';
+        const assignedToEmail = fields['Assigned to'] || '';
+        const assignedTo = assignedToEmail 
+          ? (usersMap.get(assignedToEmail) || assignedToEmail) 
+          : '<span class="text-slate-400 italic">Unassigned</span>';
+        const lastContacted = fields['Last Contacted'] || '';
+        const nextFollowUp = fields['Next Follow-up'] || '';
+        
+        const lastContactedTime = getRelativeTime(lastContacted);
+        const followUpTime = getRelativeTime(nextFollowUp);
+
+        let statusClasses = 'bg-slate-100 text-slate-800';
+        if (status === 'New') statusClasses = 'bg-blue-100 text-blue-800';
+        if (status === 'Contacted') statusClasses = 'bg-cyan-100 text-cyan-800';
+        if (status === 'Qualified') statusClasses = 'bg-teal-100 text-teal-800';
+        if (status === 'Proposal Sent') statusClasses = 'bg-purple-100 text-purple-800';
+        if (status === 'Negotiation') statusClasses = 'bg-orange-100 text-orange-800';
+        if (status === 'Converted') statusClasses = 'bg-green-100 text-green-800';
+        if (status === 'Lost') statusClasses = 'bg-red-100 text-red-800';
+
+        let sourceClasses = 'bg-slate-100 text-slate-800';
+        if (source === 'Website') sourceClasses = 'bg-blue-100 text-blue-800';
+        if (source === 'Referral') sourceClasses = 'bg-cyan-100 text-cyan-800';
+        if (source === 'Cold Call') sourceClasses = 'bg-teal-100 text-teal-800';
+        if (source === 'IndiaMart') sourceClasses = 'bg-pink-100 text-pink-800';
+        if (source === 'Event') sourceClasses = 'bg-red-100 text-red-800';
+
+        const isOverdue = nextFollowUp && new Date(nextFollowUp) < new Date();
+
+        return `
+          <tr class="group hover:bg-slate-50/80 transition-all border-b border-slate-100 last:border-0">
+            <td class="px-4 py-4">
+              <div class="min-w-0">
+                <div class="text-sm font-semibold text-slate-900 truncate">${leadName}</div>
+                <div class="flex items-center gap-2 mt-0.5">
+                  <span class="text-xs text-slate-500">ID: #${record.id}</span>
+                  ${company ? `<span class="text-slate-300">•</span><span class="text-xs text-slate-600 font-medium truncate">${company}</span>` : ''}
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-4">
+              <div class="space-y-1 min-w-0">
+                ${phone ? `<div class="flex items-center gap-1.5 text-sm text-slate-700"><svg class="w-3.5 h-3.5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg><span class="font-medium truncate">${phone}</span></div>` : '<div class="text-xs text-slate-400">No phone</div>'}
+                ${email ? `<div class="flex items-center gap-1.5 text-xs text-slate-500"><svg class="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span class="truncate">${email}</span></div>` : ''}
+              </div>
+            </td>
+            <td class="px-4 py-4">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${statusClasses} shadow-sm whitespace-nowrap">
+                ${status}
+              </span>
+            </td>
+            <td class="px-4 py-4">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${sourceClasses} shadow-sm whitespace-nowrap">
+                ${source}
+              </span>
+            </td>
+            <td class="px-4 py-4">
+              <div class="text-sm text-slate-700 font-medium truncate">${assignedTo}</div>
+            </td>
+            <td class="px-4 py-4">
+              ${lastContacted ? `<div class="text-xs text-slate-600 font-medium cursor-help" title="${lastContactedTime.exact}">${lastContactedTime.relative}</div>` : '<div class="text-xs text-slate-400 italic">Not contacted</div>'}
+            </td>
+            <td class="px-4 py-4">
+              ${nextFollowUp ? `
+                <div class="flex items-center gap-1.5 cursor-help" title="${followUpTime.exact}">
+                  ${isOverdue ? '<div class="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0"></div>' : '<div class="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></div>'}
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-medium ${isOverdue ? 'text-red-600' : 'text-slate-700'} truncate">${followUpTime.relative}</span>
+                    ${isOverdue ? '<span class="text-xs text-red-500 font-semibold">Overdue</span>' : ''}
+                  </div>
+                </div>
+              ` : '<div class="text-xs text-slate-400">-</div>'}
+            </td>
+            <td class="px-4 py-4">
+              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button class="view-lead-btn p-1.5 rounded-lg hover:bg-blue-50 hover:shadow-sm transition-all" title="View Details" data-lead-id="${record.id}">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </button>
+                <button class="edit-lead-btn p-1.5 rounded-lg hover:bg-green-50 hover:shadow-sm transition-all" title="Edit" data-lead-id="${record.id}">
+                  <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button class="delete-lead-btn p-1.5 rounded-lg hover:bg-red-50 hover:shadow-sm transition-all" title="Delete" data-lead-id="${record.id}">
+                  <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      emptyState.classList.add('hidden');
+      leadsTable.classList.remove('hidden');
+    }
+
+    function applyFilters() {
+      const searchTerm = searchInput.value.toLowerCase();
+      const statusValue = statusFilter.value;
+      const sourceValue = sourceFilter.value;
+      const assignedToValue = assignedToFilter.value;
+
+      const filtered = allLeads.filter((lead: any) => {
+        const fields = lead.fields || {};
+        const leadName = (fields['Lead Name'] || '').toLowerCase();
+        const company = (fields['Company'] || '').toLowerCase();
+        const phone = (fields['Phone Number'] || '').toLowerCase();
+        const email = (fields['Email'] || '').toLowerCase();
+        const status = fields['Status'] || '';
+        const source = fields['Source'] || '';
+        const assignedTo = fields['Assigned to'] || '';
+
+        const matchesSearch = !searchTerm || 
+          leadName.includes(searchTerm) || 
+          company.includes(searchTerm) || 
+          phone.includes(searchTerm) ||
+          email.includes(searchTerm);
+        
+        const matchesStatus = !statusValue || status === statusValue;
+        const matchesSource = !sourceValue || source === sourceValue;
+        const matchesAssignedTo = !assignedToValue || assignedTo === assignedToValue;
+
+        return matchesSearch && matchesStatus && matchesSource && matchesAssignedTo;
+      });
+
+      renderLeads(filtered);
+    }
+
+    function clearFilters() {
+      searchInput.value = '';
+      statusFilter.value = '';
+      sourceFilter.value = '';
+      assignedToFilter.value = '';
+      renderLeads(allLeads);
+    }
+
+    filterBtn.addEventListener('click', applyFilters);
+    clearBtn.addEventListener('click', clearFilters);
+    searchInput.addEventListener('input', debounce(applyFilters, 300));
+    
+    // Add change listeners to dropdown filters for instant filtering
+    statusFilter.addEventListener('change', applyFilters);
+    sourceFilter.addEventListener('change', applyFilters);
+    assignedToFilter.addEventListener('change', applyFilters);
+
+    // Modal Elements
+    const editLeadModal = document.getElementById('editLeadModal') as HTMLDivElement;
+    const closeModalBtn = document.getElementById('closeModalBtn') as HTMLButtonElement;
+    const cancelEditBtn = document.getElementById('cancelEditBtn') as HTMLButtonElement;
+    const editLeadForm = document.getElementById('editLeadForm') as HTMLFormElement;
+    const saveEditBtn = document.getElementById('saveEditBtn') as HTMLButtonElement;
+    const editAssignedToSelect = document.getElementById('editAssignedTo') as HTMLSelectElement;
+    const editAssignedToContainer = document.getElementById('editAssignedToContainer') as HTMLDivElement;
+
+    let currentEditingLead: any = null;
+    let usersListForModal: any[] = [];
+
+    // Load users for modal dropdown
+    async function loadUsersForModal() {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch users');
+
+        const data = await response.json();
+        usersListForModal = data.users || [];
+
+        // Populate edit modal dropdown
+        editAssignedToSelect.innerHTML = '<option value="">Select User (Optional)</option>';
+        usersListForModal.forEach((user: any) => {
+          const option = document.createElement('option');
+          option.value = user.email;
+          option.textContent = `${user.name} (${user.email})`;
+          editAssignedToSelect.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load users for modal:', error);
+      }
+    }
+
+    // Open Edit Modal
+    function openEditModal(leadId: number) {
+      const lead = allLeads.find((l: any) => l.id === leadId);
+      if (!lead) {
+        alert('Lead not found');
+        return;
+      }
+
+      currentEditingLead = lead;
+      const fields = lead.fields || {};
+
+      // Populate form fields
+      (document.getElementById('editLeadId') as HTMLInputElement).value = lead.id.toString();
+      (document.getElementById('editLeadName') as HTMLInputElement).value = fields['Lead Name'] || '';
+      (document.getElementById('editCompany') as HTMLInputElement).value = fields['Company'] || '';
+      (document.getElementById('editContactPerson') as HTMLInputElement).value = fields['Contact Person'] || '';
+      (document.getElementById('editPhoneNumber') as HTMLInputElement).value = fields['Phone Number'] || '';
+      (document.getElementById('editEmail') as HTMLInputElement).value = fields['Email'] || '';
+      (document.getElementById('editSource') as HTMLSelectElement).value = fields['Source'] || '';
+      (document.getElementById('editStatus') as HTMLSelectElement).value = fields['Status'] || 'New';
+      (document.getElementById('editAssignedTo') as HTMLSelectElement).value = fields['Assigned to'] || '';
+      (document.getElementById('editLastContacted') as HTMLInputElement).value = fields['Last Contacted'] || '';
+      (document.getElementById('editNextFollowUp') as HTMLInputElement).value = fields['Next Follow-up'] || '';
+      (document.getElementById('editNotes') as HTMLTextAreaElement).value = fields['Notes'] || '';
+
+      // Role-based field restrictions
+      const userRole = getUserRole();
+      if (userRole !== 'admin') {
+        // Non-admin users cannot change "Assigned To"
+        editAssignedToSelect.disabled = true;
+        editAssignedToSelect.classList.add('bg-slate-200', 'cursor-not-allowed');
+        editAssignedToContainer.querySelector('label')!.innerHTML = `
+          Assign To 
+          <span class="text-xs text-orange-600">(Admin only - cannot edit)</span>
+        `;
+      } else {
+        editAssignedToSelect.disabled = false;
+        editAssignedToSelect.classList.remove('bg-slate-200', 'cursor-not-allowed');
+        editAssignedToContainer.querySelector('label')!.innerHTML = `
+          Assign To 
+          <span class="text-xs text-orange-600"></span>
+        `;
+      }
+
+      // Show modal
+      editLeadModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    // Close Edit Modal
+    function closeEditModal() {
+      editLeadModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+      currentEditingLead = null;
+      editLeadForm.reset();
+    }
+
+    // Handle Edit Form Submission
+    editLeadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!currentEditingLead) return;
+
+      const leadId = (document.getElementById('editLeadId') as HTMLInputElement).value;
+      const leadName = (document.getElementById('editLeadName') as HTMLInputElement).value;
+      const company = (document.getElementById('editCompany') as HTMLInputElement).value;
+      const contactPerson = (document.getElementById('editContactPerson') as HTMLInputElement).value;
+      const phoneNumber = (document.getElementById('editPhoneNumber') as HTMLInputElement).value;
+      const email = (document.getElementById('editEmail') as HTMLInputElement).value;
+      const source = (document.getElementById('editSource') as HTMLSelectElement).value;
+      const status = (document.getElementById('editStatus') as HTMLSelectElement).value;
+      const assignedTo = (document.getElementById('editAssignedTo') as HTMLSelectElement).value;
+      const lastContacted = (document.getElementById('editLastContacted') as HTMLInputElement).value;
+      const nextFollowUp = (document.getElementById('editNextFollowUp') as HTMLInputElement).value;
+      const notes = (document.getElementById('editNotes') as HTMLTextAreaElement).value;
+
+      if (!leadName || !phoneNumber || !source || !status) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      saveEditBtn.disabled = true;
+      saveEditBtn.textContent = 'Saving...';
+
+      try {
+        const updatePayload = {
+          id: leadId,
+          fields: {
+            'Lead Name': leadName,
+            'Company': company || '',
+            'Contact Person': contactPerson || '',
+            'Phone Number': phoneNumber,
+            'Email': email || '',
+            'Source': source,
+            'Status': status,
+            'Assigned to': assignedTo || '',
+            'Last Contacted': lastContacted || null,
+            'Next Follow-up': nextFollowUp || null,
+            'Notes': notes || ''
+          }
+        };
+
+        console.log('[LEAD UPDATE] Payload:', JSON.stringify(updatePayload, null, 2));
+
+        const updateResponse = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatePayload)
+        });
+
+        console.log('[LEAD UPDATE] Response status:', updateResponse.status);
+
+        if (!updateResponse.ok) {
+          const errorText = await updateResponse.text();
+          console.error('[LEAD UPDATE] Error response:', errorText);
+          throw new Error('Failed to update lead');
+        }
+
+        const result = await safeJsonParse(updateResponse);
+        console.log('[LEAD UPDATE] Response data:', result);
+
+        // Close modal
+        closeEditModal();
+
+        // Reload leads to reflect changes
+        await loadLeads();
+
+        // Show success message (optional)
+        alert('Lead updated successfully!');
+      } catch (error) {
+        console.error('[LEAD UPDATE] Error:', error);
+        alert(error instanceof Error ? error.message : 'Failed to update lead');
+      } finally {
+        saveEditBtn.disabled = false;
+        saveEditBtn.textContent = 'Save Changes';
+      }
+    });
+
+    // Modal close handlers
+    closeModalBtn.addEventListener('click', closeEditModal);
+    cancelEditBtn.addEventListener('click', closeEditModal);
+    
+    // Close modal when clicking outside
+    editLeadModal.addEventListener('click', (e) => {
+      if (e.target === editLeadModal) {
+        closeEditModal();
+      }
+    });
+
+    // Delete Lead Function (Admin Only)
+    async function deleteLead(leadId: number) {
+      const userRole = getUserRole();
+      
+      // Check if user is admin
+      if (userRole !== 'admin') {
+        alert('Only administrators can delete leads.');
+        return;
+      }
+
+      // Confirm deletion
+      const lead = allLeads.find((l: any) => l.id === leadId);
+      const leadName = lead?.fields?.['Lead Name'] || 'this lead';
+      
+      if (!confirm(`Are you sure you want to delete "${leadName}"? This action cannot be undone.`)) {
+        return;
+      }
+
+      try {
+        console.log('[LEAD DELETE] Deleting lead ID:', leadId);
+
+        const deleteResponse = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: leadId })
+        });
+
+        console.log('[LEAD DELETE] Response status:', deleteResponse.status);
+
+        if (!deleteResponse.ok) {
+          const errorText = await deleteResponse.text();
+          console.error('[LEAD DELETE] Error response:', errorText);
+          throw new Error('Failed to delete lead');
+        }
+
+        console.log('[LEAD DELETE] Lead deleted successfully');
+
+        // Reload leads to reflect changes
+        await loadLeads();
+
+        alert('Lead deleted successfully!');
+      } catch (error) {
+        console.error('[LEAD DELETE] Error:', error);
+        alert(error instanceof Error ? error.message : 'Failed to delete lead');
+      }
+    }
+
+    // View Modal
+    const viewLeadModal = document.getElementById('viewLeadModal') as HTMLDivElement;
+    const closeViewModalBtn = document.getElementById('closeViewModalBtn') as HTMLButtonElement;
+    const closeViewModalBtnBottom = document.getElementById('closeViewModalBtnBottom') as HTMLButtonElement;
+    const viewToEditBtn = document.getElementById('viewToEditBtn') as HTMLButtonElement;
+    let currentViewingLeadId: number | null = null;
+
+    function openViewModal(leadId: number) {
+      const lead = allLeads.find((l: any) => l.id === leadId);
+      if (!lead) return;
+
+      currentViewingLeadId = leadId;
+      const fields = lead.fields || {};
+
+      const status = fields['Status'] || 'New';
+      const source = fields['Source'] || '';
+
+      // Header
+      (document.getElementById('viewLeadTitle') as HTMLElement).textContent = fields['Lead Name'] || 'Lead Details';
+      (document.getElementById('viewLeadId') as HTMLElement).textContent = `ID: #${lead.id}`;
+
+      // Status badge
+      const statusEl = document.getElementById('viewStatus') as HTMLElement;
+      const statusColors: Record<string, string> = {
+        'New': 'bg-blue-100 text-blue-800',
+        'Contacted': 'bg-cyan-100 text-cyan-800',
+        'Qualified': 'bg-teal-100 text-teal-800',
+        'Proposal Sent': 'bg-purple-100 text-purple-800',
+        'Negotiation': 'bg-orange-100 text-orange-800',
+        'Converted': 'bg-green-100 text-green-800',
+        'Lost': 'bg-red-100 text-red-800',
+      };
+      statusEl.textContent = status;
+      statusEl.className = `inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold ${statusColors[status] || 'bg-slate-100 text-slate-800'}`;
+
+      // Source badge
+      const sourceEl = document.getElementById('viewSource') as HTMLElement;
+      const sourceColors: Record<string, string> = {
+        'Website': 'bg-blue-100 text-blue-800',
+        'Referral': 'bg-cyan-100 text-cyan-800',
+        'Cold Call': 'bg-teal-100 text-teal-800',
+        'IndiaMart': 'bg-pink-100 text-pink-800',
+        'Event': 'bg-red-100 text-red-800',
+      };
+      if (source) {
+        sourceEl.textContent = source;
+        sourceEl.className = `inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold ${sourceColors[source] || 'bg-slate-100 text-slate-800'}`;
+        sourceEl.classList.remove('hidden');
+      } else {
+        sourceEl.classList.add('hidden');
+      }
+
+      // Fields
+      const setText = (id: string, val: string | undefined, fallback = '—') => {
+        (document.getElementById(id) as HTMLElement).textContent = val || fallback;
+      };
+
+      setText('viewLeadName', fields['Lead Name']);
+      setText('viewCompany', fields['Company']);
+      setText('viewContactPerson', fields['Contact Person']);
+      setText('viewPhone', fields['Phone Number']);
+      setText('viewEmail', fields['Email']);
+
+      const assignedEmail = fields['Assigned to'] || '';
+      setText('viewAssignedTo', assignedEmail ? (usersMap.get(assignedEmail) || assignedEmail) : undefined);
+
+      // Dates — show formatted date with relative time
+      const fmt = (dateStr: string) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Kolkata' });
+      };
+
+      setText('viewLastContacted', fmt(fields['Last Contacted']));
+
+      const followUpEl = document.getElementById('viewNextFollowUp') as HTMLElement;
+      const followUpDate = fields['Next Follow-up'];
+      if (followUpDate) {
+        const isOverdue = new Date(followUpDate) < new Date();
+        followUpEl.textContent = fmt(followUpDate);
+        followUpEl.className = `text-sm font-medium ${isOverdue ? 'text-red-600' : 'text-slate-800'}`;
+      } else {
+        followUpEl.textContent = '—';
+        followUpEl.className = 'text-sm font-medium text-slate-800';
+      }
+
+      // Notes
+      const notes = fields['Notes'] || '';
+      const notesSection = document.getElementById('viewNotesSection') as HTMLElement;
+      if (notes) {
+        (document.getElementById('viewNotes') as HTMLElement).textContent = notes;
+        notesSection.classList.remove('hidden');
+      } else {
+        notesSection.classList.add('hidden');
+      }
+
+      viewLeadModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeViewModal() {
+      viewLeadModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+      currentViewingLeadId = null;
+    }
+
+    closeViewModalBtn.addEventListener('click', closeViewModal);
+    closeViewModalBtnBottom.addEventListener('click', closeViewModal);
+    viewLeadModal.addEventListener('click', (e) => { if (e.target === viewLeadModal) closeViewModal(); });
+
+    viewToEditBtn.addEventListener('click', () => {
+      if (currentViewingLeadId !== null) {
+        closeViewModal();
+        openEditModal(currentViewingLeadId);
+      }
+    });
+
+    // Attach button handlers (delegated event)
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const viewBtn = target.closest('.view-lead-btn') as HTMLButtonElement;
+      const editBtn = target.closest('.edit-lead-btn') as HTMLButtonElement;
+      const deleteBtn = target.closest('.delete-lead-btn') as HTMLButtonElement;
+
+      if (viewBtn) {
+        e.stopPropagation();
+        const leadId = parseInt(viewBtn.getAttribute('data-lead-id') || '0');
+        if (leadId) openViewModal(leadId);
+      }
+
+      if (editBtn) {
+        e.stopPropagation();
+        const leadId = parseInt(editBtn.getAttribute('data-lead-id') || '0');
+        if (leadId) {
+          openEditModal(leadId);
+        }
+      }
+
+      if (deleteBtn) {
+        e.stopPropagation();
+        const leadId = parseInt(deleteBtn.getAttribute('data-lead-id') || '0');
+        if (leadId) {
+          deleteLead(leadId);
+        }
+      }
+    });
+
+    loadUsers();
+    loadUsersForModal();
+    loadLeads();
+  </script>
+</AdminLayout>
