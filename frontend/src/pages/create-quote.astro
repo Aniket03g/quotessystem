@@ -407,7 +407,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       // Fetch full account details with the specified fields
       try {
         const response = await fetch(
-          `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=Company Name,Phone,Billing Street,Billing City,Shipping City`,
+          `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=Company Name,Phone Number,Billing Street,Billing City,Shipping City`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -422,7 +422,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Auto-populate the fields
         companyNameInput.value = fields['Company Name'] || '';
-        phoneInput.value = fields['Phone'] || '';
+        phoneInput.value = fields['Phone Number'] || '';
         billingStreetInput.value = fields['Billing Street'] || '';
         billingCityInput.value = fields['Billing City'] || '';
         shippingCityInput.value = fields['Shipping City'] || '';

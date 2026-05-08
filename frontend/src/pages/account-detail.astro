@@ -370,7 +370,7 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
           return;
         }
 
-        const fields = 'Account Name,Phone,Industry,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Company Name,Website';
+        const fields = 'Account Name,Phone Number,Industry,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Company Name,Website';
         const url = `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=${encodeURIComponent(fields)}`;
         
         console.log('[ACCOUNT DETAIL] ========================================');
@@ -407,7 +407,7 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
         // Display account information
         const accountName = data.fields?.['Account Name'] || 'Unknown Account';
         const accountIndustry = data.fields?.['Industry'] || '';
-        const accountPhone = data.fields?.['Phone'] || '-';
+        const accountPhone = data.fields?.['Phone Number'] || '-';
         const accountCompany = data.fields?.['Company Name'] || '-';
         const accountWebsite = data.fields?.['Website'] || '-';
         
@@ -450,15 +450,12 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
         const userRole = getUserRole();
         
         // Build URL with filtering for non-admin users
-        let url = `${API_BASE_URL}/proxy/cases/records?fields=Id,Title,Status,Created,Accounts duplicate,Case Created By`;
-        
+        let url = `${API_BASE_URL}/proxy/cases/records?fields=Id,Title,Status,Created,Accounts duplicate`;
+
+        // TODO: add row-level filter once 'Case Created By' column exists in NocoDB Cases table
         if (userRole === 'admin') {
           console.log('[ACCOUNT DETAIL] Admin user detected - loading all cases');
         } else {
-          // Filter cases by Case Created By for non-admin users
-          const rawWhere = `(Case Created By,eq,${userEmail})`;
-          const encodedWhere = encodeURIComponent(rawWhere);
-          url = `${url}&where=${encodedWhere}`;
           console.log('[ACCOUNT DETAIL] Loading cases for user:', userEmail);
         }
         
