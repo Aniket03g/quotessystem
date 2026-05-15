@@ -18,7 +18,7 @@ tables:
 
   contacts:
     name: "Contacts"
-    operations: [read]
+    operations: [read, create, update, delete, link]
 
   accounts_quotes:
     name: "Accounts Quotes"

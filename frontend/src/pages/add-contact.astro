@@ -1,0 +1,361 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Add Contact" currentPage="contacts">
+  <div class="max-w-3xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-4 mb-2">
+        <a href="/contacts" class="text-slate-600 hover:text-slate-900">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </a>
+        <h1 class="text-2xl font-semibold text-slate-800">Add New Contact</h1>
+      </div>
+      <p class="text-slate-600 ml-10">Create a new contact and link to an account</p>
+    </div>
+
+    <!-- Error/Success Messages -->
+    <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-red-800 text-sm" id="errorText"></p>
+      </div>
+    </div>
+
+    <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-green-800 text-sm" id="successText"></p>
+      </div>
+    </div>
+
+    <form id="contactForm" class="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <!-- Account Link -->
+      <div class="p-6 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Link to Account</h2>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Account</label>
+          <div class="relative">
+            <input
+              type="text"
+              id="accountSearch"
+              placeholder="Search accounts..."
+              autocomplete="off"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <input type="hidden" id="selectedAccountId" />
+            <div id="accountDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div id="accountResults" class="py-1"></div>
+              <div id="accountLoading" class="hidden px-4 py-3 text-sm text-slate-500 text-center">
+                <svg class="animate-spin w-4 h-4 inline-block mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Searching...
+              </div>
+              <div id="accountEmpty" class="hidden px-4 py-3 text-sm text-slate-500 text-center">No accounts found</div>
+            </div>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">Optional — you can link the contact to an account later</p>
+        </div>
+      </div>
+
+      <!-- Contact Details -->
+      <div class="p-6 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Contact Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <div class="md:col-span-2">
+            <label for="contactName" class="block text-sm font-medium text-slate-700 mb-1">
+              Contact Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="contactName"
+              name="contactName"
+              required
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter full name"
+            />
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="email@example.com"
+            />
+          </div>
+
+          <div>
+            <label for="phoneNumber" class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div>
+            <label for="otherPhone" class="block text-sm font-medium text-slate-700 mb-1">Other Phone</label>
+            <input
+              type="tel"
+              id="otherPhone"
+              name="otherPhone"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter alternate phone"
+            />
+          </div>
+
+          <div>
+            <label for="birthDate" class="block text-sm font-medium text-slate-700 mb-1">Birth Date</label>
+            <input
+              type="date"
+              id="birthDate"
+              name="birthDate"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label for="department" class="block text-sm font-medium text-slate-700 mb-1">Department</label>
+            <input
+              type="text"
+              id="department"
+              name="department"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., Sales, Engineering"
+            />
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="p-6 bg-slate-50 rounded-b-xl flex items-center justify-end gap-3">
+        <a
+          href="/contacts"
+          class="px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+        >
+          Cancel
+        </a>
+        <button
+          type="submit"
+          id="submitBtn"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Create Contact
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const API_BASE_URL = `http://${window.location.hostname}:8082`;
+    const token = localStorage.getItem('jwt_token');
+
+    if (!token) {
+      window.location.href = '/login';
+    }
+
+    const form = document.getElementById('contactForm') as HTMLFormElement;
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const errorMessage = document.getElementById('errorMessage') as HTMLDivElement;
+    const errorText = document.getElementById('errorText') as HTMLParagraphElement;
+    const successMessage = document.getElementById('successMessage') as HTMLDivElement;
+    const successText = document.getElementById('successText') as HTMLParagraphElement;
+
+    const accountSearch = document.getElementById('accountSearch') as HTMLInputElement;
+    const selectedAccountId = document.getElementById('selectedAccountId') as HTMLInputElement;
+    const accountDropdown = document.getElementById('accountDropdown') as HTMLDivElement;
+    const accountResults = document.getElementById('accountResults') as HTMLDivElement;
+    const accountLoading = document.getElementById('accountLoading') as HTMLDivElement;
+    const accountEmpty = document.getElementById('accountEmpty') as HTMLDivElement;
+
+    // Pre-fill account from URL params (when coming from account detail page)
+    const urlParams = new URLSearchParams(window.location.search);
+    const prefilledAccountId = urlParams.get('accountId');
+    const prefilledAccountName = urlParams.get('accountName');
+    if (prefilledAccountId && prefilledAccountName) {
+      selectedAccountId.value = prefilledAccountId;
+      accountSearch.value = prefilledAccountName;
+    }
+
+    // --- Account search ---
+    let accountSearchTimer: ReturnType<typeof setTimeout>;
+
+    accountSearch.addEventListener('input', () => {
+      clearTimeout(accountSearchTimer);
+      const q = accountSearch.value.trim();
+      selectedAccountId.value = '';
+
+      if (!q) {
+        accountDropdown.classList.add('hidden');
+        return;
+      }
+
+      accountSearchTimer = setTimeout(() => searchAccounts(q), 350);
+    });
+
+    accountSearch.addEventListener('focus', () => {
+      if (accountSearch.value.trim() && accountResults.children.length > 0) {
+        accountDropdown.classList.remove('hidden');
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!accountSearch.contains(e.target as Node) && !accountDropdown.contains(e.target as Node)) {
+        accountDropdown.classList.add('hidden');
+      }
+    });
+
+    async function searchAccounts(q: string) {
+      accountLoading.classList.remove('hidden');
+      accountEmpty.classList.add('hidden');
+      accountResults.innerHTML = '';
+      accountDropdown.classList.remove('hidden');
+
+      try {
+        const where = encodeURIComponent(`(Company Name,like,%${q}%)`);
+        const res = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?where=${where}&limit=10&fields=Id,Company%20Name,Phone%20Number`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const records = data.records || [];
+
+        accountLoading.classList.add('hidden');
+
+        if (records.length === 0) {
+          accountEmpty.classList.remove('hidden');
+          return;
+        }
+
+        accountResults.innerHTML = records.map((r: any) => `
+          <button
+            type="button"
+            class="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+            data-id="${r.id}"
+            data-name="${r.fields['Company Name'] || ''}"
+          >
+            <span class="text-sm font-medium text-slate-800">${r.fields['Company Name'] || 'Unknown'}</span>
+            ${r.fields['Phone Number'] ? `<span class="text-xs text-slate-500 ml-2">${r.fields['Phone Number']}</span>` : ''}
+          </button>
+        `).join('');
+
+        accountResults.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectedAccountId.value = (btn as HTMLElement).dataset.id || '';
+            accountSearch.value = (btn as HTMLElement).dataset.name || '';
+            accountDropdown.classList.add('hidden');
+          });
+        });
+      } catch {
+        accountLoading.classList.add('hidden');
+        accountEmpty.classList.remove('hidden');
+      }
+    }
+
+    // --- Form submit ---
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMessage.classList.add('hidden');
+      successMessage.classList.add('hidden');
+
+      const formData = new FormData(form);
+      const contactName = (formData.get('contactName') as string).trim();
+
+      if (!contactName) {
+        errorText.textContent = 'Contact Name is required.';
+        errorMessage.classList.remove('hidden');
+        return;
+      }
+
+      const fields: Record<string, string> = {
+        'Name': contactName,
+      };
+      const email = (formData.get('email') as string).trim();
+      const phoneNumber = (formData.get('phoneNumber') as string).trim();
+      const otherPhone = (formData.get('otherPhone') as string).trim();
+      const birthDate = (formData.get('birthDate') as string).trim();
+      const department = (formData.get('department') as string).trim();
+
+      if (email) fields['Email'] = email;
+      if (phoneNumber) fields['Phone Number'] = phoneNumber;
+      if (otherPhone) fields['Other Phone'] = otherPhone;
+      if (birthDate) fields['Birth Date'] = birthDate;
+      if (department) fields['Department'] = department;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating...';
+
+      try {
+        // Step 1: create the contact record
+        const createRes = await fetch(`${API_BASE_URL}/proxy/contacts/records`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ fields }),
+        });
+
+        if (!createRes.ok) {
+          const errText = await createRes.text();
+          console.error('[ADD CONTACT] Create failed:', errText);
+          throw new Error('Failed to create contact');
+        }
+
+        const created = await createRes.json();
+        const contactId = created.records ? created.records[0]?.id : created.id;
+        console.log('[ADD CONTACT] Created contact ID:', contactId);
+
+        // Step 2: link to account if one was selected
+        const accountId = selectedAccountId.value;
+        if (accountId && contactId) {
+          const linkRes = await fetch(`${API_BASE_URL}/proxy/contacts/links/accounts_duplicate/${contactId}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify([{ id: accountId }]),
+          });
+
+          if (!linkRes.ok) {
+            const errText = await linkRes.text();
+            console.error('[ADD CONTACT] Link failed:', errText);
+            // Contact was created — warn but don't treat as full failure
+            successText.textContent = 'Contact created but could not be linked to the account. You can link it manually.';
+            successMessage.classList.remove('hidden');
+            setTimeout(() => { window.location.href = '/contacts'; }, 2500);
+            return;
+          }
+          console.log('[ADD CONTACT] Linked to account', accountId);
+        }
+
+        successText.textContent = 'Contact created successfully!';
+        successMessage.classList.remove('hidden');
+        setTimeout(() => { window.location.href = '/contacts'; }, 1500);
+
+      } catch (err: any) {
+        console.error('[ADD CONTACT] Error:', err);
+        errorText.textContent = err.message || 'Failed to create contact. Please try again.';
+        errorMessage.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Create Contact';
+      }
+    });
+  </script>
+</AdminLayout>

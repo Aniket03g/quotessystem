@@ -1,7 +1,6 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8082';
 ---
 
 <DashboardLayout title="Case Quotes">
@@ -63,7 +62,8 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
     </div>
   </div>
 
-  <script define:vars={{ API_BASE_URL }}>
+  <script>
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || `http://${window.location.hostname}:8082`;
     // Get case ID from URL parameter
     const urlParams = new URLSearchParams(window.location.search);
     const caseId = urlParams.get('id');

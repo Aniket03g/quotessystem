@@ -1,7 +1,6 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8082';
 ---
 
 <style is:global>
@@ -319,6 +318,11 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
       </div>
     </div>
 
+    <!-- Contacts Section -->
+    <div id="contactsSection" class="mb-6">
+      <p class="text-gray-500 text-sm">Loading contacts...</p>
+    </div>
+
     <!-- Cases Section -->
     <div id="casesSection" class="mb-6">
       <p class="text-gray-600">Loading cases...</p>
@@ -330,7 +334,8 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
     </div>
   </div>
 
-  <script define:vars={{ API_BASE_URL }}>
+  <script>
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || `http://${window.location.hostname}:8082`;
     /**
      * Get the logged-in user's email from localStorage
      */
@@ -432,12 +437,89 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
         document.getElementById('billingCode').textContent = billingCode;
         document.getElementById('billingCountry').textContent = billingCountry;
 
-        // Load cases (which includes quotes in accordion)
-        await loadAccountCases(accountId, token);
+        // Load contacts and cases in parallel
+        await Promise.all([
+          loadAccountContacts(accountId, token, accountName),
+          loadAccountCases(accountId, token),
+        ]);
 
       } catch (error) {
         console.error('[ACCOUNT DETAIL] Error:', error);
         showError(error.message);
+      }
+    }
+
+    async function loadAccountContacts(accountId, token, accountName) {
+      const section = document.getElementById('contactsSection');
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/proxy/accounts_duplicate/links/contacts_new/${accountId}?fields=Id,Name,Email,Phone%20Number,Department`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (!res.ok) {
+          section.innerHTML = '';
+          return;
+        }
+
+        const data = await res.json();
+        const contacts = data.records || [];
+
+        const addContactHref = `/add-contact?accountId=${accountId}&accountName=${encodeURIComponent(accountName)}`;
+        const addContactBtn = `<a href="${addContactHref}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          Add Contact
+        </a>`;
+
+        if (contacts.length === 0) {
+          section.innerHTML = `
+            <div class="cases-card">
+              <div class="cases-header">
+                <span class="cases-title">Contacts</span>
+                ${addContactBtn}
+              </div>
+              <div class="px-7 py-6 text-sm text-slate-500">No contacts linked to this account.</div>
+            </div>`;
+          return;
+        }
+
+        section.innerHTML = `
+          <div class="cases-card">
+            <div class="cases-header">
+              <span class="cases-title">Contacts</span>
+              <div class="flex items-center gap-3">
+                <span class="case-count">${contacts.length} contact${contacts.length !== 1 ? 's' : ''}</span>
+                ${addContactBtn}
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th class="px-7 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+                    <th class="px-7 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
+                    <th class="px-7 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Phone</th>
+                    <th class="px-7 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Department</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${contacts.map(c => {
+                    const f = c.fields || {};
+                    return `
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-7 py-4 text-sm font-medium text-slate-900">${f['Name'] || '—'}</td>
+                        <td class="px-7 py-4 text-sm text-slate-600">${f['Email'] || '—'}</td>
+                        <td class="px-7 py-4 text-sm text-slate-600">${f['Phone Number'] || '—'}</td>
+                        <td class="px-7 py-4 text-sm text-slate-600">${f['Department'] || '—'}</td>
+                      </tr>`;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>`;
+      } catch (err) {
+        console.error('[ACCOUNT DETAIL] Error loading contacts:', err);
+        section.innerHTML = '';
       }
     }
 

@@ -1,0 +1,413 @@
+2026/05/15 14:30:01 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:01 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records
+2026/05/15 14:30:01 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/05/15 14:30:01 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:01 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records}
+2026/05/15 14:30:01 handler.go:60: [PROXY] Validated and resolved: accounts_duplicate/records -> m5oxh8myj8t9gpl/records
+2026/05/15 14:30:01 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?pageSize=15
+2026/05/15 14:30:01 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:01 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:01 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:01 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:01 handler.go:162: [PROXY] Response body length: 6518 bytes
+2026/05/15 14:30:01 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 14:30:01 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:01 request_logger.go:76: [RESPONSE] GET /proxy/accounts_duplicate/records | Status: 200 | Duration: 173.1067ms | Bytes: 6518 | IP: [::1]:53562
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] OPTIONS /proxy/accounts_duplicate/records/5 from [::1]:53562 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Account%20Name%2CPhone%20Number%2CIndustry%2CBilling%20Street%2CBilling%20City%2CBilling%20State%2CBilling%20Code%2CBilling%20Country%2CCompany%20Name%2CWebsite
+[INFO] 2026/05/15 14:30:04 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 cors.go:44: [CORS] Handling preflight request for: /proxy/accounts_duplicate/records/5
+[INFO] 2026/05/15 14:30:04 request_logger.go:76: [RESPONSE] OPTIONS /proxy/accounts_duplicate/records/5 | Status: 200 | Duration: 1.0662ms | Bytes: 0 | IP: [::1]:53562
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] GET /proxy/accounts_duplicate/records/5 from [::1]:53562 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Account%20Name%2CPhone%20Number%2CIndustry%2CBilling%20Street%2CBilling%20City%2CBilling%20State%2CBilling%20Code%2CBilling%20Country%2CCompany%20Name%2CWebsite
+[INFO] 2026/05/15 14:30:04 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 auth.go:24: [AUTH] Validating request: GET /proxy/accounts_duplicate/records/5
+2026/05/15 14:30:04 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:04 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:04 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:04 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:04 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/accounts_duplicate/records/5
+2026/05/15 14:30:04 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:04 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:04 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:04 handler.go:40: [PROXY] Incoming request: GET /proxy/accounts_duplicate/records/5
+2026/05/15 14:30:04 handler.go:44: [PROXY] Extracted path: accounts_duplicate/records/5    
+2026/05/15 14:30:04 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:04 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records/5
+2026/05/15 14:30:04 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/05/15 14:30:04 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:04 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records/5}
+2026/05/15 14:30:04 handler.go:60: [PROXY] Validated and resolved: accounts_duplicate/records/5 -> m5oxh8myj8t9gpl/records/5
+2026/05/15 14:30:04 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records/5?fields=Account%20Name%2CPhone%20Number%2CIndustry%2CBilling%20Street%2CBilling%20City%2CBilling%20State%2CBilling%20Code%2CBilling%20Country%2CCompany%20Name%2CWebsite
+2026/05/15 14:30:04 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:04 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:04 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:04 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:04 handler.go:162: [PROXY] Response body length: 333 bytes
+2026/05/15 14:30:04 handler.go:164: [PROXY] Response body: {"id":5,"fields":{"Account Name":"Vaani","Phone Number":"7744872441","Website":null,"Industry":null,"Billing Street":"67/2, Dnyanesh housing society, near Awale petrol pump, Warje Malwadi\nPune- 411058","Billing City":"Pune","Billing State":"Maharashtra","Billing Code":"411038","Billing Country":"India","Company Name":"VAANI Ch"}}
+2026/05/15 14:30:04 handler.go:225: [PAGINATION] No 'records' array found, skipping pagination
+2026/05/15 14:30:04 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:04 request_logger.go:76: [RESPONSE] GET /proxy/accounts_duplicate/records/5 | Status: 200 | Duration: 213.9962ms | Bytes: 333 | IP: [::1]:53562
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] OPTIONS /proxy/cases/records from [::1]:53562 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Id,Title,Status,Created,Accounts%20duplicate
+[INFO] 2026/05/15 14:30:04 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 cors.go:44: [CORS] Handling preflight request for: /proxy/cases/records
+[INFO] 2026/05/15 14:30:04 request_logger.go:76: [RESPONSE] OPTIONS /proxy/cases/records | Status: 200 | Duration: 601.2µs | Bytes: 0 | IP: [::1]:53562
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] GET /proxy/cases/records from [::1]:53562 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Id,Title,Status,Created,Accounts%20duplicate
+[INFO] 2026/05/15 14:30:04 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 auth.go:24: [AUTH] Validating request: GET /proxy/cases/records        
+2026/05/15 14:30:04 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:04 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:04 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:04 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:04 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/cases/records
+2026/05/15 14:30:04 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:04 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:04 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:04 handler.go:40: [PROXY] Incoming request: GET /proxy/cases/records      
+2026/05/15 14:30:04 handler.go:44: [PROXY] Extracted path: cases/records
+2026/05/15 14:30:04 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:04 validator.go:28: [VALIDATOR] Validating request: GET cases/records     
+2026/05/15 14:30:04 validator.go:37: [VALIDATOR] Table key: cases
+2026/05/15 14:30:04 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:04 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:cases TableID:mui00xh53akmpv0 TableName:Cases Operation:read Allowed:true ResolvedPath:mui00xh53akmpv0/records}
+2026/05/15 14:30:04 handler.go:60: [PROXY] Validated and resolved: cases/records -> mui00xh53akmpv0/records
+2026/05/15 14:30:04 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/mui00xh53akmpv0/records?fields=Id,Title,Status,Created,Accounts%20duplicate
+2026/05/15 14:30:04 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:04 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:04 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:04 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:04 handler.go:162: [PROXY] Response body length: 3552 bytes
+2026/05/15 14:30:04 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 14:30:04 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:04 request_logger.go:76: [RESPONSE] GET /proxy/cases/records | Status: 200 | Duration: 176.9897ms | Bytes: 3552 | IP: [::1]:53562
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] OPTIONS /proxy/cases/links/quotes/24 from [::1]:53562 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Id
+[INFO] 2026/05/15 14:30:04 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 cors.go:44: [CORS] Handling preflight request for: /proxy/cases/links/quotes/24
+[INFO] 2026/05/15 14:30:04 request_logger.go:76: [RESPONSE] OPTIONS /proxy/cases/links/quotes/24 | Status: 200 | Duration: 1.5777ms | Bytes: 0 | IP: [::1]:53562
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] OPTIONS /proxy/cases/links/quotes/25 from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Id
+[INFO] 2026/05/15 14:30:04 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 cors.go:44: [CORS] Handling preflight request for: /proxy/cases/links/quotes/25
+[INFO] 2026/05/15 14:30:04 request_logger.go:76: [RESPONSE] OPTIONS /proxy/cases/links/quotes/25 | Status: 200 | Duration: 1.1824ms | Bytes: 0 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] GET /proxy/cases/links/quotes/24 from [::1]:53562 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Id
+[INFO] 2026/05/15 14:30:04 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 auth.go:24: [AUTH] Validating request: GET /proxy/cases/links/quotes/24
+2026/05/15 14:30:04 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:04 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:04 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+[INFO] 2026/05/15 14:30:04 request_logger.go:49: [REQUEST] GET /proxy/cases/links/quotes/25 from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+2026/05/15 14:30:04 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+[INFO] 2026/05/15 14:30:04 request_logger.go:58: [REQUEST] Query: fields=Id
+2026/05/15 14:30:04 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/cases/links/quotes/24
+[INFO] 2026/05/15 14:30:04 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:04 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:04 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:04 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:04 handler.go:40: [PROXY] Incoming request: GET /proxy/cases/links/quotes/24
+2026/05/15 14:30:04 handler.go:44: [PROXY] Extracted path: cases/links/quotes/24
+2026/05/15 14:30:04 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:04 validator.go:28: [VALIDATOR] Validating request: GET cases/links/quotes/24
+2026/05/15 14:30:04 validator.go:37: [VALIDATOR] Table key: cases
+2026/05/15 14:30:04 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:04 auth.go:24: [AUTH] Validating request: GET /proxy/cases/links/quotes/25
+2026/05/15 14:30:04 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:04 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:04 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:04 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:04 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:04 validator.go:123: [LINK RESOLVER] Detected link request for table 'Cases', alias 'quotes'
+2026/05/15 14:30:04 validator.go:136: [LINK RESOLVER] Cases.quotes → c5y1ffgddm78m0b       
+2026/05/15 14:30:04 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:cases TableID:mui00xh53akmpv0 TableName:Cases Operation:read Allowed:true ResolvedPath:mui00xh53akmpv0/links/c5y1ffgddm78m0b/24}
+2026/05/15 14:30:04 handler.go:60: [PROXY] Validated and resolved: cases/links/quotes/24 -> mui00xh53akmpv0/links/c5y1ffgddm78m0b/24
+2026/05/15 14:30:04 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/mui00xh53akmpv0/links/c5y1ffgddm78m0b/24?fields=Id
+2026/05/15 14:30:04 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/cases/links/quotes/25
+2026/05/15 14:30:04 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:04 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:04 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:04 handler.go:40: [PROXY] Incoming request: GET /proxy/cases/links/quotes/25
+2026/05/15 14:30:04 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:04 handler.go:44: [PROXY] Extracted path: cases/links/quotes/25
+2026/05/15 14:30:04 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:04 validator.go:28: [VALIDATOR] Validating request: GET cases/links/quotes/25
+2026/05/15 14:30:04 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:04 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:04 validator.go:37: [VALIDATOR] Table key: cases
+2026/05/15 14:30:04 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:04 validator.go:123: [LINK RESOLVER] Detected link request for table 'Cases', alias 'quotes'
+2026/05/15 14:30:04 validator.go:136: [LINK RESOLVER] Cases.quotes → c5y1ffgddm78m0b       
+2026/05/15 14:30:04 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:cases TableID:mui00xh53akmpv0 TableName:Cases Operation:read Allowed:true ResolvedPath:mui00xh53akmpv0/links/c5y1ffgddm78m0b/25}
+2026/05/15 14:30:04 handler.go:60: [PROXY] Validated and resolved: cases/links/quotes/25 -> mui00xh53akmpv0/links/c5y1ffgddm78m0b/25
+2026/05/15 14:30:04 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/mui00xh53akmpv0/links/c5y1ffgddm78m0b/25?fields=Id
+2026/05/15 14:30:04 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:04 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:04 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:05 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:05 handler.go:162: [PROXY] Response body length: 36 bytes
+2026/05/15 14:30:05 handler.go:164: [PROXY] Response body: {"records":[{"id":182,"fields":{}}]}
+2026/05/15 14:30:05 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:05 request_logger.go:76: [RESPONSE] GET /proxy/cases/links/quotes/24 | Status: 200 | Duration: 135.8241ms | Bytes: 36 | IP: [::1]:53562
+2026/05/15 14:30:05 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:05 handler.go:162: [PROXY] Response body length: 36 bytes
+2026/05/15 14:30:05 handler.go:164: [PROXY] Response body: {"records":[{"id":183,"fields":{}}]}
+2026/05/15 14:30:05 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:05 request_logger.go:76: [RESPONSE] GET /proxy/cases/links/quotes/25 | Status: 200 | Duration: 262.8457ms | Bytes: 36 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:15 request_logger.go:49: [REQUEST] OPTIONS /proxy/contacts/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:15 request_logger.go:58: [REQUEST] Query: pageSize=15
+[INFO] 2026/05/15 14:30:15 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:15 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:15 cors.go:44: [CORS] Handling preflight request for: /proxy/contacts/records
+[INFO] 2026/05/15 14:30:15 request_logger.go:76: [RESPONSE] OPTIONS /proxy/contacts/records | Status: 200 | Duration: 555.6µs | Bytes: 0 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:15 request_logger.go:49: [REQUEST] GET /proxy/contacts/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:15 request_logger.go:58: [REQUEST] Query: pageSize=15
+[INFO] 2026/05/15 14:30:15 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:15 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:15 auth.go:24: [AUTH] Validating request: GET /proxy/contacts/records     
+2026/05/15 14:30:15 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:15 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:15 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:15 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:15 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/contacts/records
+2026/05/15 14:30:15 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:15 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:15 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:15 handler.go:40: [PROXY] Incoming request: GET /proxy/contacts/records   
+2026/05/15 14:30:15 handler.go:44: [PROXY] Extracted path: contacts/records
+2026/05/15 14:30:15 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:15 validator.go:28: [VALIDATOR] Validating request: GET contacts/records  
+2026/05/15 14:30:15 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 14:30:15 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:15 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m09l0yw4klku4e9 TableName:Contacts Operation:read Allowed:true ResolvedPath:m09l0yw4klku4e9/records}
+2026/05/15 14:30:15 handler.go:60: [PROXY] Validated and resolved: contacts/records -> m09l0yw4klku4e9/records
+2026/05/15 14:30:15 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?pageSize=15
+2026/05/15 14:30:15 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:15 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:15 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:16 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:16 handler.go:162: [PROXY] Response body length: 32 bytes
+2026/05/15 14:30:16 handler.go:164: [PROXY] Response body: {"records":[],"nestedNext":null}
+2026/05/15 14:30:16 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 14:30:16 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:16 request_logger.go:76: [RESPONSE] GET /proxy/contacts/records | Status: 200 | Duration: 398.5008ms | Bytes: 32 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:19 request_logger.go:49: [REQUEST] OPTIONS /proxy/accounts_duplicate/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:19 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25a%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 14:30:19 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:19 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:19 cors.go:44: [CORS] Handling preflight request for: /proxy/accounts_duplicate/records
+[INFO] 2026/05/15 14:30:19 request_logger.go:76: [RESPONSE] OPTIONS /proxy/accounts_duplicate/records | Status: 200 | Duration: 1.1998ms | Bytes: 0 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:19 request_logger.go:49: [REQUEST] GET /proxy/accounts_duplicate/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:19 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25a%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 14:30:19 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:19 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:19 auth.go:24: [AUTH] Validating request: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:19 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:19 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:19 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:19 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:19 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:19 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:19 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:19 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:19 handler.go:40: [PROXY] Incoming request: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:19 handler.go:44: [PROXY] Extracted path: accounts_duplicate/records      
+2026/05/15 14:30:19 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:19 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records
+2026/05/15 14:30:19 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/05/15 14:30:19 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:19 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records}
+2026/05/15 14:30:19 handler.go:60: [PROXY] Validated and resolved: accounts_duplicate/records -> m5oxh8myj8t9gpl/records
+2026/05/15 14:30:19 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?where=(Company%20Name%2Clike%2C%25a%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+2026/05/15 14:30:19 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:19 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:19 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:20 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:20 handler.go:162: [PROXY] Response body length: 410 bytes
+2026/05/15 14:30:20 handler.go:164: [PROXY] Response body: {"records":[{"id":1,"fields":{"Phone Number":"1234567891","Company Name":"Test Company Name"}},{"id":2,"fields":{"Phone Number":"0987654321","Company Name":"Test 2 Company Name"}},{"id":3,"fields":{"Phone Number":"0987654321","Company Name":"Aniket G"}},{"id":4,"fields":{"Phone Number":null,"Company Name":"Ahuja"}},{"id":5,"fields":{"Phone Number":"7744872441","Company Name":"VAANI Ch"}}],"nestedNext":null}
+2026/05/15 14:30:20 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 14:30:20 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:20 request_logger.go:76: [RESPONSE] GET /proxy/accounts_duplicate/records | Status: 200 | Duration: 143.3722ms | Bytes: 410 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:20 request_logger.go:49: [REQUEST] OPTIONS /proxy/accounts_duplicate/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:20 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25av%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 14:30:20 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:20 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:20 cors.go:44: [CORS] Handling preflight request for: /proxy/accounts_duplicate/records
+[INFO] 2026/05/15 14:30:20 request_logger.go:76: [RESPONSE] OPTIONS /proxy/accounts_duplicate/records | Status: 200 | Duration: 1.1941ms | Bytes: 0 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:20 request_logger.go:49: [REQUEST] GET /proxy/accounts_duplicate/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:20 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25av%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 14:30:20 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:20 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:20 auth.go:24: [AUTH] Validating request: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:20 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:20 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:20 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:20 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:20 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:20 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:20 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:20 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:20 handler.go:40: [PROXY] Incoming request: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:20 handler.go:44: [PROXY] Extracted path: accounts_duplicate/records      
+2026/05/15 14:30:20 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:20 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records
+2026/05/15 14:30:20 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/05/15 14:30:20 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:20 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records}
+2026/05/15 14:30:20 handler.go:60: [PROXY] Validated and resolved: accounts_duplicate/records -> m5oxh8myj8t9gpl/records
+2026/05/15 14:30:20 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?where=(Company%20Name%2Clike%2C%25av%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+2026/05/15 14:30:20 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:20 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:20 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:20 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:20 handler.go:162: [PROXY] Response body length: 32 bytes
+2026/05/15 14:30:20 handler.go:164: [PROXY] Response body: {"records":[],"nestedNext":null}
+2026/05/15 14:30:20 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 14:30:20 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:20 request_logger.go:76: [RESPONSE] GET /proxy/accounts_duplicate/records | Status: 200 | Duration: 193.8612ms | Bytes: 32 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:21 request_logger.go:49: [REQUEST] OPTIONS /proxy/accounts_duplicate/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:21 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25va%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 14:30:21 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:21 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:21 cors.go:44: [CORS] Handling preflight request for: /proxy/accounts_duplicate/records
+[INFO] 2026/05/15 14:30:21 request_logger.go:76: [RESPONSE] OPTIONS /proxy/accounts_duplicate/records | Status: 200 | Duration: 1.7297ms | Bytes: 0 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:21 request_logger.go:49: [REQUEST] GET /proxy/accounts_duplicate/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:21 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25va%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 14:30:21 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:21 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:21 auth.go:24: [AUTH] Validating request: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:21 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:21 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:21 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:21 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:21 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:21 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:21 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:21 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:21 handler.go:40: [PROXY] Incoming request: GET /proxy/accounts_duplicate/records
+2026/05/15 14:30:21 handler.go:44: [PROXY] Extracted path: accounts_duplicate/records      
+2026/05/15 14:30:21 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:21 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records
+2026/05/15 14:30:21 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/05/15 14:30:21 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:21 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records}
+2026/05/15 14:30:21 handler.go:60: [PROXY] Validated and resolved: accounts_duplicate/records -> m5oxh8myj8t9gpl/records
+2026/05/15 14:30:21 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?where=(Company%20Name%2Clike%2C%25va%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+2026/05/15 14:30:21 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:21 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:21 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:21 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:21 handler.go:162: [PROXY] Response body length: 105 bytes
+2026/05/15 14:30:21 handler.go:164: [PROXY] Response body: {"records":[{"id":5,"fields":{"Phone Number":"7744872441","Company Name":"VAANI Ch"}}],"nestedNext":null}
+2026/05/15 14:30:21 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 14:30:21 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:21 request_logger.go:76: [RESPONSE] GET /proxy/accounts_duplicate/records | Status: 200 | Duration: 221.8788ms | Bytes: 105 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:35 request_logger.go:49: [REQUEST] OPTIONS /proxy/contacts/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:35 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:35 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:35 cors.go:44: [CORS] Handling preflight request for: /proxy/contacts/records
+[INFO] 2026/05/15 14:30:35 request_logger.go:76: [RESPONSE] OPTIONS /proxy/contacts/records | Status: 200 | Duration: 511.5µs | Bytes: 0 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:35 request_logger.go:49: [REQUEST] POST /proxy/contacts/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:35 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:35 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:35 auth.go:24: [AUTH] Validating request: POST /proxy/contacts/records    
+2026/05/15 14:30:35 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:35 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:35 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:35 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:35 authorize.go:11: [AUTHORIZE] Processing authorization for: POST /proxy/contacts/records
+2026/05/15 14:30:35 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:35 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:35 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:35 handler.go:40: [PROXY] Incoming request: POST /proxy/contacts/records  
+2026/05/15 14:30:35 handler.go:44: [PROXY] Extracted path: contacts/records
+2026/05/15 14:30:35 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:35 validator.go:28: [VALIDATOR] Validating request: POST contacts/records 
+2026/05/15 14:30:35 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 14:30:35 validator.go:47: [VALIDATOR] Operation: create
+2026/05/15 14:30:35 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m09l0yw4klku4e9 TableName:Contacts Operation:create Allowed:true ResolvedPath:m09l0yw4klku4e9/records}
+2026/05/15 14:30:35 handler.go:60: [PROXY] Validated and resolved: contacts/records -> m09l0yw4klku4e9/records
+2026/05/15 14:30:35 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records
+2026/05/15 14:30:35 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:35 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:35 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:35 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:35 handler.go:162: [PROXY] Response body length: 286 bytes
+2026/05/15 14:30:35 handler.go:164: [PROXY] Response body: {"records":[{"id":1,"fields":{"CreatedAt":"2026-05-15 09:00:34+00:00","UpdatedAt":null,"Name":null,"Email":"aniket03g@gmail.com","Phone Number":"07744872443","Other Phone":null,"Birth date":null,"nc_i78f__Accounts duplicate_id":null,"Is Primary":false,"Department":null,"Notes":null}}]}
+2026/05/15 14:30:35 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:35 request_logger.go:76: [RESPONSE] POST /proxy/contacts/records | Status: 200 | Duration: 264.2986ms | Bytes: 286 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:35 request_logger.go:49: [REQUEST] OPTIONS /proxy/contacts/links/accounts_duplicate/1 from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:35 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 14:30:35 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:35 cors.go:44: [CORS] Handling preflight request for: /proxy/contacts/links/accounts_duplicate/1
+[INFO] 2026/05/15 14:30:35 request_logger.go:76: [RESPONSE] OPTIONS /proxy/contacts/links/accounts_duplicate/1 | Status: 200 | Duration: 882.4µs | Bytes: 0 | IP: [::1]:64167
+[INFO] 2026/05/15 14:30:35 request_logger.go:49: [REQUEST] POST /proxy/contacts/links/accounts_duplicate/1 from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:35 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:35 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:35 auth.go:24: [AUTH] Validating request: POST /proxy/contacts/links/accounts_duplicate/1
+2026/05/15 14:30:35 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:35 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:35 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:35 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:35 authorize.go:11: [AUTHORIZE] Processing authorization for: POST /proxy/contacts/links/accounts_duplicate/1
+2026/05/15 14:30:35 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:35 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:35 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:35 handler.go:40: [PROXY] Incoming request: POST /proxy/contacts/links/accounts_duplicate/1
+2026/05/15 14:30:35 handler.go:44: [PROXY] Extracted path: contacts/links/accounts_duplicate/1
+2026/05/15 14:30:35 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:35 validator.go:28: [VALIDATOR] Validating request: POST contacts/links/accounts_duplicate/1
+2026/05/15 14:30:35 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 14:30:35 validator.go:47: [VALIDATOR] Operation: create
+2026/05/15 14:30:35 validator.go:123: [LINK RESOLVER] Detected link request for table 'Contacts', alias 'accounts_duplicate'
+2026/05/15 14:30:35 metacache.go:286: [META DEBUG] Link field 'accounts_duplicate' not found in table m09l0yw4klku4e9
+2026/05/15 14:30:35 validator.go:136: [LINK RESOLVER] Contacts.accounts_duplicate → cwv273e678bkoy0
+2026/05/15 14:30:35 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m09l0yw4klku4e9 TableName:Contacts Operation:create Allowed:true ResolvedPath:m09l0yw4klku4e9/links/cwv273e678bkoy0/1}
+2026/05/15 14:30:35 handler.go:60: [PROXY] Validated and resolved: contacts/links/accounts_duplicate/1 -> m09l0yw4klku4e9/links/cwv273e678bkoy0/1
+2026/05/15 14:30:35 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/links/cwv273e678bkoy0/1
+2026/05/15 14:30:35 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:35 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:35 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:35 handler.go:148: [PROXY] NocoDB responded with status: 422 422 Unprocessable Entity
+2026/05/15 14:30:35 handler.go:160: [PROXY ERROR] NocoDB error response (status 422): {"error":"INVALID_PK_VALUE","message":"Primary key value '[object Object]' is invalid for column 'Id'"}
+2026/05/15 14:30:35 handler.go:206: [PROXY] Request completed successfully
+[ERROR] 2026/05/15 14:30:35 request_logger.go:85: [RESPONSE] POST /proxy/contacts/links/accounts_duplicate/1 | Status: 422 (Client Error) | Duration: 103.7544ms | IP: [::1]:64167    
+[INFO] 2026/05/15 14:30:38 request_logger.go:49: [REQUEST] GET /proxy/contacts/records from [::1]:64167 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 14:30:38 request_logger.go:58: [REQUEST] Query: pageSize=15
+[INFO] 2026/05/15 14:30:38 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 14:30:38 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/05/15 14:30:38 auth.go:24: [AUTH] Validating request: GET /proxy/contacts/records     
+2026/05/15 14:30:38 auth.go:32: [AUTH] Authorization header present
+2026/05/15 14:30:38 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 14:30:38 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 14:30:38 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 14:30:38 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/contacts/records
+2026/05/15 14:30:38 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 14:30:38 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 14:30:38 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 14:30:38 handler.go:40: [PROXY] Incoming request: GET /proxy/contacts/records   
+2026/05/15 14:30:38 handler.go:44: [PROXY] Extracted path: contacts/records
+2026/05/15 14:30:38 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 14:30:38 validator.go:28: [VALIDATOR] Validating request: GET contacts/records  
+2026/05/15 14:30:38 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 14:30:38 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 14:30:38 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m09l0yw4klku4e9 TableName:Contacts Operation:read Allowed:true ResolvedPath:m09l0yw4klku4e9/records}
+2026/05/15 14:30:38 handler.go:60: [PROXY] Validated and resolved: contacts/records -> m09l0yw4klku4e9/records
+2026/05/15 14:30:38 handler.go:114: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?pageSize=15
+2026/05/15 14:30:38 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 14:30:38 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 14:30:38 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 14:30:38 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 14:30:38 handler.go:162: [PROXY] Response body length: 330 bytes
+2026/05/15 14:30:38 handler.go:164: [PROXY] Response body: {"records":[{"id":1,"fields":{"CreatedAt":"2026-05-15 09:00:34+00:00","UpdatedAt":null,"Name":null,"Email":"aniket03g@gmail.com","Phone Number":"07744872443","Other Phone":null,"Birth date":null,"nc_i78f__Accounts duplicate_id":null,"Is Primary":false,"Department":null,"Notes":null,"Accounts duplicate":null}}],"nestedNext":null}
+2026/05/15 14:30:38 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 14:30:38 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 14:30:38 request_logger.go:76: [RESPONSE] GET /proxy/contacts/records | Status: 200 | Duration: 212.3162ms | Bytes: 330 | IP: [::1]:64167

@@ -1,7 +1,6 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8082';
 ---
 
 <AdminLayout title="Cases" currentPage="cases">
@@ -48,7 +47,8 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
     </div>
   </div>
 
-  <script define:vars={{ API_BASE_URL }}>
+  <script>
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || `http://${window.location.hostname}:8082`;
     async function loadCases() {
       try {
         const token = localStorage.getItem('jwt_token');

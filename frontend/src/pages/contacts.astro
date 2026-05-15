@@ -9,6 +9,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <div>
         <h1 class="text-2xl font-semibold text-slate-800">Contacts</h1>
       </div>
+      <a
+        href="/add-contact"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Add Contact
+      </a>
     </div>
   </div>
 
@@ -37,6 +46,70 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </div>
           <span id="searchStatus" class="text-sm text-slate-600"></span>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div id="editModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800">Edit Contact</h2>
+        <button id="closeEditModal" class="text-slate-400 hover:text-slate-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="editModalError" class="hidden mx-6 mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <p class="text-sm text-red-800" id="editModalErrorText"></p>
+      </div>
+      <form id="editForm" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="hidden" id="editContactId" />
+        <input type="hidden" id="editSelectedAccountId" />
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Contact Name <span class="text-red-500">*</span></label>
+          <input type="text" id="editName" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="md:col-span-2 relative">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Account</label>
+          <input
+            type="text"
+            id="editAccountSearch"
+            placeholder="Search accounts..."
+            autocomplete="off"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <div id="editAccountDropdown" class="hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+            <div id="editAccountResults" class="py-1"></div>
+            <div id="editAccountLoading" class="hidden px-4 py-3 text-sm text-slate-500 text-center">Searching...</div>
+            <div id="editAccountEmpty" class="hidden px-4 py-3 text-sm text-slate-500 text-center">No accounts found</div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <input type="email" id="editEmail" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+          <input type="tel" id="editPhone" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Other Phone</label>
+          <input type="tel" id="editOtherPhone" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Birth Date</label>
+          <input type="date" id="editBirthDate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
+          <input type="text" id="editDepartment" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+      </form>
+      <div class="px-6 py-4 bg-slate-50 rounded-b-xl flex justify-end gap-3">
+        <button id="cancelEditBtn" class="px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+        <button id="saveEditBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed">Save Changes</button>
       </div>
     </div>
   </div>
@@ -123,7 +196,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       if (!searchTerm.trim()) {
         return '';
       }
-      const rawWhere = `(Contact Name,like,%${searchTerm}%)`;
+      const rawWhere = `(Name,like,%${searchTerm}%)`;
       const encodedWhere = encodeURIComponent(rawWhere);
       return `where=${encodedWhere}&pageSize=15`;
     }
@@ -196,10 +269,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       contactsBody.innerHTML = contacts.map((record: any, index: number) => {
         const fields = record.fields || {};
-        const contactName = fields['Contact Name'] || 'N/A';
-        const account = fields['Account'] || 'N/A';
+        const contactName = fields['Name'] || 'N/A';
+        const accountObj = fields['Accounts duplicate'];
+        const account = accountObj?.fields?.['Account Name'] || 'N/A';
         const email = fields['Email'] || 'N/A';
-        const phone = fields['Phone'] || 'N/A';
+        const phone = fields['Phone Number'] || 'N/A';
 
         return `
           <tr class="hover:bg-slate-50 transition-colors">
@@ -210,12 +284,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <td class="px-6 py-4 text-sm text-slate-600">${phone}</td>
             <td class="px-6 py-4 text-sm">
               <div class="flex items-center gap-2">
-                <button class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors" title="Edit">
+                <button
+                  class="edit-btn p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                  title="Edit"
+                  data-id="${record.id}"
+                  data-name="${contactName !== 'N/A' ? contactName : ''}"
+                  data-email="${email !== 'N/A' ? email : ''}"
+                  data-phone="${phone !== 'N/A' ? phone : ''}"
+                  data-other-phone="${fields['Other Phone'] || ''}"
+                  data-birth-date="${fields['Birth date'] || ''}"
+                  data-department="${fields['Department'] || ''}"
+                  data-account-id="${accountObj?.id || ''}"
+                  data-account-name="${account !== 'N/A' ? account : ''}"
+                >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                   </svg>
                 </button>
-                <button class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors" title="Delete">
+                <button
+                  class="delete-btn p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                  title="Delete"
+                  data-id="${record.id}"
+                  data-name="${contactName !== 'N/A' ? contactName : 'this contact'}"
+                >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                   </svg>
@@ -248,6 +339,200 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const target = e.target as HTMLInputElement;
       debouncedSearch(target.value);
     });
+
+    // --- Edit / Delete via event delegation ---
+    const editModal = document.getElementById('editModal') as HTMLDivElement;
+    const editContactId = document.getElementById('editContactId') as HTMLInputElement;
+    const editSelectedAccountId = document.getElementById('editSelectedAccountId') as HTMLInputElement;
+    const editName = document.getElementById('editName') as HTMLInputElement;
+    const editEmail = document.getElementById('editEmail') as HTMLInputElement;
+    const editPhone = document.getElementById('editPhone') as HTMLInputElement;
+    const editOtherPhone = document.getElementById('editOtherPhone') as HTMLInputElement;
+    const editBirthDate = document.getElementById('editBirthDate') as HTMLInputElement;
+    const editDepartment = document.getElementById('editDepartment') as HTMLInputElement;
+    const saveEditBtn = document.getElementById('saveEditBtn') as HTMLButtonElement;
+    const editModalError = document.getElementById('editModalError') as HTMLDivElement;
+    const editModalErrorText = document.getElementById('editModalErrorText') as HTMLParagraphElement;
+    const editAccountSearch = document.getElementById('editAccountSearch') as HTMLInputElement;
+    const editAccountDropdown = document.getElementById('editAccountDropdown') as HTMLDivElement;
+    const editAccountResults = document.getElementById('editAccountResults') as HTMLDivElement;
+    const editAccountLoading = document.getElementById('editAccountLoading') as HTMLDivElement;
+    const editAccountEmpty = document.getElementById('editAccountEmpty') as HTMLDivElement;
+
+    // Account search inside edit modal
+    let editAccountTimer: ReturnType<typeof setTimeout>;
+    editAccountSearch.addEventListener('input', () => {
+      clearTimeout(editAccountTimer);
+      editSelectedAccountId.value = '';
+      const q = editAccountSearch.value.trim();
+      if (!q) { editAccountDropdown.classList.add('hidden'); return; }
+      editAccountTimer = setTimeout(() => searchEditAccounts(q), 350);
+    });
+    editAccountSearch.addEventListener('focus', () => {
+      if (editAccountSearch.value.trim() && editAccountResults.children.length > 0) {
+        editAccountDropdown.classList.remove('hidden');
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (!editAccountSearch.contains(e.target as Node) && !editAccountDropdown.contains(e.target as Node)) {
+        editAccountDropdown.classList.add('hidden');
+      }
+    });
+
+    async function searchEditAccounts(q: string) {
+      editAccountLoading.classList.remove('hidden');
+      editAccountEmpty.classList.add('hidden');
+      editAccountResults.innerHTML = '';
+      editAccountDropdown.classList.remove('hidden');
+      try {
+        const where = encodeURIComponent(`(Company Name,like,%${q}%)`);
+        const res = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?where=${where}&limit=10&fields=Id,Company%20Name`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        const records = data.records || [];
+        editAccountLoading.classList.add('hidden');
+        if (records.length === 0) { editAccountEmpty.classList.remove('hidden'); return; }
+        editAccountResults.innerHTML = records.map((r: any) => `
+          <button type="button" class="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0"
+            data-id="${r.id}" data-name="${r.fields['Company Name'] || ''}">
+            <span class="text-sm font-medium text-slate-800">${r.fields['Company Name'] || 'Unknown'}</span>
+          </button>
+        `).join('');
+        editAccountResults.querySelectorAll('button').forEach(btn => {
+          btn.addEventListener('click', () => {
+            editSelectedAccountId.value = (btn as HTMLElement).dataset.id || '';
+            editAccountSearch.value = (btn as HTMLElement).dataset.name || '';
+            editAccountDropdown.classList.add('hidden');
+          });
+        });
+      } catch {
+        editAccountLoading.classList.add('hidden');
+        editAccountEmpty.classList.remove('hidden');
+      }
+    }
+
+    function openEditModal(btn: HTMLElement) {
+      const ds = btn.dataset;
+      editContactId.value = ds.id || '';
+      editName.value = ds.name || '';
+      editEmail.value = ds.email || '';
+      editPhone.value = ds.phone || '';
+      editOtherPhone.value = ds.otherPhone || '';
+      editBirthDate.value = ds.birthDate || '';
+      editDepartment.value = ds.department || '';
+      // Pre-fill account
+      editSelectedAccountId.value = ds.accountId || '';
+      editAccountSearch.value = ds.accountName || '';
+      editAccountDropdown.classList.add('hidden');
+      editModalError.classList.add('hidden');
+      saveEditBtn.disabled = false;
+      saveEditBtn.textContent = 'Save Changes';
+      editModal.classList.remove('hidden');
+      editName.focus();
+    }
+
+    function closeModal() {
+      editModal.classList.add('hidden');
+    }
+
+    document.getElementById('closeEditModal')!.addEventListener('click', closeModal);
+    document.getElementById('cancelEditBtn')!.addEventListener('click', closeModal);
+    editModal.addEventListener('click', (e) => {
+      if (e.target === editModal) closeModal();
+    });
+
+    saveEditBtn.addEventListener('click', async () => {
+      const id = editContactId.value;
+      const name = editName.value.trim();
+      if (!name) {
+        editModalErrorText.textContent = 'Contact Name is required.';
+        editModalError.classList.remove('hidden');
+        return;
+      }
+
+      const fields: Record<string, string> = { 'Name': name };
+      if (editEmail.value.trim()) fields['Email'] = editEmail.value.trim();
+      if (editPhone.value.trim()) fields['Phone Number'] = editPhone.value.trim();
+      if (editOtherPhone.value.trim()) fields['Other Phone'] = editOtherPhone.value.trim();
+      if (editBirthDate.value.trim()) fields['Birth date'] = editBirthDate.value.trim();
+      if (editDepartment.value.trim()) fields['Department'] = editDepartment.value.trim();
+
+      saveEditBtn.disabled = true;
+      saveEditBtn.textContent = 'Saving...';
+      editModalError.classList.add('hidden');
+
+      try {
+        // Update contact fields
+        const res = await fetch(`${API_BASE_URL}/proxy/contacts/records`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id, fields }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error('[EDIT CONTACT] Failed:', errText);
+          throw new Error('Failed to save changes');
+        }
+
+        // Link to account if a new account was selected
+        const newAccountId = editSelectedAccountId.value;
+        if (newAccountId) {
+          const linkRes = await fetch(`${API_BASE_URL}/proxy/contacts/links/accounts_duplicate/${id}`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify([{ id: newAccountId }]),
+          });
+          if (!linkRes.ok) {
+            console.error('[EDIT CONTACT] Account link failed:', await linkRes.text());
+          }
+        }
+
+        closeModal();
+        searchContacts(searchInput.value);
+      } catch (err: any) {
+        editModalErrorText.textContent = err.message || 'Failed to save changes';
+        editModalError.classList.remove('hidden');
+        saveEditBtn.disabled = false;
+        saveEditBtn.textContent = 'Save Changes';
+      }
+    });
+
+    async function deleteContact(id: string, name: string) {
+      if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/proxy/contacts/records`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error('[DELETE CONTACT] Failed:', errText);
+          throw new Error('Failed to delete contact');
+        }
+
+        searchContacts(searchInput.value);
+      } catch (err: any) {
+        errorText.textContent = err.message || 'Failed to delete contact';
+        errorDiv.classList.remove('hidden');
+      }
+    }
+
+    contactsBody.addEventListener('click', (e) => {
+      const editBtn = (e.target as Element).closest('.edit-btn') as HTMLElement | null;
+      const deleteBtn = (e.target as Element).closest('.delete-btn') as HTMLElement | null;
+
+      if (editBtn) openEditModal(editBtn);
+      if (deleteBtn) deleteContact(deleteBtn.dataset.id || '', deleteBtn.dataset.name || 'this contact');
+    });
+
     }); // Close DOMContentLoaded event listener
   </script>
 </AdminLayout>

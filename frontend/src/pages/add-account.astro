@@ -1,7 +1,6 @@
 ---
 import AdminLayout from '../layouts/AdminLayout.astro';
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8082';
 ---
 
 <AdminLayout title="Add Account" currentPage="accounts">
@@ -359,7 +358,8 @@ const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:80
     </form>
   </div>
 
-  <script define:vars={{ API_BASE_URL }}>
+  <script>
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || `http://${window.location.hostname}:8082`;
     const form = document.getElementById('accountForm');
     const submitBtn = document.getElementById('submitBtn');
     const errorMessage = document.getElementById('errorMessage');
