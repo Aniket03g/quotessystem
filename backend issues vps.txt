@@ -1,0 +1,402 @@
+root@srv1631869:~# docker logs --tail 400 grove-backend
+2026/05/15 11:34:02 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:34:02 request_logger.go:49: [REQUEST] GET /health from [::1]:46788 | User-Agent: Wget
+[INFO] 2026/05/15 11:34:02 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:34:02 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 205.811µs | Bytes: 16 | IP: [::1]:46788
+2026/05/15 11:34:32 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:34:32 request_logger.go:49: [REQUEST] GET /health from [::1]:42028 | User-Agent: Wget
+[INFO] 2026/05/15 11:34:32 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:34:32 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 102.99µs | Bytes: 16 | IP: [::1]:42028
+2026/05/15 11:35:02 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:35:02 request_logger.go:49: [REQUEST] GET /health from [::1]:41360 | User-Agent: Wget
+[INFO] 2026/05/15 11:35:02 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:35:02 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 671.452µs | Bytes: 16 | IP: [::1]:41360
+2026/05/15 11:35:18 metacache.go:330: [META] Auto-refreshing metadata cache...
+2026/05/15 11:35:18 metacache.go:122: [META] Fetching table metadata from NocoDB...
+2026/05/15 11:35:18 metacache.go:126: [META] Metadata URL: http://148.135.136.1:8080/api/v2/meta/bases/pd0tf8xobxcryk6/tables
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'Accounts' -> 'mndm8x75mcmlu7x'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___Accounts' -> 'mndm8x75mcmlu7x'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'Accounts' (mndm8x75mcmlu7x)...
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Accounts.Contacts' (ID: clq0zfcdrpgynu2, Type: Links)
+2026/05/15 11:35:18 metacache.go:210: [META] Cached 1 link field(s) for table 'Accounts'
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'Features' -> 'mnqusa6fzzcgfsx'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___Features' -> 'mnqusa6fzzcgfsx'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'Features' (mnqusa6fzzcgfsx)...
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'remove' -> 'm3fdjuio3ey7f27'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f__remove' -> 'm3fdjuio3ey7f27'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'remove' (m3fdjuio3ey7f27)...
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'remove.Accounts' (ID: cjawynmk2v3ffga, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'remove.Accounts copy' (ID: cviivxfgka42vv4, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'remove.Accounts copy_1' (ID: c5m2valxcxu24nw, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'remove.Accounts copy_1 copy' (ID: c43mrooeeiorlxf, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:210: [META] Cached 4 link field(s) for table 'remove'
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'Products' -> 'mk85gltwt79dab0'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___Products' -> 'mk85gltwt79dab0'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'Products' (mk85gltwt79dab0)...
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Products.Quotes' (ID: cfa1re1b8nxdr1n, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Products.prods for quotes' (ID: cm2hprh350obx9b, Type: Links)
+2026/05/15 11:35:18 metacache.go:210: [META] Cached 2 link field(s) for table 'Products'
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'Quotes' -> 'mh64yxf3sgap383'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___Quotes' -> 'mh64yxf3sgap383'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'Quotes' (mh64yxf3sgap383)...
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.Products' (ID: cwgg5y7nr285brn, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.Parent Quote' (ID: c4eaqg2fmy3i5fi, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.qtlegacy' (ID: cf7kqkulcza2y4d, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy' (ID: ci7i3xwzfjb1bbk, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.pdts for quotes' (ID: ccy3zcr0o2wpial, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy1' (ID: cq7w95q9r1lsqdw, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.Cases' (ID: ctck3sr7os80677, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy copy' (ID: czotip18ga599im, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy1 copy' (ID: cz5koxzn93fi1yg, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:210: [META] Cached 9 link field(s) for table 'Quotes'
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'ProductsForQuotes' -> 'mta7imxwcnyyss7'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___ProductsForQuotes' -> 'mta7imxwcnyyss7'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'ProductsForQuotes' (mta7imxwcnyyss7)...
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'ProductsForQuotes.Products' (ID: coh4xvl5pcxkfsh, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'ProductsForQuotes.Quotes' (ID: c99lwqm3a2ouykc, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:210: [META] Cached 2 link field(s) for table 'ProductsForQuotes'
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'Accounts Quotes' -> 'menaa8xzz8xv0uk'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___Accounts Quotes' -> 'menaa8xzz8xv0uk'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'Accounts Quotes' (menaa8xzz8xv0uk)...
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Accounts Quotes.Quotes' (ID: chv3wiu2kv8gq9l, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Accounts Quotes.Contacts' (ID: cautrnvajc1sr2b, Type: Links)
+2026/05/15 11:35:18 metacache.go:210: [META] Cached 2 link field(s) for table 'Accounts Quotes'
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'Accounts copy' -> 'mwej2xn1kdpyzbn'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___accounts_copy' -> 'mwej2xn1kdpyzbn'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'Accounts copy' (mwej2xn1kdpyzbn)...
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Accounts copy.Quotes' (ID: cfg4ukr77w9triv, Type: LinkToAnotherRecord)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Accounts copy.Contacts' (ID: cqefadafze25k4x, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Accounts copy.account-quotes' (ID: c3qjr7ic15sdfcl, Type: Links)
+2026/05/15 11:35:18 metacache.go:203: [META] ✓ Found link field 'Accounts copy.Cases' (ID: cwo3pud3xij56th, Type: Links)
+2026/05/15 11:35:18 metacache.go:210: [META] Cached 4 link field(s) for table 'Accounts copy'
+2026/05/15 11:35:18 metacache.go:170: [META] Mapped table 'Cases' -> 'mui00xh53akmpv0'
+2026/05/15 11:35:18 metacache.go:174: [META] Mapped table 'nc_i78f___Cases' -> 'mui00xh53akmpv0'
+2026/05/15 11:35:18 metacache.go:190: [META] Fetching field metadata for table 'Cases' (mui00xh53akmpv0)...
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Cases.old_linking_for_acc_copy' (ID: crujavj9yn16q05, Type: LinkToAnotherRecord)
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Cases.Quotes' (ID: c5y1ffgddm78m0b, Type: Links)
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Cases.Accounts duplicate' (ID: cmw3rs1b02tvxp5, Type: LinkToAnotherRecord)
+2026/05/15 11:35:19 metacache.go:210: [META] Cached 3 link field(s) for table 'Cases'
+2026/05/15 11:35:19 metacache.go:170: [META] Mapped table 'Accounts duplicate' -> 'm5oxh8myj8t9gpl'
+2026/05/15 11:35:19 metacache.go:174: [META] Mapped table 'nc_i78f__Accounts duplicate' -> 'm5oxh8myj8t9gpl'
+2026/05/15 11:35:19 metacache.go:190: [META] Fetching field metadata for table 'Accounts duplicate' (m5oxh8myj8t9gpl)...
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Quotes' (ID: cwpaoyeh19qfc32, Type: LinkToAnotherRecord)
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Contacts old' (ID: c7kai44vgx693v5, Type: Links)
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.account-quotes' (ID: c3h3jk9x6z47k5k, Type: Links)
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Cases' (ID: c056dnsart9qwhl, Type: Links)
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Leads' (ID: c295jt6ayds5b7x, Type: LinkToAnotherRecord)
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Contacts New' (ID: cey1x759waafbau, Type: Links)
+2026/05/15 11:35:19 metacache.go:210: [META] Cached 6 link field(s) for table 'Accounts duplicate'
+2026/05/15 11:35:19 metacache.go:170: [META] Mapped table 'Leads' -> 'mh7r0ox39o1w9dw'
+2026/05/15 11:35:19 metacache.go:174: [META] Mapped table 'nc_i78f___Leads' -> 'mh7r0ox39o1w9dw'
+2026/05/15 11:35:19 metacache.go:190: [META] Fetching field metadata for table 'Leads' (mh7r0ox39o1w9dw)...
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Leads.Converted To Account' (ID: cfcusvn3o2xepos, Type: LinkToAnotherRecord)
+2026/05/15 11:35:19 metacache.go:210: [META] Cached 1 link field(s) for table 'Leads'
+2026/05/15 11:35:19 metacache.go:170: [META] Mapped table 'Contacts' -> 'm09l0yw4klku4e9'
+2026/05/15 11:35:19 metacache.go:174: [META] Mapped table 'nc_i78f___Contacts' -> 'm09l0yw4klku4e9'
+2026/05/15 11:35:19 metacache.go:190: [META] Fetching field metadata for table 'Contacts' (m09l0yw4klku4e9)...
+2026/05/15 11:35:19 metacache.go:203: [META] ✓ Found link field 'Contacts.Accounts duplicate' (ID: cwv273e678bkoy0, Type: LinkToAnotherRecord)
+2026/05/15 11:35:19 metacache.go:210: [META] Cached 1 link field(s) for table 'Contacts'
+2026/05/15 11:35:19 metacache.go:228: [META] ✅ Successfully loaded 12 tables and 35 link field mappings
+2026/05/15 11:35:33 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:35:33 request_logger.go:49: [REQUEST] GET /health from [::1]:54002 | User-Agent: Wget
+[INFO] 2026/05/15 11:35:33 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:35:33 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 89.02µs | Bytes: 16 | IP: [::1]:54002
+2026/05/15 11:36:03 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:36:03 request_logger.go:49: [REQUEST] GET /health from [::1]:46836 | User-Agent: Wget
+[INFO] 2026/05/15 11:36:03 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:36:03 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 362.492µs | Bytes: 16 | IP: [::1]:46836
+2026/05/15 11:36:33 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:36:33 request_logger.go:49: [REQUEST] GET /health from [::1]:55090 | User-Agent: Wget
+[INFO] 2026/05/15 11:36:33 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:36:33 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 148.31µs | Bytes: 16 | IP: [::1]:55090
+[INFO] 2026/05/15 11:37:03 request_logger.go:49: [REQUEST] GET /health from [::1]:43626 | User-Agent: Wget
+[INFO] 2026/05/15 11:37:03 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 11:37:03 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:37:03 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 2.203336ms | Bytes: 16 | IP: [::1]:43626
+[INFO] 2026/05/15 11:37:33 request_logger.go:49: [REQUEST] GET /health from [::1]:33908 | User-Agent: Wget
+[INFO] 2026/05/15 11:37:33 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 11:37:33 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:37:33 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 746.432µs | Bytes: 16 | IP: [::1]:33908
+2026/05/15 11:38:03 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:38:03 request_logger.go:49: [REQUEST] GET /health from [::1]:58594 | User-Agent: Wget
+[INFO] 2026/05/15 11:38:03 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:38:03 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 190.101µs | Bytes: 16 | IP: [::1]:58594
+2026/05/15 11:38:33 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:38:33 request_logger.go:49: [REQUEST] GET /health from [::1]:35646 | User-Agent: Wget
+[INFO] 2026/05/15 11:38:33 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:38:33 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 95.59µs | Bytes: 16 | IP: [::1]:35646
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] OPTIONS /login from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] OPTIONS /login | Status: 200 | Duration: 115.471µs | Bytes: 0 | IP: 124.66.169.231:59287
+2026/05/15 11:38:48 cors.go:44: [CORS] Handling preflight request for: /login
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] POST /login from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:48 main.go:308: [LOGIN] Login attempt from 124.66.169.231:59287
+2026/05/15 11:38:48 main.go:322: [LOGIN] Login request for email: admin@example.com
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] POST /login | Status: 200 | Duration: 502.471µs | Bytes: 227 | IP: 124.66.169.231:59287
+2026/05/15 11:38:48 main.go:366: [LOGIN] Credentials validated for demo user: admin-001 (role: admin)
+2026/05/15 11:38:48 main.go:369: [LOGIN] Generating JWT token...
+2026/05/15 11:38:48 main.go:376: [LOGIN] JWT generated successfully
+2026/05/15 11:38:48 main.go:389: [LOGIN] Login successful for demo user: admin-001
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:48 cors.go:44: [CORS] Handling preflight request for: /api/admin/users
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] OPTIONS /api/admin/users from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] OPTIONS /api/admin/users | Status: 200 | Duration: 96.62µs | Bytes: 0 | IP: 124.66.169.231:59287
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:48 auth.go:24: [AUTH] Validating request: GET /api/admin/users
+2026/05/15 11:38:48 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:38:48 auth.go:43: [AUTH] Validating JWT token...
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] GET /api/admin/users from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] GET /api/admin/users | Status: 200 | Duration: 386.13µs | Bytes: 23 | IP: 124.66.169.231:59287
+2026/05/15 11:38:48 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 11:38:48 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 11:38:48 admin.go:132: [ADMIN] List users request from 124.66.169.231:59287
+2026/05/15 11:38:48 admin.go:170: [ADMIN] Successfully retrieved 0 users
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] OPTIONS /proxy/quotes/count from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] OPTIONS /proxy/quotes/count | Status: 200 | Duration: 123.83µs | Bytes: 0 | IP: 124.66.169.231:59287
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:48 cors.go:44: [CORS] Handling preflight request for: /proxy/quotes/count
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:48 auth.go:24: [AUTH] Validating request: GET /proxy/quotes/count
+2026/05/15 11:38:48 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:38:48 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 11:38:48 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 11:38:48 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] GET /proxy/quotes/count from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 11:38:48 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/quotes/count
+2026/05/15 11:38:48 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 11:38:48 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 11:38:48 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 11:38:48 handler.go:40: [PROXY] Incoming request: GET /proxy/quotes/count
+2026/05/15 11:38:48 handler.go:44: [PROXY] Extracted path: quotes/count
+2026/05/15 11:38:48 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 11:38:48 validator.go:28: [VALIDATOR] Validating request: GET quotes/count
+2026/05/15 11:38:48 validator.go:37: [VALIDATOR] Table key: quotes
+2026/05/15 11:38:48 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 11:38:48 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:quotes TableID:mh64yxf3sgap383 TableName:Quotes Operation:read Allowed:true ResolvedPath:mh64yxf3sgap383/count}
+2026/05/15 11:38:48 handler.go:60: [PROXY] Validated and resolved: quotes/count -> mh64yxf3sgap383/count
+2026/05/15 11:38:48 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/mh64yxf3sgap383/count
+2026/05/15 11:38:48 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 11:38:48 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 11:38:48 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 11:38:48 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 11:38:48 handler.go:162: [PROXY] Response body length: 12 bytes
+2026/05/15 11:38:48 handler.go:164: [PROXY] Response body: {"count":11}
+2026/05/15 11:38:48 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] GET /proxy/quotes/count | Status: 200 | Duration: 29.45014ms | Bytes: 12 | IP: 124.66.169.231:59287
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] OPTIONS /proxy/products/count from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] OPTIONS /proxy/products/count | Status: 200 | Duration: 136.469µs | Bytes: 0 | IP: 124.66.169.231:59287
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:48 cors.go:44: [CORS] Handling preflight request for: /proxy/products/count
+2026/05/15 11:38:48 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:48 auth.go:24: [AUTH] Validating request: GET /proxy/products/count
+2026/05/15 11:38:48 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:38:48 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 11:38:48 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+[INFO] 2026/05/15 11:38:48 request_logger.go:49: [REQUEST] GET /proxy/products/count from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:48 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 11:38:48 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 11:38:48 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/products/count
+2026/05/15 11:38:48 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 11:38:48 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 11:38:48 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 11:38:48 handler.go:40: [PROXY] Incoming request: GET /proxy/products/count
+2026/05/15 11:38:48 handler.go:44: [PROXY] Extracted path: products/count
+2026/05/15 11:38:48 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 11:38:48 validator.go:28: [VALIDATOR] Validating request: GET products/count
+2026/05/15 11:38:48 validator.go:37: [VALIDATOR] Table key: products
+2026/05/15 11:38:48 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 11:38:48 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:products TableID:mk85gltwt79dab0 TableName:Products Operation:read Allowed:true ResolvedPath:mk85gltwt79dab0/count}
+2026/05/15 11:38:48 handler.go:60: [PROXY] Validated and resolved: products/count -> mk85gltwt79dab0/count
+2026/05/15 11:38:48 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/mk85gltwt79dab0/count
+2026/05/15 11:38:48 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 11:38:48 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 11:38:48 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 11:38:48 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 11:38:48 handler.go:162: [PROXY] Response body length: 13 bytes
+2026/05/15 11:38:48 handler.go:164: [PROXY] Response body: {"count":825}
+2026/05/15 11:38:48 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 11:38:48 request_logger.go:76: [RESPONSE] GET /proxy/products/count | Status: 200 | Duration: 16.852506ms | Bytes: 13 | IP: 124.66.169.231:59287
+[INFO] 2026/05/15 11:38:51 request_logger.go:49: [REQUEST] OPTIONS /proxy/contacts/records from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:51 request_logger.go:58: [REQUEST] Query: pageSize=15
+[INFO] 2026/05/15 11:38:51 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:38:51 request_logger.go:76: [RESPONSE] OPTIONS /proxy/contacts/records | Status: 200 | Duration: 146.871µs | Bytes: 0 | IP: 124.66.169.231:59287
+2026/05/15 11:38:51 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:51 cors.go:44: [CORS] Handling preflight request for: /proxy/contacts/records
+[INFO] 2026/05/15 11:38:51 request_logger.go:49: [REQUEST] GET /proxy/contacts/records from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:38:51 request_logger.go:58: [REQUEST] Query: pageSize=15
+[INFO] 2026/05/15 11:38:51 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 11:38:51 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:38:51 auth.go:24: [AUTH] Validating request: GET /proxy/contacts/records
+2026/05/15 11:38:51 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:38:51 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 11:38:51 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 11:38:51 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 11:38:51 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/contacts/records
+2026/05/15 11:38:51 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 11:38:51 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 11:38:51 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 11:38:51 handler.go:40: [PROXY] Incoming request: GET /proxy/contacts/records
+2026/05/15 11:38:51 handler.go:44: [PROXY] Extracted path: contacts/records
+2026/05/15 11:38:51 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 11:38:51 validator.go:28: [VALIDATOR] Validating request: GET contacts/records
+2026/05/15 11:38:51 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 11:38:51 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 11:38:51 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m3fdjuio3ey7f27 TableName:Contacts Operation:read Allowed:true ResolvedPath:m3fdjuio3ey7f27/records}
+2026/05/15 11:38:51 handler.go:60: [PROXY] Validated and resolved: contacts/records -> m3fdjuio3ey7f27/records
+2026/05/15 11:38:51 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/m3fdjuio3ey7f27/records?pageSize=15
+2026/05/15 11:38:51 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 11:38:51 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 11:38:51 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 11:38:51 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 11:38:51 handler.go:162: [PROXY] Response body length: 26210 bytes
+2026/05/15 11:38:51 handler.go:235: [PAGINATION] Detected paginated response, initial records: 15
+2026/05/15 11:38:51 handler.go:245: [PAGINATION] Fetching page 2 from: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/m3fdjuio3ey7f27/records?pageSize=15&page=2
+[INFO] 2026/05/15 11:38:52 request_logger.go:76: [RESPONSE] GET /proxy/contacts/records | Status: 200 | Duration: 174.41981ms | Bytes: 32819 | IP: 124.66.169.231:59287
+2026/05/15 11:38:52 handler.go:291: [PAGINATION] Page 2 fetched: 4 records
+2026/05/15 11:38:52 handler.go:297: [PAGINATION] No more pages after page 2
+2026/05/15 11:38:52 handler.go:304: [PAGINATION] Complete: fetched 2 pages with 19 total records
+2026/05/15 11:38:52 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 11:39:03 request_logger.go:49: [REQUEST] GET /health from [::1]:35060 | User-Agent: Wget
+[INFO] 2026/05/15 11:39:03 request_logger.go:65: [REQUEST] Authorization: No token
+2026/05/15 11:39:03 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:39:03 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 456.063µs | Bytes: 16 | IP: [::1]:35060
+2026/05/15 11:39:04 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:39:04 cors.go:44: [CORS] Handling preflight request for: /proxy/accounts_duplicate/records
+[INFO] 2026/05/15 11:39:04 request_logger.go:49: [REQUEST] OPTIONS /proxy/accounts_duplicate/records from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:39:04 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25tes%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 11:39:04 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:39:04 request_logger.go:76: [RESPONSE] OPTIONS /proxy/accounts_duplicate/records | Status: 200 | Duration: 113.99µs | Bytes: 0 | IP: 124.66.169.231:59287
+[INFO] 2026/05/15 11:39:04 request_logger.go:49: [REQUEST] GET /proxy/accounts_duplicate/records from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:39:04 request_logger.go:58: [REQUEST] Query: where=(Company%20Name%2Clike%2C%25tes%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+[INFO] 2026/05/15 11:39:04 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 11:39:04 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:39:04 auth.go:24: [AUTH] Validating request: GET /proxy/accounts_duplicate/records
+2026/05/15 11:39:04 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:39:04 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 11:39:04 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 11:39:04 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 11:39:04 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/accounts_duplicate/records
+2026/05/15 11:39:04 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 11:39:04 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 11:39:04 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 11:39:04 handler.go:40: [PROXY] Incoming request: GET /proxy/accounts_duplicate/records
+2026/05/15 11:39:04 handler.go:44: [PROXY] Extracted path: accounts_duplicate/records
+2026/05/15 11:39:04 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 11:39:04 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records
+2026/05/15 11:39:04 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/05/15 11:39:04 validator.go:47: [VALIDATOR] Operation: read
+2026/05/15 11:39:04 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records}
+2026/05/15 11:39:04 handler.go:60: [PROXY] Validated and resolved: accounts_duplicate/records -> m5oxh8myj8t9gpl/records
+2026/05/15 11:39:04 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?where=(Company%20Name%2Clike%2C%25tes%25)&limit=10&fields=Id,Company%20Name,Phone%20Number
+2026/05/15 11:39:04 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 11:39:04 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 11:39:04 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 11:39:04 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 11:39:04 handler.go:162: [PROXY] Response body length: 241 bytes
+2026/05/15 11:39:04 handler.go:164: [PROXY] Response body: {"records":[{"id":1,"id_fields":{"Id":1},"fields":{"Phone Number":"1234567891","Company Name":"Test Company Name"}},{"id":2,"id_fields":{"Id":2},"fields":{"Phone Number":"0987654321","Company Name":"Test 2 Company Name"}}],"nestedNext":null}
+2026/05/15 11:39:04 handler.go:230: [PAGINATION] No 'next' key or empty, single page response
+2026/05/15 11:39:04 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 11:39:04 request_logger.go:76: [RESPONSE] GET /proxy/accounts_duplicate/records | Status: 200 | Duration: 246.892155ms | Bytes: 241 | IP: 124.66.169.231:59287
+[INFO] 2026/05/15 11:39:11 request_logger.go:49: [REQUEST] OPTIONS /proxy/contacts/records from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:39:11 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:39:11 request_logger.go:76: [RESPONSE] OPTIONS /proxy/contacts/records | Status: 200 | Duration: 95.901µs | Bytes: 0 | IP: 124.66.169.231:59287
+2026/05/15 11:39:11 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:39:11 cors.go:44: [CORS] Handling preflight request for: /proxy/contacts/records
+[INFO] 2026/05/15 11:39:11 request_logger.go:49: [REQUEST] POST /proxy/contacts/records from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:39:11 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 11:39:11 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:39:11 auth.go:24: [AUTH] Validating request: POST /proxy/contacts/records
+2026/05/15 11:39:11 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:39:11 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 11:39:11 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 11:39:11 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 11:39:11 authorize.go:11: [AUTHORIZE] Processing authorization for: POST /proxy/contacts/records
+2026/05/15 11:39:11 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 11:39:11 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 11:39:11 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 11:39:11 handler.go:40: [PROXY] Incoming request: POST /proxy/contacts/records
+2026/05/15 11:39:11 handler.go:44: [PROXY] Extracted path: contacts/records
+2026/05/15 11:39:11 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 11:39:11 validator.go:28: [VALIDATOR] Validating request: POST contacts/records
+2026/05/15 11:39:11 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 11:39:11 validator.go:47: [VALIDATOR] Operation: create
+2026/05/15 11:39:11 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m3fdjuio3ey7f27 TableName:Contacts Operation:create Allowed:true ResolvedPath:m3fdjuio3ey7f27/records}
+2026/05/15 11:39:11 handler.go:60: [PROXY] Validated and resolved: contacts/records -> m3fdjuio3ey7f27/records
+2026/05/15 11:39:11 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/m3fdjuio3ey7f27/records
+2026/05/15 11:39:11 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 11:39:11 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 11:39:11 handler.go:139: [PROXY] Executing request to NocoDB...
+[INFO] 2026/05/15 11:39:11 request_logger.go:76: [RESPONSE] POST /proxy/contacts/records | Status: 200 | Duration: 112.491308ms | Bytes: 1390 | IP: 124.66.169.231:59287
+2026/05/15 11:39:11 handler.go:148: [PROXY] NocoDB responded with status: 200 200 OK
+2026/05/15 11:39:11 handler.go:162: [PROXY] Response body length: 1390 bytes
+2026/05/15 11:39:11 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 11:39:11 request_logger.go:49: [REQUEST] OPTIONS /proxy/contacts/links/accounts_duplicate/20 from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:39:11 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:39:11 request_logger.go:76: [RESPONSE] OPTIONS /proxy/contacts/links/accounts_duplicate/20 | Status: 200 | Duration: 81.16µs | Bytes: 0 | IP: 124.66.169.231:59287
+2026/05/15 11:39:11 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:39:11 cors.go:44: [CORS] Handling preflight request for: /proxy/contacts/links/accounts_duplicate/20
+[INFO] 2026/05/15 11:39:11 request_logger.go:49: [REQUEST] POST /proxy/contacts/links/accounts_duplicate/20 from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:39:11 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 11:39:11 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:39:11 auth.go:24: [AUTH] Validating request: POST /proxy/contacts/links/accounts_duplicate/20
+2026/05/15 11:39:11 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:39:11 auth.go:43: [AUTH] Validating JWT token...
+[ERROR] 2026/05/15 11:39:11 request_logger.go:85: [RESPONSE] POST /proxy/contacts/links/accounts_duplicate/20 | Status: 403 (Client Error) | Duration: 274.33µs | IP: 124.66.169.231:59287
+2026/05/15 11:39:11 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 11:39:11 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 11:39:11 authorize.go:11: [AUTHORIZE] Processing authorization for: POST /proxy/contacts/links/accounts_duplicate/20
+2026/05/15 11:39:11 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 11:39:11 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 11:39:11 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 11:39:11 handler.go:40: [PROXY] Incoming request: POST /proxy/contacts/links/accounts_duplicate/20
+2026/05/15 11:39:11 handler.go:44: [PROXY] Extracted path: contacts/links/accounts_duplicate/20
+2026/05/15 11:39:11 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 11:39:11 validator.go:28: [VALIDATOR] Validating request: POST contacts/links/accounts_duplicate/20
+2026/05/15 11:39:11 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 11:39:11 validator.go:47: [VALIDATOR] Operation: create
+2026/05/15 11:39:11 validator.go:123: [LINK RESOLVER] Detected link request for table 'Contacts', alias 'accounts_duplicate'
+2026/05/15 11:39:11 metacache.go:286: [META DEBUG] Link field 'accounts_duplicate' not found in table m3fdjuio3ey7f27
+2026/05/15 11:39:11 metacache.go:286: [META DEBUG] Link field 'accounts duplicate' not found in table m3fdjuio3ey7f27
+2026/05/15 11:39:11 handler.go:54: [PROXY ERROR] Validation failed: unknown link field 'accounts_duplicate' for table 'Contacts'
+2026/05/15 11:39:13 cors.go:33: [CORS] Unknown origin 'http://148.135.136.1:4321' - allowing all
+2026/05/15 11:39:13 auth.go:24: [AUTH] Validating request: GET /proxy/contacts/records
+2026/05/15 11:39:13 auth.go:32: [AUTH] Authorization header present
+2026/05/15 11:39:13 auth.go:43: [AUTH] Validating JWT token...
+2026/05/15 11:39:13 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/05/15 11:39:13 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/05/15 11:39:13 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/contacts/records
+2026/05/15 11:39:13 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/05/15 11:39:13 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/05/15 11:39:13 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/05/15 11:39:13 handler.go:40: [PROXY] Incoming request: GET /proxy/contacts/records
+2026/05/15 11:39:13 handler.go:44: [PROXY] Extracted path: contacts/records
+2026/05/15 11:39:13 handler.go:50: [PROXY] Using config-driven validation
+2026/05/15 11:39:13 validator.go:28: [VALIDATOR] Validating request: GET contacts/records
+2026/05/15 11:39:13 validator.go:37: [VALIDATOR] Table key: contacts
+2026/05/15 11:39:13 validator.go:47: [VALIDATOR] Operation: read
+[INFO] 2026/05/15 11:39:13 request_logger.go:49: [REQUEST] GET /proxy/contacts/records from 124.66.169.231:59287 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36
+[INFO] 2026/05/15 11:39:13 request_logger.go:58: [REQUEST] Query: pageSize=15
+[INFO] 2026/05/15 11:39:13 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/05/15 11:39:13 validator.go:69: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m3fdjuio3ey7f27 TableName:Contacts Operation:read Allowed:true ResolvedPath:m3fdjuio3ey7f27/records}
+2026/05/15 11:39:13 handler.go:60: [PROXY] Validated and resolved: contacts/records -> m3fdjuio3ey7f27/records
+2026/05/15 11:39:13 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/m3fdjuio3ey7f27/records?pageSize=15
+2026/05/15 11:39:13 handler.go:123: [PROXY] Created proxy request successfully
+2026/05/15 11:39:13 handler.go:136: [PROXY] Added xc-token header
+2026/05/15 11:39:13 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/05/15 11:39:13 handler.go:148: [PROXY] NocoDB responded with status: 304 304 Not Modified
+2026/05/15 11:39:13 handler.go:162: [PROXY] Response body length: 0 bytes
+2026/05/15 11:39:13 handler.go:164: [PROXY] Response body:
+2026/05/15 11:39:13 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/05/15 11:39:33 request_logger.go:49: [REQUEST] GET /health from [::1]:33274 | User-Agent: Wget
+2026/05/15 11:39:33 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/05/15 11:39:33 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/05/15 11:39:33 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 498.121µs | Bytes: 16 | IP: [::1]:33274
+root@srv1631869:~#

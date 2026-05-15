@@ -42,6 +42,17 @@ func (v *Validator) ValidateRequest(method, path string) (*ValidationResult, err
 		return nil, fmt.Errorf("table '%s' not found in configuration", tableKey)
 	}
 
+	// Always refresh table ID from live MetaCache — the ResolvedConfig is built once at
+	// startup and can go stale if NocoDB tables are renamed/recreated after the container starts.
+	if v.metaCache != nil {
+		if liveID, found := v.metaCache.ResolveTable(table.Name); found {
+			if liveID != table.TableID {
+				log.Printf("[VALIDATOR] Live MetaCache has updated ID for table '%s': %s -> %s", table.Name, table.TableID, liveID)
+			}
+			table.TableID = liveID
+		}
+	}
+
 	// Determine the operation from HTTP method and path
 	operation := v.determineOperation(method, parts)
 	log.Printf("[VALIDATOR] Operation: %s", operation)
