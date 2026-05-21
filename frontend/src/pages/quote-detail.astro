@@ -399,10 +399,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 if (fullAccountResponse.ok) {
                   const fullAccountResult = await safeJsonParse(fullAccountResponse);
                   accountData = fullAccountResult.fields || {};
+                  // Update accountName from full data — nested link responses only return the
+                  // primary/title field, which may differ between NocoDB instances
+                  accountName = accountData['Account Name'] || accountData['Company Name'] || accountName;
                   console.log('[ACCOUNT FETCH] ✓ Full account data fetched:', accountData);
                 } else {
                   console.warn('[ACCOUNT FETCH] Could not fetch full account details, using basic data');
                   accountData = accountFields;
+                  accountName = accountFields['Account Name'] || accountFields['Company Name'] || accountName;
                 }
               }
             } else {
