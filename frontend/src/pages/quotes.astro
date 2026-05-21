@@ -116,27 +116,98 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const quotesTable = document.getElementById('quotesTable') as HTMLDivElement;
     const quotesBody = document.getElementById('quotesBody') as HTMLTableSectionElement;
     const emptyState = document.getElementById('emptyState') as HTMLDivElement;
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+
+    let latestQuotes: any[] = [];
+
+    function renderQuotes(records: any[]) {
+      if (records.length === 0) {
+        quotesTable.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      quotesBody.innerHTML = records.map((record: any, index: number) => {
+        const fields = record.fields || {};
+        const quoteName = fields['Subject'] || '<span class="text-slate-400 italic">Untitled Quote</span>';
+        const date = fields['Quote Date'] || fields['Date'] || '<span class="text-slate-400 italic">N/A</span>';
+        const total = fields['Total Amount'] || fields['Total'] || 0;
+        const status = fields['Quote Status'] || fields['Status'] || 'Draft';
+
+        let statusClasses = 'bg-slate-100 text-slate-800';
+        if (status === 'Sent') statusClasses = 'bg-blue-100 text-blue-800';
+        if (status === 'Accepted') statusClasses = 'bg-emerald-100 text-emerald-800';
+        if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
+        if (status === 'Approved') statusClasses = 'bg-green-100 text-green-800';
+
+        return `
+          <tr class="cursor-pointer transition-all hover:bg-blue-50/50 hover:shadow-sm" onclick="window.location.href='/quote-detail?id=${record.id}'">
+            <td class="px-6 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
+            <td class="px-6 py-4 text-sm text-slate-900">${quoteName}</td>
+            <td class="px-6 py-4 text-sm text-slate-600">${date}</td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
+                ${status}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-sm font-semibold text-slate-900">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+            <td class="px-6 py-4" onclick="event.stopPropagation()">
+              <div class="flex gap-2">
+                <button class="preview-pdf-btn p-2 rounded-lg hover:bg-blue-100 transition-colors" data-quote-id="${record.id}" title="Preview PDF">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      quotesTable.classList.remove('hidden');
+
+      document.querySelectorAll('.preview-pdf-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const quoteId = (btn as HTMLElement).getAttribute('data-quote-id');
+          if (quoteId) openQuotesPdfModal(quoteId, btn as HTMLButtonElement);
+        });
+      });
+    }
+
+    function applySearch() {
+      const term = searchInput.value.toLowerCase().trim();
+      if (!term) {
+        renderQuotes(latestQuotes);
+        return;
+      }
+      const filtered = latestQuotes.filter((record: any) => {
+        const fields = record.fields || {};
+        const subject = (fields['Subject'] || '').toLowerCase();
+        const status = (fields['Quote Status'] || '').toLowerCase();
+        const date = (fields['Quote Date'] || '').toLowerCase();
+        return subject.includes(term) || status.includes(term) || date.includes(term);
+      });
+      renderQuotes(filtered);
+    }
+
+    searchInput.addEventListener('input', applySearch);
 
     async function loadQuotes() {
       try {
         const userEmail = getUserEmail();
         const userRole = getUserRole();
-        
-        // Admin users see all quotes, regular users see only their own
+
         let url = `${API_BASE_URL}/proxy/quotes/records`;
-        
-        if (userRole === 'admin') {
-          console.log('[QUOTES] Admin user detected - loading all quotes');
-        } else {
-          // Build query to filter by Quote Created By for non-admin users
-          const rawWhere = `(Quote Created By,eq,${userEmail})`;
-          const encodedWhere = encodeURIComponent(rawWhere);
+
+        if (userRole !== 'admin') {
+          const encodedWhere = encodeURIComponent(`(Quote Created By,eq,${userEmail})`);
           url = `${url}?where=${encodedWhere}`;
-          console.log('[QUOTES] Loading quotes for user:', userEmail);
         }
-        
-        console.log('[QUOTES] Query URL:', url);
-        
+
         const response = await fetch(url, {
           method: 'GET',
           headers: {
@@ -150,97 +221,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           return;
         }
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch quotes');
-        }
+        if (!response.ok) throw new Error('Failed to fetch quotes');
 
         const data = await safeJsonParse(response);
-        console.log('[QUOTES] Response received, records count:', data.records?.length || 0);
-        
-        // Log only first 3 records for debugging
-        if (data.records && data.records.length > 0) {
-          console.log('[QUOTES] Sample records (first 3):', data.records.slice(0, 3));
-        }
-        
         const allQuotes = data.records || [];
 
-        // Filter to show only latest versions (exclude quotes that have child versions)
-        // Build Set of parent quote IDs by checking which quotes are referenced as parents
         const parentQuoteIds = new Set<number>();
         allQuotes.forEach((quote: any) => {
           const parentField = quote.fields['Parent Quote'];
-          
-          // Parent Quote is an object: { id: 63, fields: { Subject: "..." } }
           if (parentField && typeof parentField === 'object' && parentField.id) {
             parentQuoteIds.add(parentField.id);
           }
         });
 
-        // Keep only quotes that are NOT parents (i.e., latest versions)
-        const quotes = allQuotes.filter((quote: any) => {
-          return !parentQuoteIds.has(quote.id);
-        });
-
-        console.log(`[QUOTES] Filtered ${allQuotes.length} total quotes to ${quotes.length} latest versions`);
-        console.log(`[QUOTES] Hidden ${parentQuoteIds.size} parent quotes with newer versions`);
+        latestQuotes = allQuotes.filter((quote: any) => !parentQuoteIds.has(quote.id));
 
         loadingDiv.classList.add('hidden');
-
-        if (quotes.length === 0) {
-          emptyState.classList.remove('hidden');
-          return;
-        }
-
-        quotesBody.innerHTML = quotes.map((record: any, index: number) => {
-          const fields = record.fields || {};
-          const quoteName = fields['Subject'] || '<span class="text-slate-400 italic">Untitled Quote</span>';
-          const date = fields['Quote Date'] || fields['Date'] || '<span class="text-slate-400 italic">N/A</span>';
-          const total = fields['Total Amount'] || fields['Total'] || 0;
-          const status = fields['Quote Status'] || fields['Status'] || 'Draft';
-
-          let statusClasses = 'bg-slate-100 text-slate-800';
-          if (status === 'Sent') statusClasses = 'bg-blue-100 text-blue-800';
-          if (status === 'Accepted') statusClasses = 'bg-emerald-100 text-emerald-800';
-          if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
-          if (status === 'Approved') statusClasses = 'bg-green-100 text-green-800';
-
-          return `
-            <tr class="cursor-pointer transition-all hover:bg-blue-50/50 hover:shadow-sm" onclick="window.location.href='/quote-detail?id=${record.id}'">
-              <td class="px-6 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
-              <td class="px-6 py-4 text-sm text-slate-900">${quoteName}</td>
-              <td class="px-6 py-4 text-sm text-slate-600">${date}</td>
-              <td class="px-6 py-4">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
-                  ${status}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-sm font-semibold text-slate-900">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-              <td class="px-6 py-4" onclick="event.stopPropagation()">
-                <div class="flex gap-2">
-                  <button class="preview-pdf-btn p-2 rounded-lg hover:bg-blue-100 transition-colors" data-quote-id="${record.id}" title="Preview PDF">
-                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          `;
-        }).join('');
-
-        quotesTable.classList.remove('hidden');
-        
-        // Attach PDF preview handlers
-        document.querySelectorAll('.preview-pdf-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const quoteId = (btn as HTMLElement).getAttribute('data-quote-id');
-            if (quoteId) {
-              await previewQuotePDF(quoteId, btn as HTMLButtonElement);
-            }
-          });
-        });
+        renderQuotes(latestQuotes);
       } catch (error) {
         loadingDiv.classList.add('hidden');
         const errorText = errorDiv.querySelector('#errorText');
@@ -254,7 +251,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     /**
      * Preview quote PDF - same logic as quote-detail page
      */
-    async function previewQuotePDF(quoteId: string, button?: HTMLButtonElement) {
+    async function previewQuotePDF(quoteId: string, button?: HTMLButtonElement, deliveryTerms: string = '', paymentTerms: string = '') {
       // Store original button content
       const originalContent = button?.innerHTML;
       
@@ -381,7 +378,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             name: accountName
           },
           products: products,
-          logo: 'greenocare'
+          logo: 'greenocare',
+          deliveryTerms,
+          paymentTerms
         };
 
         console.log('[PDF PREVIEW] Request body:', JSON.stringify(requestBody, null, 2));
@@ -535,7 +534,65 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
+    let _pendingQuoteId = '';
+    let _pendingButton: HTMLButtonElement | null = null;
+
+    function openQuotesPdfModal(quoteId: string, button: HTMLButtonElement) {
+      _pendingQuoteId = quoteId;
+      _pendingButton = button;
+      (document.getElementById('qDeliveryTermsInput') as HTMLInputElement).value = '';
+      (document.getElementById('qPaymentTermsInput') as HTMLInputElement).value = '';
+      document.getElementById('quotesPdfModal')!.classList.remove('hidden');
+    }
+
+    document.getElementById('qPdfTermsCancel')?.addEventListener('click', () => {
+      document.getElementById('quotesPdfModal')!.classList.add('hidden');
+    });
+
+    document.getElementById('qPdfTermsConfirm')?.addEventListener('click', async () => {
+      const deliveryTerms = (document.getElementById('qDeliveryTermsInput') as HTMLInputElement).value.trim();
+      const paymentTerms = (document.getElementById('qPaymentTermsInput') as HTMLInputElement).value.trim();
+      document.getElementById('quotesPdfModal')!.classList.add('hidden');
+      await previewQuotePDF(_pendingQuoteId, _pendingButton ?? undefined, deliveryTerms, paymentTerms);
+    });
+
     // Initial load
     loadQuotes();
   </script>
+
+  <!-- PDF Terms Modal -->
+  <div id="quotesPdfModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+      <h3 class="text-base font-semibold text-slate-800 mb-1">PDF Terms</h3>
+      <p class="text-sm text-slate-500 mb-5">Leave blank to keep the fields empty on the PDF.</p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Delivery Terms</label>
+          <input
+            type="text"
+            id="qDeliveryTermsInput"
+            placeholder="e.g. Within 7 working days"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Payment Terms</label>
+          <input
+            type="text"
+            id="qPaymentTermsInput"
+            placeholder="e.g. 50% advance, 50% on delivery"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button id="qPdfTermsCancel" class="px-4 py-2 text-sm text-slate600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
+          Cancel
+        </button>
+        <button id="qPdfTermsConfirm" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+          Generate PDF
+        </button>
+      </div>
+    </div>
+  </div>
 </AdminLayout>

@@ -223,6 +223,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <label class="block text-xs font-medium text-slate-700 mb-1">Quantity *</label>
               <input type="number" class="product-quantity w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Qty" min="1" value="1" required />
             </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-700 mb-1">Discount %</label>
+              <input type="number" class="product-discount w-24 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="0" min="0" max="100" step="0.01" value="0" />
+            </div>
             <div class="pt-5">
               <button type="button" class="remove-product-btn p-2.5 text-red-600 hover:bg-red-50 rounded-md transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -681,7 +685,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
 
       const productItems = Array.from(productsContainer.querySelectorAll('.product-item'));
-      const productData: Array<{ productId: number; quantity: number; unitPrice: number; productName: string }> = [];
+      const productData: Array<{ productId: number; quantity: number; unitPrice: number; productName: string; discount: number }> = [];
       let totalAmount = 0;
 
       console.log('\n=== QUOTE CREATION - PRODUCT DATA COLLECTION ===');
@@ -695,38 +699,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const productNameInput = item.querySelector('.product-name') as HTMLInputElement;
         const quantityInput = item.querySelector('.product-quantity') as HTMLInputElement;
         const unitPriceInput = item.querySelector('.product-custom-price') as HTMLInputElement;
-        
-        console.log(`[PRODUCT ${i + 1}] Product ID input value:`, productIdInput?.value);
-        console.log(`[PRODUCT ${i + 1}] Product Name input value:`, productNameInput?.value);
-        console.log(`[PRODUCT ${i + 1}] Quantity input value:`, quantityInput?.value);
-        console.log(`[PRODUCT ${i + 1}] Unit Price input value:`, unitPriceInput?.value);
-        
+        const discountInput = item.querySelector('.product-discount') as HTMLInputElement;
+
         const productId = parseInt(productIdInput?.value || '0');
         const productName = productNameInput?.value || '';
         const quantity = parseInt(quantityInput?.value || '0');
         const unitPrice = parseFloat(unitPriceInput?.value || '0');
-
-        console.log(`[PRODUCT ${i + 1}] Parsed values:`, {
-          productId,
-          productName,
-          quantity,
-          unitPrice
-        });
+        const discount = parseFloat(discountInput?.value || '0');
 
         if (!productId || !quantity || !unitPrice) {
-          console.error(`[PRODUCT ${i + 1}] ❌ Validation failed:`, {
-            hasProductId: !!productId,
-            hasQuantity: !!quantity,
-            hasUnitPrice: !!unitPrice
-          });
           showAlert('Please fill in all product details', 'error');
           return;
         }
 
-        const lineTotal = quantity * unitPrice;
-        console.log(`[PRODUCT ${i + 1}] Line total: ${quantity} × ${unitPrice} = ${lineTotal}`);
-        
-        productData.push({ productId, quantity, unitPrice, productName });
+        const discountAmount = (unitPrice * quantity * discount) / 100;
+        const lineTotal = quantity * unitPrice - discountAmount;
+        console.log(`[PRODUCT ${i + 1}] Line total: ${quantity} × ${unitPrice} - ${discount}% = ${lineTotal}`);
+
+        productData.push({ productId, quantity, unitPrice, productName, discount });
         totalAmount += lineTotal;
         
         console.log(`[PRODUCT ${i + 1}] Running total: ${totalAmount}`);
@@ -933,7 +923,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               'Quotes': quoteId,
               'Products': product.productId,
               'Quantity': product.quantity,
-              'Custom Unit Price': product.unitPrice
+              'Custom Unit Price': product.unitPrice,
+              'Discount': product.discount
             }
           };
           

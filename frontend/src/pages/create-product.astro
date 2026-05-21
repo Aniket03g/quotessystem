@@ -1,0 +1,311 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Create Product - Grove Systems" currentPage="products">
+  <!-- Back Button -->
+  <div class="mb-6">
+    <a href="/products" class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+      Back to Products
+    </a>
+  </div>
+
+  <!-- Page Header -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-slate-800">New Product</h1>
+    <p class="text-sm text-slate-500 mt-1">Fill in the details below to add a product to the catalogue.</p>
+  </div>
+
+  <!-- Error Banner -->
+  <div id="errorBanner" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+    <div class="flex items-center gap-3">
+      <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <p class="text-sm text-red-800" id="errorText"></p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <form id="createProductForm" class="space-y-6">
+    <!-- Basic Info Card -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-base font-semibold text-slate-800 mb-5">Basic Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <!-- Product Name -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">
+            Product Name <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="productName"
+            required
+            placeholder="e.g. Industrial Air Purifier XR500"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Brand -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Brand</label>
+          <input
+            type="text"
+            id="brand"
+            placeholder="e.g. Honeywell"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Product Status -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Product Status</label>
+          <select
+            id="productStatus"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          >
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        <!-- Model No -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Model No</label>
+          <input
+            type="text"
+            id="modelNo"
+            placeholder="e.g. XR-500"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Product Category -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Product Category</label>
+          <input
+            type="text"
+            id="productCategory"
+            placeholder="e.g. Air Purifiers"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- HSN/SAC Code -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">HSN/SAC Code</label>
+          <input
+            type="text"
+            id="hsnCode"
+            placeholder="e.g. 8421"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- UOM -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Unit of Measurement (UOM)</label>
+          <input
+            type="text"
+            id="uom"
+            placeholder="e.g. Nos, Set, Kg"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Description -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+          <textarea
+            id="description"
+            rows="3"
+            placeholder="Brief description of the product..."
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all resize-none"
+          ></textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Pricing Card -->
+    <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <h2 class="text-base font-semibold text-slate-800 mb-5">Pricing & Inventory</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+        <!-- Customer Unit Price -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Customer Unit Price (₹)</label>
+          <input
+            type="number"
+            id="customerPrice"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Dealer Unit Price -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Dealer Unit Price (₹)</label>
+          <input
+            type="number"
+            id="dealerPrice"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Tax -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Tax (%)</label>
+          <input
+            type="number"
+            id="tax"
+            min="0"
+            max="100"
+            step="0.01"
+            placeholder="e.g. 18"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+        <!-- Quantity in Stock -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1.5">Quantity in Stock</label>
+          <input
+            type="number"
+            id="quantityInStock"
+            min="0"
+            step="1"
+            placeholder="0"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          />
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end gap-3">
+      <a href="/products" class="px-5 py-2.5 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">
+        Cancel
+      </a>
+      <button
+        type="submit"
+        id="submitBtn"
+        class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        Save Product
+      </button>
+    </div>
+  </form>
+
+  <script>
+    import { getToken, logout } from '../lib/api';
+
+    const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:8082`;
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login';
+    }
+
+    const form = document.getElementById('createProductForm') as HTMLFormElement;
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const errorBanner = document.getElementById('errorBanner') as HTMLDivElement;
+    const errorText = document.getElementById('errorText') as HTMLParagraphElement;
+
+    function showError(msg: string) {
+      errorText.textContent = msg;
+      errorBanner.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideError() {
+      errorBanner.classList.add('hidden');
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const productName = (document.getElementById('productName') as HTMLInputElement).value.trim();
+      if (!productName) {
+        showError('Product Name is required.');
+        return;
+      }
+
+      const brand = (document.getElementById('brand') as HTMLInputElement).value.trim();
+      const productStatus = (document.getElementById('productStatus') as HTMLSelectElement).value;
+      const modelNo = (document.getElementById('modelNo') as HTMLInputElement).value.trim();
+      const productCategory = (document.getElementById('productCategory') as HTMLInputElement).value.trim();
+      const hsnCode = (document.getElementById('hsnCode') as HTMLInputElement).value.trim();
+      const uom = (document.getElementById('uom') as HTMLInputElement).value.trim();
+      const description = (document.getElementById('description') as HTMLTextAreaElement).value.trim();
+
+      const customerPriceRaw = (document.getElementById('customerPrice') as HTMLInputElement).value;
+      const dealerPriceRaw = (document.getElementById('dealerPrice') as HTMLInputElement).value;
+      const taxRaw = (document.getElementById('tax') as HTMLInputElement).value;
+      const qtyRaw = (document.getElementById('quantityInStock') as HTMLInputElement).value;
+
+      const fields: Record<string, any> = {
+        'Product Name': productName,
+        'Product Status': productStatus,
+      };
+
+      if (brand) fields['Brand'] = brand;
+      if (modelNo) fields['Model No'] = modelNo;
+      if (productCategory) fields['Product Category'] = productCategory;
+      if (hsnCode) fields['HSN/SAC Code'] = hsnCode;
+      if (uom) fields['Unit of Measurement UOM'] = uom;
+      if (description) fields['Description'] = description;
+      if (customerPriceRaw !== '') fields['Customer Unit Price'] = parseFloat(customerPriceRaw);
+      if (dealerPriceRaw !== '') fields['Dealer Unit Price'] = parseFloat(dealerPriceRaw);
+      if (taxRaw !== '') fields['Tax'] = parseFloat(taxRaw);
+      if (qtyRaw !== '') fields['Quantity in Stock'] = parseInt(qtyRaw);
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/proxy/products/records`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ fields }),
+        });
+
+        if (response.status === 401) {
+          logout();
+          return;
+        }
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || `Server error: ${response.status}`);
+        }
+
+        window.location.href = '/products';
+      } catch (error) {
+        showError(error instanceof Error ? error.message : 'Failed to save product. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Save Product`;
+      }
+    });
+  </script>
+</AdminLayout>

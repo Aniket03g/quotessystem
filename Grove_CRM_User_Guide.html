@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grove Systems CRM — User Guide</title>
+  <style>
+    :root {
+      --brand: #2563eb;
+      --brand-dark: #1d4ed8;
+      --green: #16a34a;
+      --slate: #1e293b;
+      --muted: #64748b;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --admin-accent: #7c3aed;
+      --warn: #b45309;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--slate);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    /* ── NAV / SIDEBAR ── */
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 260px;
+      flex-shrink: 0;
+      background: var(--slate);
+      color: #cbd5e1;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 24px 0;
+    }
+    .sidebar-logo {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid #334155;
+    }
+    .sidebar-logo h2 { color: #fff; font-size: 15px; font-weight: 700; }
+    .sidebar-logo p { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+    .sidebar-section { padding: 16px 24px 4px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #64748b; }
+    .sidebar a {
+      display: block;
+      padding: 7px 24px;
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13.5px;
+      border-left: 3px solid transparent;
+      transition: all .15s;
+    }
+    .sidebar a:hover { color: #fff; border-left-color: var(--brand); background: #0f172a33; }
+    .sidebar a.admin { color: #a78bfa; }
+    .sidebar a.admin:hover { color: #c4b5fd; border-left-color: var(--admin-accent); }
+
+    /* ── MAIN ── */
+    .main { flex: 1; max-width: 900px; padding: 48px 48px 80px; }
+
+    /* ── COVER ── */
+    .cover {
+      background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 56px 48px;
+      margin-bottom: 56px;
+    }
+    .cover .badge {
+      display: inline-block;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      letter-spacing: .05em;
+      margin-bottom: 20px;
+    }
+    .cover h1 { font-size: 36px; font-weight: 800; margin-bottom: 12px; }
+    .cover p { font-size: 16px; opacity: .85; max-width: 540px; }
+    .cover .meta { margin-top: 32px; display: flex; gap: 24px; font-size: 13px; opacity: .7; }
+
+    /* ── TYPOGRAPHY ── */
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--slate);
+      margin: 48px 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    h2:first-of-type { margin-top: 0; }
+    h3 { font-size: 17px; font-weight: 700; color: var(--slate); margin: 32px 0 10px; }
+    h4 { font-size: 14px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 24px 0 8px; }
+    p { margin-bottom: 12px; color: #334155; }
+    ul, ol { margin: 8px 0 12px 22px; }
+    li { margin-bottom: 5px; color: #334155; }
+    strong { color: var(--slate); }
+    a { color: var(--brand); }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .mini-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+    .mini-card h5 { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+    .mini-card p { font-size: 13px; margin: 0; }
+
+    /* ── BADGES ── */
+    .badge { display: inline-block; border-radius: 5px; padding: 2px 9px; font-size: 12px; font-weight: 600; }
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-cyan   { background: #cffafe; color: #0e7490; }
+    .badge-teal   { background: #ccfbf1; color: #0f766e; }
+    .badge-purple { background: #ede9fe; color: #6d28d9; }
+    .badge-orange { background: #fef3c7; color: #92400e; }
+    .badge-green  { background: #dcfce7; color: #15803d; }
+    .badge-red    { background: #fee2e2; color: #b91c1c; }
+    .badge-gray   { background: #f1f5f9; color: #475569; }
+    .badge-admin  { background: #ede9fe; color: #5b21b6; font-size: 11px; }
+    .role-tag { display: inline-block; border-radius: 4px; padding: 1px 7px; font-size: 11px; font-weight: 700; vertical-align: middle; margin-left: 6px; }
+    .role-admin { background: #ede9fe; color: #5b21b6; }
+    .role-user  { background: #dbeafe; color: #1e40af; }
+
+    /* ── STEPS ── */
+    .steps { counter-reset: step; list-style: none; margin: 12px 0; padding: 0; }
+    .steps li {
+      counter-increment: step;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .steps li::before {
+      content: counter(step);
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--brand);
+      color: white;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    /* ── CALLOUTS ── */
+    .callout {
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .callout-info  { background: #eff6ff; border-left: 4px solid var(--brand); }
+    .callout-warn  { background: #fffbeb; border-left: 4px solid #f59e0b; }
+    .callout-admin { background: #f5f3ff; border-left: 4px solid var(--admin-accent); }
+    .callout-tip   { background: #f0fdf4; border-left: 4px solid var(--green); }
+    .callout p { margin: 0; }
+
+    /* ── TABLE ── */
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+    th { background: #f1f5f9; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f8fafc; }
+
+    /* ── DIVIDER ── */
+    hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+    /* ── FIELD LIST ── */
+    .field-list { display: flex; flex-direction: column; gap: 6px; margin: 10px 0; }
+    .field-row { display: flex; gap: 8px; align-items: baseline; font-size: 14px; }
+    .field-name { font-weight: 600; color: var(--slate); min-width: 180px; flex-shrink: 0; }
+    .field-desc { color: #475569; }
+    .req { color: #dc2626; font-size: 11px; font-weight: 700; margin-left: 4px; }
+
+    /* ── SECTION ANCHOR ── */
+    [id] { scroll-margin-top: 24px; }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { padding: 24px 20px 60px; }
+      .cover { padding: 32px 24px; }
+      .cover h1 { font-size: 26px; }
+    }
+    @media print {
+      .sidebar { display: none; }
+      .layout { display: block; }
+      .main { max-width: 100%; padding: 20px; }
+      .card, .mini-card { break-inside: avoid; }
+      h2 { break-after: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Grove Systems CRM</h2>
+      <p>User Guide</p>
+    </div>
+
+    <div class="sidebar-section">Getting Started</div>
+    <a href="#login">Logging In</a>
+    <a href="#first-login">First Login & Password</a>
+    <a href="#navigation">Navigation Overview</a>
+    <a href="#roles">Your Role</a>
+
+    <div class="sidebar-section">Leads</div>
+    <a href="#leads-list">Leads List</a>
+    <a href="#leads-create">Creating a Lead</a>
+    <a href="#leads-view">Viewing a Lead</a>
+    <a href="#leads-edit">Editing a Lead</a>
+    <a href="#leads-convert">Converting to Account</a>
+    <a href="#leads-delete">Deleting a Lead</a>
+
+    <div class="sidebar-section">Quotes</div>
+    <a href="#quotes-list">Quotes List</a>
+    <a href="#quotes-create">Creating a Quote</a>
+    <a href="#quotes-detail">Quote Detail</a>
+    <a href="#quotes-pdf">PDF Export</a>
+    <a href="#quotes-versions">Versioning</a>
+
+    <div class="sidebar-section">Accounts</div>
+    <a href="#accounts-list">Accounts List</a>
+    <a href="#accounts-create">Adding an Account</a>
+    <a href="#accounts-detail">Account Detail</a>
+
+    <div class="sidebar-section">Contacts</div>
+    <a href="#contacts">Contacts</a>
+
+    <div class="sidebar-section">Products</div>
+    <a href="#products">Products Catalogue</a>
+
+    <div class="sidebar-section">Cases</div>
+    <a href="#cases">Cases</a>
+
+    <div class="sidebar-section">Admin Only</div>
+    <a href="#admin-dashboard" class="admin">Dashboard</a>
+    <a href="#admin-users" class="admin">User Management</a>
+    <a href="#admin-leads" class="admin">All Leads Access</a>
+    <a href="#admin-passwords" class="admin">Reset Passwords</a>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- COVER -->
+    <div class="cover">
+      <div class="badge">Grove Systems CRM</div>
+      <h1>User Guide</h1>
+      <p>Everything you need to manage leads, quotes, accounts, contacts, and more — for both regular users and administrators.</p>
+      <div class="meta">
+        <span>Version 1.0</span>
+        <span>|</span>
+        <span>May 2026</span>
+        <span>|</span>
+        <span>Grove Systems</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ GETTING STARTED ═══════════════════════════════ -->
+    <h2 id="getting-started">Getting Started</h2>
+
+    <!-- LOGIN -->
+    <h3 id="login">Logging In</h3>
+    <p>Open the CRM in your browser. You will see the login page.</p>
+    <ol class="steps">
+      <li>Enter your <strong>Email</strong> and <strong>Password</strong> provided by your administrator.</li>
+      <li>Click <strong>Login</strong>.</li>
+      <li>You will be taken to the Quotes page (or the Admin Dashboard if you are an admin).</li>
+    </ol>
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p>If you see an error, double-check your email and password. Contact your admin if you cannot get in.</p>
+    </div>
+
+    <!-- FIRST LOGIN -->
+    <h3 id="first-login">First Login — Changing Your Password</h3>
+    <p>When your account is created by an admin, you will be given a temporary password. The system will ask you to change it immediately before you can use anything.</p>
+    <ol class="steps">
+      <li>Log in with the temporary password.</li>
+      <li>You will be redirected to the <strong>Change Password</strong> page automatically.</li>
+      <li>Enter your temporary password in <strong>Current Password</strong>.</li>
+      <li>Choose a new password (minimum 8 characters) and confirm it.</li>
+      <li>Click <strong>Change Password</strong>. You will be taken to the Quotes page.</li>
+    </ol>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <p>You cannot access any other part of the system until you change your temporary password.</p>
+    </div>
+
+    <!-- NAVIGATION -->
+    <h3 id="navigation">Navigation Overview</h3>
+    <p>Once logged in, the left sidebar gives you access to all sections:</p>
+    <table>
+      <tr><th>Menu Item</th><th>What it does</th><th>Who sees it</th></tr>
+      <tr><td><strong>Dashboard</strong></td><td>System stats — users, quotes, products overview</td><td><span class="badge badge-admin">Admin only</span></td></tr>
+      <tr><td><strong>Manage Leads</strong></td><td>All your leads — view, create, edit, convert</td><td>Everyone</td></tr>
+      <tr><td><strong>My Quotes / Quotes</strong></td><td>Quotes list, create, and PDF export</td><td>Everyone</td></tr>
+      <tr><td><strong>Accounts</strong></td><td>Company accounts linked to quotes and leads</td><td>Everyone</td></tr>
+      <tr><td><strong>Contacts</strong></td><td>Individual contacts linked to accounts</td><td>Everyone</td></tr>
+      <tr><td><strong>Products</strong></td><td>View the product catalogue (read-only)</td><td>Everyone</td></tr>
+      <tr><td><strong>Cases</strong></td><td>Cases with linked quotes and timelines</td><td>Everyone</td></tr>
+      <tr><td><strong>User Management</strong></td><td>Create users, reset passwords</td><td><span class="badge badge-admin">Admin only</span></td></tr>
+    </table>
+
+    <!-- ROLES -->
+    <h3 id="roles">Understanding Your Role</h3>
+    <div class="card-grid">
+      <div class="mini-card">
+        <h5>Regular User <span class="role-tag role-user">User</span></h5>
+        <p>Can create and manage your own leads and those assigned to you. Create quotes, accounts, and contacts. Cannot access admin settings.</p>
+      </div>
+      <div class="mini-card">
+        <h5>Administrator <span class="role-tag role-admin">Admin</span></h5>
+        <p>Full access to all leads across all users. Can create users, reset passwords, access dashboard, assign leads, and delete records.</p>
+      </div>
+    </div>
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <p>Not sure what role you have? Check the name shown in the top-right corner — admins see a <strong>Dashboard</strong> link and a <strong>User Management</strong> link in the sidebar.</p>
+    </div>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ LEADS ═══════════════════════════════ -->
+    <h2 id="leads">Leads Management</h2>
+    <p>A lead represents a potential customer who has shown interest. You can track them from initial contact all the way through to conversion into a full account.</p>
+
+    <!-- LEADS LIST -->
+    <h3 id="leads-list">Leads List</h3>
+    <p>Go to <strong>Manage Leads</strong> in the sidebar. You will see a table of all leads visible to you.</p>
+
+    <h4>What you see on the list</h4>
+    <table>
+      <tr><th>Column</th><th>Description</th></tr>
+      <tr><td><strong>Lead Info</strong></td><td>Lead name and company</td></tr>
+      <tr><td><strong>Contact</strong></td><td>Phone number and email</td></tr>
+      <tr><td><strong>Status</strong></td><td>Colour-coded badge showing current stage</td></tr>
+      <tr><td><strong>Type / Source</strong></td><td>Where the lead came from</td></tr>
+      <tr><td><strong>Assigned To</strong></td><td>The team member responsible for this lead</td></tr>
+      <tr><td><strong>Last Contacted</strong></td><td>How long ago you last spoke (e.g. "3 days ago")</td></tr>
+      <tr><td><strong>Follow-up</strong></td><td>When the next follow-up is due — shown in red if overdue</td></tr>
+      <tr><td><strong>Actions</strong></td><td>View, Edit, Convert, Delete buttons</td></tr>
+    </table>
+
+    <h4>Status badges explained</h4>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 20px;">
+      <span class="badge badge-blue">New</span>
+      <span class="badge badge-cyan">Contacted</span>
+      <span class="badge badge-teal">Qualified</span>
+      <span class="badge badge-purple">Proposal Sent</span>
+      <span class="badge badge-orange">Negotiation</span>
+      <span class="badge badge-green">Converted</span>
+      <span class="badge badge-red">Lost</span>
+    </div>
+
+    <h4>Stats cards</h4>
+    <p>At the top of the page, four cards give you a quick overview:</p>
+    <div class="card-grid">
+      <div class="mini-card"><h5>Total Leads</h5><p>All leads in your view</p></div>
+      <div class="mini-card"><h5>Active Leads</h5><p>New, Contacted, Qualified, Proposal Sent, Negotiation</p></div>
+      <div class="mini-card"><h5>Sales</h5><p>Converted leads count</p></div>
+      <div class="mini-card"><h5>Closed</h5><p>Converted + Lost combined</p></div>
+    </div>
+
+    <h4>Searching and filtering</h4>
+    <ul>
+      <li><strong>Search box</strong> — type any name, company, phone, or email</li>
+      <li><strong>Status dropdown</strong> — filter by a specific stage</li>
+      <li><strong>Lead Source dropdown</strong> — filter by Website, Referral, Cold Call, IndiaMart, or Event</li>
+      <li><strong>Assigned To dropdown</strong> — filter by team member (admin can see all; users see themselves)</li>
+      <li>Click <strong>Filter</strong> to apply, <strong>Clear</strong> to reset</li>
+    </ul>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p><strong>Regular users</strong> only see leads they created or that are assigned to them. <strong>Admins</strong> see all leads from everyone.</p>
+    </div>
+
+    <!-- LEADS CREATE -->
+    <h3 id="leads-create">Creating a Lead</h3>
+    <ol class="steps">
+      <li>Click the <strong>+ Create Lead</strong> button (top right of the leads page).</li>
+      <li>You will be taken to the Create Lead form.</li>
+      <li>Fill in the required fields (marked <span class="req">*</span>) and any optional details.</li>
+      <li>Click <strong>Save Lead</strong>.</li>
+    </ol>
+
+    <h4>Lead form fields</h4>
+    <div class="card">
+      <div class="field-list">
+        <div class="field-row"><span class="field-name">Lead Name <span class="req">*</span></span><span class="field-desc">Full name of the lead contact</span></div>
+        <div class="field-row"><span class="field-name">Company</span><span class="field-desc">Company or organisation name</span></div>
+        <div class="field-row"><span class="field-name">Contact Person</span><span class="field-desc">The person you spoke to (if different from lead name)</span></div>
+        <div class="field-row"><span class="field-name">Phone Number <span class="req">*</span></span><span class="field-desc">Primary phone number</span></div>
+        <div class="field-row"><span class="field-name">Phone Number 2 / 3</span><span class="field-desc">Additional phone numbers (optional)</span></div>
+        <div class="field-row"><span class="field-name">Email</span><span class="field-desc">Email address</span></div>
+        <div class="field-row"><span class="field-name">Source <span class="req">*</span></span><span class="field-desc">Where the lead came from: Website, Referral, Cold Call, IndiaMart, Event</span></div>
+        <div class="field-row"><span class="field-name">Status <span class="req">*</span></span><span class="field-desc">Current stage: New, Contacted, Qualified, Proposal Sent, Negotiation, Converted, Lost</span></div>
+        <div class="field-row"><span class="field-name">Assigned To</span><span class="field-desc">Team member responsible (admins can assign to anyone; non-admins auto-assigned to themselves)</span></div>
+        <div class="field-row"><span class="field-name">Last Contacted</span><span class="field-desc">Date you last spoke with this lead</span></div>
+        <div class="field-row"><span class="field-name">Next Follow-up</span><span class="field-desc">Date for the next scheduled follow-up</span></div>
+        <div class="field-row"><span class="field-name">Billing Address</span><span class="field-desc">Street, City, State, Postal Code, Country</span></div>
+        <div class="field-row"><span class="field-name">Shipping Address</span><span class="field-desc">Check "Same as Billing" to auto-fill from billing address</span></div>
+        <div class="field-row"><span class="field-name">Notes / Requirements</span><span class="field-desc">Any additional details, requirements, or context</span></div>
+      </div>
+    </div>
+
+    <!-- LEADS VIEW -->
+    <h3 id="leads-view">Viewing a Lead</h3>
+    <p>Click the <strong>View</strong> button (eye icon) on any lead row. A panel opens showing all lead details in a read-only format, including:</p>
+    <ul>
+      <li>All contact details and address sections</li>
+      <li>Status and source badges</li>
+      <li>Assigned user, last contacted date, and next follow-up</li>
+      <li>Notes and requirements</li>
+    </ul>
+
+    <!-- LEADS EDIT -->
+    <h3 id="leads-edit">Editing a Lead</h3>
+    <ol class="steps">
+      <li>Find the lead in the list and click the <strong>Edit</strong> button (pencil icon).</li>
+      <li>An edit panel opens with all the same fields as the create form.</li>
+      <li>Make your changes and click <strong>Save</strong>.</li>
+    </ol>
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p>Regular users cannot change the <strong>Assigned To</strong> field — that field is disabled for non-admins.</p>
+    </div>
+
+    <!-- LEADS CONVERT -->
+    <h3 id="leads-convert">Converting a Lead to an Account</h3>
+    <p>When a lead is ready to become a customer, you convert them into an Account.</p>
+    <ol class="steps">
+      <li>Open the lead (View or Edit).</li>
+      <li>Click the <strong>Convert to Account</strong> button.</li>
+      <li>A preview modal shows what account record will be created from the lead's data.</li>
+      <li>Confirm the conversion.</li>
+      <li>The lead status changes to <span class="badge badge-green">Converted</span> and a new Account is created automatically using the lead's details.</li>
+    </ol>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <p>The Convert button is only visible to the lead's creator or an admin.</p>
+    </div>
+
+    <!-- LEADS DELETE -->
+    <h3 id="leads-delete">Deleting a Lead</h3>
+    <div class="callout callout-admin">
+      <span class="callout-icon">🔒</span>
+      <p><strong>Admin only.</strong> Click the <strong>Delete</strong> button on a lead row. A confirmation dialog will appear — confirm to permanently delete the lead. This cannot be undone.</p>
+    </div>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ QUOTES ═══════════════════════════════ -->
+    <h2 id="quotes">Quotes Management</h2>
+    <p>Quotes are formal price proposals sent to accounts. The system supports versioning, PDF export, and dual branding (Grove Systems / GreenOCare).</p>
+
+    <!-- QUOTES LIST -->
+    <h3 id="quotes-list">Quotes List</h3>
+    <p>Click <strong>My Quotes</strong> (or <strong>Quotes</strong>) in the sidebar.</p>
+    <table>
+      <tr><th>Column</th><th>Description</th></tr>
+      <tr><td><strong>#</strong></td><td>Quote number</td></tr>
+      <tr><td><strong>Quote Name</strong></td><td>Subject/title of the quote</td></tr>
+      <tr><td><strong>Date</strong></td><td>Date the quote was created</td></tr>
+      <tr><td><strong>Status</strong></td><td>Current status (Draft, Sent, Approved, etc.)</td></tr>
+      <tr><td><strong>Total Amount</strong></td><td>Calculated total from all products</td></tr>
+      <tr><td><strong>Actions</strong></td><td>View detail, Download PDF</td></tr>
+    </table>
+    <p>Use the <strong>search box</strong> to find a quote by name or account.</p>
+
+    <!-- QUOTES CREATE -->
+    <h3 id="quotes-create">Creating a Quote</h3>
+    <ol class="steps">
+      <li>Click <strong>+ Create Quote</strong>.</li>
+      <li>Search for and select the <strong>Account</strong> (customer). Account details auto-populate (company name, phone, address).</li>
+      <li>Add <strong>Products</strong> — search for products and add them to the quote. Pricing is calculated automatically.</li>
+      <li>Set the <strong>Status</strong> (typically start with Draft).</li>
+      <li>Click <strong>Save</strong> to create the quote.</li>
+    </ol>
+
+    <!-- QUOTES DETAIL -->
+    <h3 id="quotes-detail">Quote Detail Page</h3>
+    <p>Click a quote's name or the View button to open the full detail page.</p>
+    <h4>What you'll find here</h4>
+    <ul>
+      <li><strong>Quote Subject</strong> and date</li>
+      <li><strong>Status badge</strong> — Draft, Sent, Approved</li>
+      <li><strong>Sub Total</strong> and <strong>Valid Until</strong> date</li>
+      <li><strong>Account Information</strong> — company name, address, phone (with a link to the account)</li>
+      <li><strong>Products</strong> — list of all products in this quote with quantities and prices</li>
+      <li><strong>Version History</strong> — timeline showing all versions with their statuses</li>
+    </ul>
+    <h4>Actions available</h4>
+    <ul>
+      <li><strong>Edit Products</strong> — add/remove/change products and quantities</li>
+      <li><strong>New Version</strong> — create a new version of this quote (e.g. after revising prices)</li>
+      <li><strong>Preview PDF</strong> — see what the PDF will look like before downloading</li>
+      <li><strong>Download PDF</strong> — export the quote as a PDF</li>
+      <li><strong>Logo Selector</strong> — choose between Grove Systems or GreenOCare branding for the PDF</li>
+    </ul>
+
+    <!-- QUOTES PDF -->
+    <h3 id="quotes-pdf">Exporting a Quote as PDF</h3>
+    <ol class="steps">
+      <li>Open the quote detail page.</li>
+      <li>Select the <strong>logo / brand</strong> you want on the PDF (Grove Systems or GreenOCare).</li>
+      <li>Click <strong>Preview PDF</strong> to check it first, or click <strong>Download PDF</strong> directly.</li>
+      <li>The PDF downloads to your computer, named after the quote.</li>
+    </ol>
+    <div class="callout callout-tip">
+      <span class="callout-icon">💡</span>
+      <p>Always preview the PDF before sending it to a customer to make sure the branding and product list look correct.</p>
+    </div>
+
+    <!-- QUOTES VERSIONS -->
+    <h3 id="quotes-versions">Quote Versioning</h3>
+    <p>Every time you revise a quote, you can create a new version instead of overwriting the original. This keeps a full history of what was proposed and when.</p>
+    <ul>
+      <li>The <strong>Version selector</strong> at the top of the detail page lets you switch between versions.</li>
+      <li>The <strong>Version History</strong> timeline shows each version with a status dot: Latest, Sent, Approved.</li>
+      <li>Click <strong>New Version</strong> to start a revised quote based on the current one.</li>
+    </ul>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ ACCOUNTS ═══════════════════════════════ -->
+    <h2 id="accounts">Accounts</h2>
+    <p>Accounts represent companies or organisations you do business with. They are linked to quotes and contacts.</p>
+
+    <!-- ACCOUNTS LIST -->
+    <h3 id="accounts-list">Accounts List</h3>
+    <p>Click <strong>Accounts</strong> in the sidebar. You will see:</p>
+    <ul>
+      <li><strong>Total Accounts</strong> and <strong>Active Accounts</strong> stat cards</li>
+      <li>A searchable list of all accounts</li>
+    </ul>
+
+    <!-- ACCOUNTS CREATE -->
+    <h3 id="accounts-create">Adding an Account</h3>
+    <ol class="steps">
+      <li>Click <strong>+ Add Account</strong>.</li>
+      <li>Fill in the account details.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+    <h4>Account fields</h4>
+    <div class="card">
+      <div class="field-list">
+        <div class="field-row"><span class="field-name">Account Name <span class="req">*</span></span><span class="field-desc">Name of the account record</span></div>
+        <div class="field-row"><span class="field-name">Company Name</span><span class="field-desc">Official company/business name</span></div>
+        <div class="field-row"><span class="field-name">Phone <span class="req">*</span></span><span class="field-desc">Primary phone number</span></div>
+        <div class="field-row"><span class="field-name">Email</span><span class="field-desc">General contact email</span></div>
+        <div class="field-row"><span class="field-name">Website</span><span class="field-desc">Company website URL</span></div>
+        <div class="field-row"><span class="field-name">Industry</span><span class="field-desc">Business sector</span></div>
+        <div class="field-row"><span class="field-name">Account Type</span><span class="field-desc">Customer, Prospect, Partner, or Vendor</span></div>
+        <div class="field-row"><span class="field-name">Billing Address</span><span class="field-desc">Street, City, State, Postal Code, Country</span></div>
+        <div class="field-row"><span class="field-name">Shipping Address</span><span class="field-desc">Check "Same as Billing" to auto-fill</span></div>
+        <div class="field-row"><span class="field-name">Description</span><span class="field-desc">Any additional notes about this account</span></div>
+      </div>
+    </div>
+
+    <!-- ACCOUNTS DETAIL -->
+    <h3 id="accounts-detail">Account Detail Page</h3>
+    <p>Click any account name to open its detail page. You will see:</p>
+    <ul>
+      <li>Full account information and address</li>
+      <li>List of <strong>Contacts</strong> linked to this account</li>
+      <li>Related <strong>Quotes</strong></li>
+    </ul>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ CONTACTS ═══════════════════════════════ -->
+    <h2 id="contacts">Contacts</h2>
+    <p>Contacts are individual people linked to an Account.</p>
+
+    <h3>Contacts List</h3>
+    <p>Click <strong>Contacts</strong> in the sidebar. Use the search box to find contacts by name, phone, or email. Actions on each row: View, Edit, Delete, and link to the associated Account.</p>
+
+    <h3>Adding a Contact</h3>
+    <ol class="steps">
+      <li>Click <strong>+ Add Contact</strong>.</li>
+      <li>Fill in the contact details.</li>
+      <li>Click <strong>Save</strong>.</li>
+    </ol>
+    <h4>Contact fields</h4>
+    <div class="card">
+      <div class="field-list">
+        <div class="field-row"><span class="field-name">Contact Name <span class="req">*</span></span><span class="field-desc">Full name</span></div>
+        <div class="field-row"><span class="field-name">Account <span class="req">*</span></span><span class="field-desc">Link to an existing account — searchable dropdown</span></div>
+        <div class="field-row"><span class="field-name">Email</span><span class="field-desc">Personal work email</span></div>
+        <div class="field-row"><span class="field-name">Phone</span><span class="field-desc">Direct phone number</span></div>
+        <div class="field-row"><span class="field-name">Job Title / Position</span><span class="field-desc">Their role at the company</span></div>
+        <div class="field-row"><span class="field-name">Department</span><span class="field-desc">Which department they work in</span></div>
+        <div class="field-row"><span class="field-name">Reporting To</span><span class="field-desc">Their manager (another contact in the system)</span></div>
+      </div>
+    </div>
+
+    <h3>Editing a Contact</h3>
+    <p>Click the <strong>Edit</strong> button on any contact row. An edit panel opens with the same fields. Make changes and click <strong>Save</strong>.</p>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ PRODUCTS ═══════════════════════════════ -->
+    <h2 id="products">Products Catalogue</h2>
+    <p>The products page is a <strong>read-only catalogue</strong>. Products are managed by the admin externally (in NocoDB). You can view and search products here, and they are used when building quotes.</p>
+
+    <table>
+      <tr><th>Column</th><th>Description</th></tr>
+      <tr><td><strong>#</strong></td><td>Product ID</td></tr>
+      <tr><td><strong>Product Name</strong></td><td>Name of the product</td></tr>
+      <tr><td><strong>Brand</strong></td><td>Manufacturer or brand</td></tr>
+      <tr><td><strong>HSN Code</strong></td><td>Tax classification code</td></tr>
+      <tr><td><strong>Customer Price</strong></td><td>Unit selling price</td></tr>
+      <tr><td><strong>Tax</strong></td><td>Applicable tax percentage</td></tr>
+      <tr><td><strong>Status</strong></td><td>Active / Inactive</td></tr>
+    </table>
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ️</span>
+      <p>You cannot add or edit products from within the CRM. Contact your admin if a product is missing or has incorrect pricing.</p>
+    </div>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ CASES ═══════════════════════════════ -->
+    <h2 id="cases">Cases</h2>
+    <p>Cases group related quotes together, allowing you to track the full sales journey for a specific opportunity or project.</p>
+
+    <table>
+      <tr><th>Column</th><th>Description</th></tr>
+      <tr><td><strong>Case ID</strong></td><td>Unique identifier</td></tr>
+      <tr><td><strong>Title</strong></td><td>Name of the case</td></tr>
+      <tr><td><strong>Status</strong></td><td>Open, Won, or Closed</td></tr>
+      <tr><td><strong>Created</strong></td><td>Date the case was created</td></tr>
+      <tr><td><strong>Quotes</strong></td><td>Number of quotes linked to this case</td></tr>
+    </table>
+
+    <p>Click a case row to expand it and see a <strong>timeline of all linked quotes</strong>, showing each quote's version history with status dots (Latest, Sent, Approved).</p>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ ADMIN SECTION ═══════════════════════════════ -->
+    <h2 id="admin">Admin Features</h2>
+    <div class="callout callout-admin">
+      <span class="callout-icon">🔒</span>
+      <p>Everything in this section is <strong>Admin only</strong>. Regular users will not see these options in the sidebar.</p>
+    </div>
+
+    <!-- DASHBOARD -->
+    <h3 id="admin-dashboard">Dashboard</h3>
+    <p>The admin dashboard gives a high-level overview of the system. Find it by clicking <strong>Dashboard</strong> in the sidebar.</p>
+    <div class="card-grid">
+      <div class="mini-card"><h5>Total Users</h5><p>Number of active user accounts in the system</p></div>
+      <div class="mini-card"><h5>System Status</h5><p>Shows "Healthy / Online" — confirms the system is running</p></div>
+      <div class="mini-card"><h5>Total Quotes</h5><p>All quotes in the system</p></div>
+      <div class="mini-card"><h5>Total Products</h5><p>Products in the catalogue</p></div>
+    </div>
+    <h4>Quick actions on the dashboard</h4>
+    <ul>
+      <li><strong>Create User</strong> — shortcut to the user creation form</li>
+      <li><strong>View Quotes</strong> — go to the quotes list</li>
+      <li><strong>Manage Products</strong> — go to the products catalogue</li>
+    </ul>
+
+    <!-- USER MANAGEMENT -->
+    <h3 id="admin-users">User Management</h3>
+    <p>Go to <strong>User Management</strong> in the sidebar. You will see a table of all users.</p>
+    <table>
+      <tr><th>Column</th><th>Description</th></tr>
+      <tr><td><strong>User</strong></td><td>Display name</td></tr>
+      <tr><td><strong>Email</strong></td><td>Login email</td></tr>
+      <tr><td><strong>Role</strong></td><td>User or Admin</td></tr>
+      <tr><td><strong>Status</strong></td><td>Active / Inactive</td></tr>
+      <tr><td><strong>Created</strong></td><td>When the account was created</td></tr>
+      <tr><td><strong>Actions</strong></td><td>Reset password</td></tr>
+    </table>
+
+    <h4>Creating a new user</h4>
+    <ol class="steps">
+      <li>Click <strong>+ Create User</strong>.</li>
+      <li>Enter the user's <strong>Name</strong>, <strong>Email</strong>, and select a <strong>Role</strong> (User or Admin).</li>
+      <li>Click <strong>Create</strong>. The system generates a temporary password.</li>
+      <li>Share the temporary password with the new user — they will be forced to change it on first login.</li>
+    </ol>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠️</span>
+      <p>Copy and save the temporary password immediately — it is only shown once after creation.</p>
+    </div>
+
+    <!-- RESET PASSWORDS -->
+    <h3 id="admin-passwords">Resetting a User's Password</h3>
+    <p>If a user forgets their password or is locked out:</p>
+    <ol class="steps">
+      <li>Go to <strong>User Management</strong>.</li>
+      <li>Find the user in the list.</li>
+      <li>Click <strong>Reset Password</strong> in the Actions column.</li>
+      <li>A new temporary password is generated and displayed. Share it with the user.</li>
+      <li>The user will be required to change this temporary password on their next login.</li>
+    </ol>
+
+    <!-- ADMIN LEADS -->
+    <h3 id="admin-leads">Managing All Leads (Admin View)</h3>
+    <p>As an admin, the Leads list shows <strong>all leads from all users</strong> — not just your own. This lets you:</p>
+    <ul>
+      <li>See the full pipeline across your team</li>
+      <li>Filter by <strong>Assigned To</strong> to see any individual team member's leads</li>
+      <li>Reassign leads by editing the <strong>Assigned To</strong> field</li>
+      <li>Delete any lead (with confirmation)</li>
+      <li>Convert any lead to an account</li>
+    </ul>
+
+    <hr />
+
+    <!-- ═══════════════════════════════ TIPS ═══════════════════════════════ -->
+    <h2 id="tips">Tips &amp; Common Questions</h2>
+
+    <h3>General tips</h3>
+    <ul>
+      <li><strong>Overdue follow-ups</strong> appear in <span style="color:#dc2626;font-weight:600;">red</span> on the leads list — address these first.</li>
+      <li>Use the <strong>Notes / Requirements</strong> field on leads to capture anything said in calls or meetings.</li>
+      <li>When creating a quote, always double-check the <strong>Account</strong> is correct before adding products — account details auto-populate and affect the PDF.</li>
+      <li>If a product you need is not in the system, contact your admin — the catalogue is managed externally.</li>
+      <li>Billing and Shipping addresses on leads and accounts have a <strong>"Same as Billing"</strong> checkbox to save time.</li>
+    </ul>
+
+    <h3>Common questions</h3>
+    <div class="card">
+      <p><strong>Q: I can't see some leads — where are they?</strong><br />
+      A: Regular users only see leads they created or were assigned to. Ask an admin to assign leads to you, or ask them to check the full list.</p>
+    </div>
+    <div class="card">
+      <p><strong>Q: I can't change who a lead is assigned to.</strong><br />
+      A: The "Assigned To" field is restricted to admins only. Ask an admin to reassign it.</p>
+    </div>
+    <div class="card">
+      <p><strong>Q: How do I change my own password?</strong><br />
+      A: Currently, password changes happen automatically when you first log in with a temporary password. If you need to reset your password later, ask an admin to reset it for you — you will get a new temporary password to log in with.</p>
+    </div>
+    <div class="card">
+      <p><strong>Q: The Convert to Account button is not visible.</strong><br />
+      A: Only the lead's original creator or an admin can see the Convert button. If you need to convert a lead you did not create, ask the creator or an admin to do it.</p>
+    </div>
+    <div class="card">
+      <p><strong>Q: Can I edit products or their prices?</strong><br />
+      A: No — the product catalogue is read-only in the CRM. Contact your admin to update product details.</p>
+    </div>
+
+    <hr />
+
+    <!-- FOOTER -->
+    <div style="text-align:center; color:#94a3b8; font-size:13px; padding:20px 0;">
+      Grove Systems CRM User Guide &mdash; For internal use &mdash; May 2026
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

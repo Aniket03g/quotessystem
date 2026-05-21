@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grove Systems CRM — Quick Guide</title>
+  <style>
+    :root {
+      --brand: #2563eb;
+      --slate: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --admin: #7c3aed;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--slate);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .page { max-width: 780px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, #1e3a5f, #2563eb);
+      color: white;
+      border-radius: 12px;
+      padding: 40px 36px;
+      margin-bottom: 40px;
+    }
+    .header h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+    .header p { opacity: .8; font-size: 14px; }
+    .header .roles { display: flex; gap: 12px; margin-top: 20px; }
+    .role-pill {
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* SECTION */
+    .section { margin-bottom: 36px; }
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* CARDS */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+    }
+    .card h3 { font-size: 13px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .card ul { list-style: none; padding: 0; }
+    .card ul li { font-size: 13px; color: #475569; padding: 2px 0; }
+    .card ul li::before { content: '→ '; color: var(--brand); font-size: 11px; }
+
+    /* ADMIN CARD */
+    .card.admin { border-color: #ddd6fe; background: #faf5ff; }
+    .card.admin h3 { color: var(--admin); }
+    .card.admin ul li::before { color: var(--admin); }
+
+    /* FLOW */
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .flow-step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .flow-arrow { color: var(--muted); font-size: 16px; }
+
+    /* TABLE */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 8px 0; }
+    th { background: #f1f5f9; color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding: 8px 14px; text-align: left; }
+    td { padding: 9px 14px; border-top: 1px solid var(--border); vertical-align: top; }
+    td:first-child { font-weight: 600; width: 160px; }
+
+    /* BADGES */
+    .badge { display: inline-block; border-radius: 4px; padding: 1px 8px; font-size: 11px; font-weight: 700; }
+    .b-blue   { background: #dbeafe; color: #1d4ed8; }
+    .b-cyan   { background: #cffafe; color: #0e7490; }
+    .b-teal   { background: #ccfbf1; color: #0f766e; }
+    .b-purple { background: #ede9fe; color: #6d28d9; }
+    .b-orange { background: #fef3c7; color: #92400e; }
+    .b-green  { background: #dcfce7; color: #15803d; }
+    .b-red    { background: #fee2e2; color: #b91c1c; }
+    .b-admin  { background: #ede9fe; color: #5b21b6; }
+
+    /* NOTE */
+    .note {
+      background: #eff6ff;
+      border-left: 3px solid var(--brand);
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #1e3a5f;
+      margin: 10px 0;
+    }
+    .note.warn { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
+    .note.admin-note { background: #f5f3ff; border-color: var(--admin); color: #3b0764; }
+
+    /* FOOTER */
+    .footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 48px; }
+
+    @media print { body { background: white; } .page { padding: 20px; } }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>Grove Systems CRM</h1>
+    <p>Quick reference guide for all users</p>
+    <div class="roles">
+      <span class="role-pill">Regular User</span>
+      <span class="role-pill" style="background:rgba(167,139,250,.25); border-color:rgba(167,139,250,.4);">Admin</span>
+    </div>
+  </div>
+
+  <!-- GETTING STARTED -->
+  <div class="section">
+    <div class="section-title">Getting Started</div>
+    <div class="grid">
+      <div class="card">
+        <h3>Login</h3>
+        <ul>
+          <li>Enter your email and password</li>
+          <li>You'll land on Quotes (or Dashboard if admin)</li>
+          <li>First login forces a password change</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Your Role</h3>
+        <ul>
+          <li><strong>User</strong> — own leads + assigned leads only</li>
+          <li><strong>Admin</strong> — all leads, all users, full access</li>
+          <li>Admins see Dashboard + User Management in sidebar</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADS -->
+  <div class="section">
+    <div class="section-title">Leads</div>
+    <div class="grid">
+      <div class="card">
+        <h3>What you can do</h3>
+        <ul>
+          <li>View, search, and filter leads</li>
+          <li>Create a new lead</li>
+          <li>Edit lead details and status</li>
+          <li>Convert a lead to an Account</li>
+          <li>Delete <span class="badge b-admin">Admin</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Filters available</h3>
+        <ul>
+          <li>Search by name, company, phone, email</li>
+          <li>Filter by Status</li>
+          <li>Filter by Source</li>
+          <li>Filter by Assigned To</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:12px;">
+      <p style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:8px;">Lead Status Flow</p>
+      <div class="flow">
+        <span class="flow-step"><span class="badge b-blue">New</span></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step"><span class="badge b-cyan">Contacted</span></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step"><span class="badge b-teal">Qualified</span></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step"><span class="badge b-purple">Proposal Sent</span></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step"><span class="badge b-orange">Negotiation</span></span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-step"><span class="badge b-green">Converted</span></span>
+        <span class="flow-arrow">/</span>
+        <span class="flow-step"><span class="badge b-red">Lost</span></span>
+      </div>
+    </div>
+
+    <div class="note" style="margin-top:12px;">Overdue follow-ups appear in red. Users only see their own leads; admins see everyone's.</div>
+    <div class="note warn">Convert to Account and Delete are only available to the lead's creator or an admin.</div>
+  </div>
+
+  <!-- QUOTES -->
+  <div class="section">
+    <div class="section-title">Quotes</div>
+    <div class="grid">
+      <div class="card">
+        <h3>Creating a Quote</h3>
+        <ul>
+          <li>Select an Account (customer)</li>
+          <li>Add products from the catalogue</li>
+          <li>Total is calculated automatically</li>
+          <li>Set status to Draft to start</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Quote Actions</h3>
+        <ul>
+          <li>Edit products and quantities</li>
+          <li>Create a new version (on revision)</li>
+          <li>Preview and download as PDF</li>
+          <li>Choose Grove or GreenOCare branding</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note" style="margin-top:12px;">Each revision should be saved as a <strong>New Version</strong> — this keeps the full quote history intact.</div>
+  </div>
+
+  <!-- ACCOUNTS + CONTACTS -->
+  <div class="section">
+    <div class="section-title">Accounts &amp; Contacts</div>
+    <div class="grid">
+      <div class="card">
+        <h3>Accounts</h3>
+        <ul>
+          <li>Represent companies you work with</li>
+          <li>Linked to quotes and contacts</li>
+          <li>Can be created manually or by converting a lead</li>
+          <li>Account detail shows all linked quotes and contacts</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Contacts</h3>
+        <ul>
+          <li>Individual people inside an account</li>
+          <li>Must be linked to an account</li>
+          <li>Can be viewed, added, edited, or deleted</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS + CASES -->
+  <div class="section">
+    <div class="section-title">Products &amp; Cases</div>
+    <div class="grid">
+      <div class="card">
+        <h3>Products</h3>
+        <ul>
+          <li>Read-only catalogue — no editing here</li>
+          <li>Shows name, brand, price, HSN, tax, status</li>
+          <li>Contact admin if a product is wrong or missing</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Cases</h3>
+        <ul>
+          <li>Group related quotes under one case</li>
+          <li>Statuses: Open, Won, Closed</li>
+          <li>Expand a case to see linked quote timeline</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="section">
+    <div class="section-title">Admin Only</div>
+    <div class="grid">
+      <div class="card admin">
+        <h3>User Management</h3>
+        <ul>
+          <li>Create users (name, email, role)</li>
+          <li>System generates a temporary password</li>
+          <li>Share temp password — user must change it on first login</li>
+          <li>Reset any user's password from the user list</li>
+        </ul>
+      </div>
+      <div class="card admin">
+        <h3>Full Leads Access</h3>
+        <ul>
+          <li>See all leads from all team members</li>
+          <li>Filter by Assigned To for individual views</li>
+          <li>Reassign leads to any user</li>
+          <li>Delete any lead</li>
+        </ul>
+      </div>
+      <div class="card admin">
+        <h3>Dashboard</h3>
+        <ul>
+          <li>Total users, quotes, products count</li>
+          <li>System health status</li>
+          <li>Quick links to key sections</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note admin-note" style="margin-top:12px;">Copy the temporary password immediately after creating a user — it is only shown once.</div>
+  </div>
+
+  <!-- QUICK REF -->
+  <div class="section">
+    <div class="section-title">Quick Reference</div>
+    <table>
+      <tr><th>Task</th><th>Who</th><th>Where</th></tr>
+      <tr><td>Create a lead</td><td>Everyone</td><td>Manage Leads → + Create Lead</td></tr>
+      <tr><td>Convert lead to account</td><td>Creator or Admin</td><td>Lead row → Convert</td></tr>
+      <tr><td>Delete a lead</td><td>Admin only</td><td>Lead row → Delete</td></tr>
+      <tr><td>Reassign a lead</td><td>Admin only</td><td>Edit lead → Assigned To</td></tr>
+      <tr><td>Create a quote</td><td>Everyone</td><td>Quotes → + Create Quote</td></tr>
+      <tr><td>Download quote PDF</td><td>Everyone</td><td>Quote detail → Download PDF</td></tr>
+      <tr><td>Add an account</td><td>Everyone</td><td>Accounts → + Add Account</td></tr>
+      <tr><td>Add a contact</td><td>Everyone</td><td>Contacts → + Add Contact</td></tr>
+      <tr><td>Create a user</td><td>Admin only</td><td>User Management → + Create User</td></tr>
+      <tr><td>Reset a user's password</td><td>Admin only</td><td>User Management → Reset Password</td></tr>
+      <tr><td>Change your own password</td><td>Everyone</td><td>Ask admin to reset → log in with temp password</td></tr>
+    </table>
+  </div>
+
+  <div class="footer">Grove Systems CRM &mdash; May 2026</div>
+</div>
+</body>
+</html>

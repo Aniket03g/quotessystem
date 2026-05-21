@@ -9,35 +9,79 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <div>
         <h1 class="text-2xl font-semibold text-slate-800">Products</h1>
       </div>
+      <a href="/create-product" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        New Product
+      </a>
     </div>
   </div>
 
   <!-- Search and Filter Bar -->
   <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-    <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex flex-col lg:flex-row gap-3">
       <!-- Search -->
       <div class="flex-1 relative">
         <svg class="absolute left-3 top-3 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Search..." 
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by name or model no..."
           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           autocomplete="off"
         />
-        <!-- Search Status -->
-        <div class="flex items-center gap-2 mt-2">
-          <div id="searchSpinner" class="hidden animate-spin w-4 h-4 text-blue-600">
-            <svg class="w-full h-full" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
-          <span id="searchStatus" class="text-sm text-slate-600"></span>
-        </div>
       </div>
+
+      <!-- Brand Filter -->
+      <select
+        id="brandFilter"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[160px]"
+      >
+        <option value="">All Brands</option>
+      </select>
+
+      <!-- Category Filter -->
+      <select
+        id="categoryFilter"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[180px]"
+      >
+        <option value="">All Categories</option>
+      </select>
+
+      <!-- Sort -->
+      <select
+        id="sortBy"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[180px]"
+      >
+        <option value="">Sort: Default</option>
+        <option value="name-asc">Name A → Z</option>
+        <option value="name-desc">Name Z → A</option>
+        <option value="brand-asc">Brand A → Z</option>
+        <option value="price-asc">Price Low → High</option>
+        <option value="price-desc">Price High → Low</option>
+      </select>
+
+      <!-- Reset button -->
+      <button
+        id="resetFilters"
+        class="px-4 py-2.5 text-sm text-slate-600 border border-slate-200 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap"
+      >
+        Reset
+      </button>
+    </div>
+
+    <!-- Status line -->
+    <div class="flex items-center gap-2 mt-3">
+      <div id="searchSpinner" class="hidden animate-spin w-4 h-4 text-blue-600">
+        <svg class="w-full h-full" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+      <span id="searchStatus" class="text-sm text-slate-600"></span>
     </div>
   </div>
 
@@ -64,16 +108,27 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     <!-- Table -->
     <div id="productsTable" class="hidden overflow-x-auto">
-      <table class="w-full">
+      <table class="w-full table-fixed">
+        <colgroup>
+          <col class="w-12" />
+          <col class="w-[28%]" />
+          <col class="w-[14%]" />
+          <col class="w-[14%]" />
+          <col class="w-[12%]" />
+          <col class="w-[14%]" />
+          <col class="w-[8%]" />
+          <col class="w-[10%]" />
+        </colgroup>
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">PRODUCT NAME</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">BRAND</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">HSN CODE</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">CUSTOMER PRICE</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">TAX</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">PRODUCT NAME</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">MODEL NO</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">BRAND</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">HSN CODE</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">CUSTOMER PRICE</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">TAX</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
           </tr>
         </thead>
         <tbody id="productsBody" class="divide-y divide-slate-200"></tbody>
@@ -92,9 +147,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
   <script>
     import { getToken, logout, safeJsonParse } from '../lib/api';
-    import { debounce } from '../utils/debounce';
 
-    // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', () => {
       const API_BASE_URL = `http://${window.location.hostname}:8082`;
       const token = getToken();
@@ -111,208 +164,173 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const emptyState = document.getElementById('emptyState') as HTMLDivElement;
       const searchInput = document.getElementById('searchInput') as HTMLInputElement;
       const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
-      const searchStatus = document.getElementById('searchStatus') as HTMLDivElement;
+      const searchStatus = document.getElementById('searchStatus') as HTMLSpanElement;
+      const brandFilter = document.getElementById('brandFilter') as HTMLSelectElement;
+      const categoryFilter = document.getElementById('categoryFilter') as HTMLSelectElement;
+      const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
+      const resetBtn = document.getElementById('resetFilters') as HTMLButtonElement;
 
-      if (!loadingDiv || !errorDiv || !productsTable || !productsBody || !emptyState || !searchInput || !searchSpinner || !searchStatus) {
-        console.error('[PRODUCT LOOKUP] Some DOM elements not found');
-        return;
+      let allRecords: any[] = [];
+      let selectedProduct: any = null;
+
+      const storedProduct = localStorage.getItem('selectedProduct');
+      if (storedProduct) {
+        try { selectedProduct = JSON.parse(storedProduct); } catch {}
       }
 
-    let selectedProduct: any = null;
-
-    /**
-     * Build NocoDB search query with proper URL encoding
-     * Query format: where=(Product Name,like,%searchTerm%)
-     */
-    function buildSearchQuery(searchTerm: string): string {
-      if (!searchTerm.trim()) {
-        return '';
-      }
-
-      const rawWhere = `(Product Name,like,%${searchTerm}%)~or(Model No,like,%${searchTerm}%)`;
-      const encodedWhere = encodeURIComponent(rawWhere);
-      const queryString = `where=${encodedWhere}&pageSize=15`;
-
-      return queryString;
-    }
-
-    /**
-     * Search products via Generic Go Proxy
-     */
-    async function searchProducts(searchTerm: string) {
-      try {
-        searchSpinner.classList.remove('hidden');
-        searchStatus.textContent = 'Searching...';
-        searchStatus.classList.add('text-blue-600');
-        errorDiv.classList.add('hidden');
-        loadingDiv.classList.add('hidden');
-
-        const queryString = buildSearchQuery(searchTerm);
-        const url = queryString 
-          ? `${API_BASE_URL}/proxy/products/records?${queryString}`
-          : `${API_BASE_URL}/proxy/products/records?pageSize=15`;
-
-        console.log('[PRODUCT LOOKUP] URL:', url);
-
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+      function populateFilters(records: any[]) {
+        const brands = [...new Set(records.map(r => r.fields?.['Brand']).filter(Boolean))].sort() as string[];
+        brands.forEach(brand => {
+          const opt = document.createElement('option');
+          opt.value = brand;
+          opt.textContent = brand;
+          brandFilter.appendChild(opt);
         });
 
-        if (response.status === 401) {
-          logout();
+        const categories = [...new Set(records.map(r => r.fields?.['Product Category']).filter(Boolean))].sort() as string[];
+        categories.forEach(cat => {
+          const opt = document.createElement('option');
+          opt.value = cat;
+          opt.textContent = cat;
+          categoryFilter.appendChild(opt);
+        });
+      }
+
+      function applyFilters() {
+        const search = searchInput.value.toLowerCase();
+        const brand = brandFilter.value;
+        const category = categoryFilter.value;
+        const sort = sortBy.value;
+
+        let filtered = allRecords.filter(record => {
+          const f = record.fields || {};
+          if (search) {
+            const name = (f['Product Name'] || '').toLowerCase();
+            const model = (f['Model No'] || '').toLowerCase();
+            if (!name.includes(search) && !model.includes(search)) return false;
+          }
+          if (brand && f['Brand'] !== brand) return false;
+          if (category && f['Product Category'] !== category) return false;
+          return true;
+        });
+
+        if (sort) {
+          filtered = [...filtered].sort((a, b) => {
+            const af = a.fields || {};
+            const bf = b.fields || {};
+            switch (sort) {
+              case 'name-asc':  return (af['Product Name'] || '').localeCompare(bf['Product Name'] || '');
+              case 'name-desc': return (bf['Product Name'] || '').localeCompare(af['Product Name'] || '');
+              case 'brand-asc': return (af['Brand'] || '').localeCompare(bf['Brand'] || '');
+              case 'price-asc': return parseFloat(af['Customer Unit Price'] || '0') - parseFloat(bf['Customer Unit Price'] || '0');
+              case 'price-desc': return parseFloat(bf['Customer Unit Price'] || '0') - parseFloat(af['Customer Unit Price'] || '0');
+              default: return 0;
+            }
+          });
+        }
+
+        renderTable(filtered);
+      }
+
+      function renderTable(records: any[]) {
+        const isFiltered = searchInput.value || brandFilter.value || categoryFilter.value || sortBy.value;
+        searchStatus.textContent = isFiltered
+          ? `Showing ${records.length} of ${allRecords.length} product(s)`
+          : `${records.length} product(s)`;
+
+        if (records.length === 0) {
+          productsTable.classList.add('hidden');
+          emptyState.classList.remove('hidden');
           return;
         }
 
-        const data = await safeJsonParse(response);
-        console.log('[PRODUCT LOOKUP] Response received, records count:', data.records?.length || 0);
-        
-        // Log only first 3 records for debugging
-        if (data.records && data.records.length > 0) {
-          console.log('[PRODUCT LOOKUP] Sample records (first 3):', data.records.slice(0, 3));
-        }
-        
-        displayResults(data.records || [], searchTerm);
-      } catch (error) {
-        console.error('[PRODUCT LOOKUP ERROR]', error);
-        searchSpinner.classList.add('hidden');
-        searchStatus.textContent = '';
-        searchStatus.classList.remove('text-blue-600');
-        const errorText = errorDiv.querySelector('#errorText');
-        if (errorText) {
-          errorText.textContent = error instanceof Error ? error.message : 'Search failed';
-        }
-        errorDiv.classList.remove('hidden');
-      }
-    }
+        emptyState.classList.add('hidden');
 
-    /**
-     * Display search results in the table
-     */
-    function displayResults(records: any[], searchTerm: string) {
-      searchSpinner.classList.add('hidden');
-      searchStatus.classList.remove('text-blue-600');
+        productsBody.innerHTML = records.map((record, index) => {
+          const f = record.fields || {};
+          const productName = f['Product Name'] || '<span class="text-slate-400 italic">N/A</span>';
+          const modelNo = f['Model No'] || '<span class="text-slate-400 italic">—</span>';
+          const brand = f['Brand'] || '<span class="text-slate-400 italic">—</span>';
+          const hsnCode = f['HSN/SAC Code'] || '<span class="text-slate-400 italic">—</span>';
+          const unitPrice = f['Customer Unit Price'] ? parseFloat(String(f['Customer Unit Price'])) : 0;
+          const tax = f['Tax'] ? parseFloat(String(f['Tax'])) : 0;
+          const status = f['Product Status'] || 'Inactive';
+          const isActive = status === 'Active';
+          const isSelected = selectedProduct && selectedProduct.id === record.id;
 
-      if (searchTerm) {
-        searchStatus.textContent = `Found ${records.length} product(s) matching "${searchTerm}"`;
-      } else {
-        searchStatus.textContent = `Showing ${records.length} product(s)`;
-      }
+          return `
+            <tr data-product-id="${record.id}" class="cursor-pointer transition-colors hover:bg-slate-50 ${isSelected ? 'bg-blue-50 hover:bg-blue-100' : ''}">
+              <td class="px-4 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
+              <td class="px-4 py-4 text-sm text-slate-900 truncate max-w-0">${productName}</td>
+              <td class="px-4 py-4 text-sm text-slate-600 truncate max-w-0">${modelNo}</td>
+              <td class="px-4 py-4 text-sm text-slate-600 truncate max-w-0">${brand}</td>
+              <td class="px-4 py-4 text-sm text-slate-600 truncate max-w-0">${hsnCode}</td>
+              <td class="px-4 py-4 text-sm text-slate-600">₹${unitPrice.toFixed(2)}</td>
+              <td class="px-4 py-4 text-sm text-slate-600">${tax}%</td>
+              <td class="px-4 py-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+                  ${status}
+                </span>
+              </td>
+            </tr>
+          `;
+        }).join('');
 
-      if (records.length === 0) {
-        productsTable.classList.add('hidden');
-        emptyState.classList.remove('hidden');
-        return;
-      }
+        productsTable.classList.remove('hidden');
 
-      emptyState.classList.add('hidden');
-
-      productsBody.innerHTML = records.map((record, index) => {
-        const fields = record.fields || {};
-        const productName = fields['Product Name'] || '<span class="text-slate-400 italic">N/A</span>';
-        const brand = fields['Brand'] || '<span class="text-slate-400 italic">N/A</span>';
-        const hsnCode = fields['HSN/SAC Code'] || fields['Model No'] || '<span class="text-slate-400 italic">N/A</span>';
-        const unitPrice = fields['Customer Unit Price'] ? parseFloat(String(fields['Customer Unit Price'])) : 0;
-        const tax = fields['Tax'] ? parseFloat(String(fields['Tax'])) : 0;
-        const active = fields['Active'] !== false;
-        const isSelected = selectedProduct && selectedProduct.id === record.id;
-
-        return `
-          <tr data-product-id="${record.id}" class="cursor-pointer transition-colors hover:bg-slate-50 ${isSelected ? 'bg-blue-50 hover:bg-blue-100' : ''}">
-            <td class="px-6 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
-            <td class="px-6 py-4 text-sm text-slate-900">${productName}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">${brand}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">${hsnCode}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">₹${unitPrice.toFixed(2)}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">${tax}%</td>
-            <td class="px-6 py-4">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${active ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
-                ${active ? 'Active' : 'Inactive'}
-              </span>
-            </td>
-          </tr>
-        `;
-      }).join('');
-
-      productsTable.classList.remove('hidden');
-      
-      // Update product count
-      const productCountEl = document.getElementById('productCount');
-      if (productCountEl) {
-        productCountEl.textContent = records.length.toString();
-      }
-
-      // Add click handlers
-      const rows = productsBody.querySelectorAll('tr');
-      rows.forEach((row, index) => {
-        row.addEventListener('click', () => {
-          selectProduct(records[index]);
+        productsBody.querySelectorAll('tr').forEach((row, index) => {
+          row.addEventListener('click', () => {
+            selectedProduct = records[index];
+            localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
+            productsBody.querySelectorAll('tr').forEach(r => r.classList.remove('bg-blue-50', 'hover:bg-blue-100'));
+            row.classList.add('bg-blue-50', 'hover:bg-blue-100');
+          });
         });
-      });
-    }
+      }
 
-    /**
-     * Select a product and store in localStorage
-     */
-    function selectProduct(product: any) {
-      selectedProduct = product;
+      async function loadAllProducts() {
+        try {
+          loadingDiv.classList.remove('hidden');
+          productsTable.classList.add('hidden');
+          emptyState.classList.add('hidden');
+          errorDiv.classList.add('hidden');
+          searchStatus.textContent = '';
 
-      const rows = productsBody.querySelectorAll('tr');
-      rows.forEach(row => {
-        if (row.getAttribute('data-product-id') === String(product.id)) {
-          row.classList.add('selected');
-        } else {
-          row.classList.remove('selected');
+          const response = await fetch(`${API_BASE_URL}/proxy/products/records`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+
+          if (response.status === 401) { logout(); return; }
+          if (!response.ok) throw new Error('Failed to load products');
+
+          const data = await safeJsonParse(response);
+          allRecords = data.records || [];
+
+          loadingDiv.classList.add('hidden');
+          populateFilters(allRecords);
+          applyFilters();
+        } catch (error) {
+          loadingDiv.classList.add('hidden');
+          (document.getElementById('errorText') as HTMLElement).textContent =
+            error instanceof Error ? error.message : 'Failed to load products';
+          errorDiv.classList.remove('hidden');
         }
+      }
+
+      searchInput.addEventListener('input', applyFilters);
+      brandFilter.addEventListener('change', applyFilters);
+      categoryFilter.addEventListener('change', applyFilters);
+      sortBy.addEventListener('change', applyFilters);
+
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        brandFilter.value = '';
+        categoryFilter.value = '';
+        sortBy.value = '';
+        applyFilters();
       });
 
-      localStorage.setItem('selectedProduct', JSON.stringify(product));
-      console.log('[PRODUCT LOOKUP] Selected product:', product);
-    }
-
-    // Debounced search function
-    const debouncedSearch = debounce((searchTerm: string) => {
-      searchProducts(searchTerm);
-    }, 400);
-
-    // Handle search input changes
-    searchInput.addEventListener('input', (e) => {
-      const searchTerm = (e.target as HTMLInputElement).value;
-      
-      if (searchTerm) {
-        searchSpinner.classList.remove('hidden');
-        searchStatus.textContent = 'Searching...';
-        searchStatus.classList.add('text-blue-600');
-      }
-
-      debouncedSearch(searchTerm);
+      loadAllProducts();
     });
-
-    // Handle Enter key in search box
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const searchTerm = searchInput.value;
-        searchProducts(searchTerm);
-      }
-    });
-
-    // Check if there's a previously selected product
-    const storedProduct = localStorage.getItem('selectedProduct');
-    if (storedProduct) {
-      try {
-        selectedProduct = JSON.parse(storedProduct);
-        console.log('[PRODUCT LOOKUP] Restored selected product:', selectedProduct);
-      } catch (e) {
-        console.error('Failed to parse stored product:', e);
-      }
-    }
-
-    // Initial load: Show all products
-    searchProducts('');
-    }); // Close DOMContentLoaded event listener
   </script>
 </AdminLayout>

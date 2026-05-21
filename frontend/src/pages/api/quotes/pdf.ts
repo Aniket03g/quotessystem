@@ -57,6 +57,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     // ── HEADER ──────────────────────────────────────────────────────────────
     const selectedLogo = quoteData.logo || 'greenocare';
+    const deliveryTerms: string = quoteData.deliveryTerms || '';
+    const paymentTerms: string = quoteData.paymentTerms || '';
     const companyName =
       selectedLogo === 'grove'
         ? 'Grove Systems Pvt. Ltd.'
@@ -386,16 +388,16 @@ export const POST: APIRoute = async ({ request }) => {
     const terms =
       selectedLogo === 'grove'
         ? [
-            '1. Order to be placed on: Grove Systems Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
-            '2. Delivery Terms -',
-            '3. Payment Terms -',
+            '1. Order to be placed on: Grove Systems Pvt. Ltd., F-85, Okhla Industrial Area, Phase III, New Delhi - 110020.',
+            `2. Delivery Terms - ${deliveryTerms}`,
+            `3. Payment Terms - ${paymentTerms}`,
             '4. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651',
             '5. GST No- 07AAHCG5253F1ZO',
           ]
         : [
             '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
-            '2. Delivery Terms -',
-            '3. Payment Terms -',
+            `2. Delivery Terms - ${deliveryTerms}`,
+            `3. Payment Terms - ${paymentTerms}`,
             '4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651',
             '5. GST No- 07AAECG5147M1ZB',
           ];
