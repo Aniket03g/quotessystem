@@ -1,0 +1,432 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Edit Account" currentPage="accounts">
+  <div class="max-w-4xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-6">
+      <div class="flex items-center gap-4 mb-2">
+        <a id="backBtn" href="/accounts" class="text-slate-600 hover:text-slate-900">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+        </a>
+        <h1 class="text-2xl font-semibold text-slate-800">Edit Account</h1>
+      </div>
+      <p class="text-slate-600 ml-10">Update account information</p>
+    </div>
+
+    <!-- Error/Success Messages -->
+    <div id="errorMessage" class="hidden mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-red-800 text-sm" id="errorText"></p>
+      </div>
+    </div>
+
+    <div id="successMessage" class="hidden mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-green-800 text-sm" id="successText"></p>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loadingState" class="bg-white rounded-xl border border-slate-200 shadow-sm p-12 text-center">
+      <p class="text-slate-500">Loading account data...</p>
+    </div>
+
+    <!-- Account Form -->
+    <form id="accountForm" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm">
+      <!-- Basic Information -->
+      <div class="p-6 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Basic Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label for="accountName" class="block text-sm font-medium text-slate-700 mb-1">
+              Account Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="accountName"
+              name="accountName"
+              required
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter account name"
+            />
+          </div>
+
+          <div>
+            <label for="companyName" class="block text-sm font-medium text-slate-700 mb-1">
+              Company Name
+            </label>
+            <input
+              type="text"
+              id="companyName"
+              name="companyName"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter company name"
+            />
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-slate-700 mb-1">
+              Phone <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              required
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div>
+            <label for="gstNo" class="block text-sm font-medium text-slate-700 mb-1">
+              GST No <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="gstNo"
+              name="gstNo"
+              required
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter GST number"
+            />
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter email address"
+            />
+          </div>
+
+          <div>
+            <label for="website" class="block text-sm font-medium text-slate-700 mb-1">
+              Website
+            </label>
+            <input
+              type="url"
+              id="website"
+              name="website"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="https://example.com"
+            />
+          </div>
+
+          <div>
+            <label for="industry" class="block text-sm font-medium text-slate-700 mb-1">
+              Industry
+            </label>
+            <input
+              type="text"
+              id="industry"
+              name="industry"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., Technology, Finance"
+            />
+          </div>
+
+          <div>
+            <label for="accountType" class="block text-sm font-medium text-slate-700 mb-1">
+              Account Type
+            </label>
+            <select
+              id="accountType"
+              name="accountType"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Select type</option>
+              <option value="Customer">Customer</option>
+              <option value="Prospect">Prospect</option>
+              <option value="Partner">Partner</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing Address -->
+      <div class="p-6 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Billing Address</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label for="billingStreet" class="block text-sm font-medium text-slate-700 mb-1">
+              Street Address
+            </label>
+            <textarea
+              id="billingStreet"
+              name="billingStreet"
+              rows="2"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter street address"
+            ></textarea>
+          </div>
+
+          <div>
+            <label for="billingCity" class="block text-sm font-medium text-slate-700 mb-1">City</label>
+            <input type="text" id="billingCity" name="billingCity" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter city" />
+          </div>
+
+          <div>
+            <label for="billingState" class="block text-sm font-medium text-slate-700 mb-1">State</label>
+            <input type="text" id="billingState" name="billingState" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter state" />
+          </div>
+
+          <div>
+            <label for="billingCode" class="block text-sm font-medium text-slate-700 mb-1">Postal Code</label>
+            <input type="text" id="billingCode" name="billingCode" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter postal code" />
+          </div>
+
+          <div>
+            <label for="billingCountry" class="block text-sm font-medium text-slate-700 mb-1">Country</label>
+            <input type="text" id="billingCountry" name="billingCountry" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter country" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="p-6 border-b border-slate-200">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-slate-800">Shipping Address</h2>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="sameAsBilling" class="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-2 focus:ring-blue-500" />
+            <span class="text-sm text-slate-600">Same as billing</span>
+          </label>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label for="shippingStreet" class="block text-sm font-medium text-slate-700 mb-1">Street Address</label>
+            <textarea id="shippingStreet" name="shippingStreet" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter street address"></textarea>
+          </div>
+
+          <div>
+            <label for="shippingCity" class="block text-sm font-medium text-slate-700 mb-1">City</label>
+            <input type="text" id="shippingCity" name="shippingCity" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter city" />
+          </div>
+
+          <div>
+            <label for="shippingState" class="block text-sm font-medium text-slate-700 mb-1">State</label>
+            <input type="text" id="shippingState" name="shippingState" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter state" />
+          </div>
+
+          <div>
+            <label for="shippingCode" class="block text-sm font-medium text-slate-700 mb-1">Postal Code</label>
+            <input type="text" id="shippingCode" name="shippingCode" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter postal code" />
+          </div>
+
+          <div>
+            <label for="shippingCountry" class="block text-sm font-medium text-slate-700 mb-1">Country</label>
+            <input type="text" id="shippingCountry" name="shippingCountry" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter country" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Information -->
+      <div class="p-6 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800 mb-4">Additional Information</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="employees" class="block text-sm font-medium text-slate-700 mb-1">Number of Employees</label>
+            <input type="text" id="employees" name="employees" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., 100-500" />
+          </div>
+
+          <div>
+            <label for="annualRevenue" class="block text-sm font-medium text-slate-700 mb-1">Annual Revenue</label>
+            <input type="text" id="annualRevenue" name="annualRevenue" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., $1M - $5M" />
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="description" class="block text-sm font-medium text-slate-700 mb-1">Description</label>
+            <textarea id="description" name="description" rows="3" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter account description"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="p-6 bg-slate-50 rounded-b-xl flex items-center justify-end gap-3">
+        <a id="cancelBtn" href="/accounts" class="px-4 py-2 text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+          Cancel
+        </a>
+        <button
+          type="submit"
+          id="submitBtn"
+          class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || `http://${window.location.hostname}:8082`;
+    const urlParams = new URLSearchParams(window.location.search);
+    const accountId = urlParams.get('id');
+
+    const form = document.getElementById('accountForm') as HTMLFormElement;
+    const loadingState = document.getElementById('loadingState') as HTMLDivElement;
+    const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
+    const errorMessage = document.getElementById('errorMessage') as HTMLDivElement;
+    const errorText = document.getElementById('errorText') as HTMLParagraphElement;
+    const successMessage = document.getElementById('successMessage') as HTMLDivElement;
+    const successText = document.getElementById('successText') as HTMLParagraphElement;
+
+    if (!accountId) {
+      window.location.href = '/accounts';
+    }
+
+    // Set back/cancel links to return to the account detail page
+    document.getElementById('backBtn').setAttribute('href', `/account-detail?id=${accountId}`);
+    document.getElementById('cancelBtn').setAttribute('href', `/account-detail?id=${accountId}`);
+
+    // Copy billing to shipping
+    document.getElementById('sameAsBilling').addEventListener('change', (e) => {
+      if ((e.target as HTMLInputElement).checked) {
+        (document.getElementById('shippingStreet') as HTMLTextAreaElement).value = (document.getElementById('billingStreet') as HTMLTextAreaElement).value;
+        (document.getElementById('shippingCity') as HTMLInputElement).value = (document.getElementById('billingCity') as HTMLInputElement).value;
+        (document.getElementById('shippingState') as HTMLInputElement).value = (document.getElementById('billingState') as HTMLInputElement).value;
+        (document.getElementById('shippingCode') as HTMLInputElement).value = (document.getElementById('billingCode') as HTMLInputElement).value;
+        (document.getElementById('shippingCountry') as HTMLInputElement).value = (document.getElementById('billingCountry') as HTMLInputElement).value;
+      }
+    });
+
+    // Load existing account data and pre-fill
+    async function loadAccount() {
+      const token = localStorage.getItem('jwt_token');
+      if (!token) { window.location.href = '/login'; return; }
+
+      try {
+        const fields = 'Account Name,Company Name,Phone Number,GST No,Email 1,Website,Industry,Account Type,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Shipping Street,Shipping City,Shipping State,Shipping Code,Shipping Country,Employees,Annual Revenue,Description';
+        const response = await fetch(
+          `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=${encodeURIComponent(fields)}`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+
+        if (response.status === 401) { window.location.href = '/login'; return; }
+        if (!response.ok) throw new Error('Failed to load account');
+
+        const data = await response.json();
+        const f = data.fields || {};
+
+        // Pre-fill all fields
+        (document.getElementById('accountName') as HTMLInputElement).value   = f['Account Name'] || '';
+        (document.getElementById('companyName') as HTMLInputElement).value   = f['Company Name'] || '';
+        (document.getElementById('phone') as HTMLInputElement).value         = f['Phone Number'] || '';
+        (document.getElementById('gstNo') as HTMLInputElement).value         = f['GST No'] || '';
+        (document.getElementById('email') as HTMLInputElement).value         = f['Email 1'] || '';
+        (document.getElementById('website') as HTMLInputElement).value       = f['Website'] || '';
+        (document.getElementById('industry') as HTMLInputElement).value      = f['Industry'] || '';
+        (document.getElementById('billingStreet') as HTMLTextAreaElement).value  = f['Billing Street'] || '';
+        (document.getElementById('billingCity') as HTMLInputElement).value   = f['Billing City'] || '';
+        (document.getElementById('billingState') as HTMLInputElement).value  = f['Billing State'] || '';
+        (document.getElementById('billingCode') as HTMLInputElement).value   = f['Billing Code'] || '';
+        (document.getElementById('billingCountry') as HTMLInputElement).value = f['Billing Country'] || '';
+        (document.getElementById('shippingStreet') as HTMLTextAreaElement).value = f['Shipping Street'] || '';
+        (document.getElementById('shippingCity') as HTMLInputElement).value  = f['Shipping City'] || '';
+        (document.getElementById('shippingState') as HTMLInputElement).value = f['Shipping State'] || '';
+        (document.getElementById('shippingCode') as HTMLInputElement).value  = f['Shipping Code'] || '';
+        (document.getElementById('shippingCountry') as HTMLInputElement).value = f['Shipping Country'] || '';
+        (document.getElementById('employees') as HTMLInputElement).value     = f['Employees'] || '';
+        (document.getElementById('annualRevenue') as HTMLInputElement).value = f['Annual Revenue'] || '';
+        (document.getElementById('description') as HTMLTextAreaElement).value = f['Description'] || '';
+
+        // Account Type dropdown
+        const typeSelect = document.getElementById('accountType') as HTMLSelectElement;
+        const typeValue = f['Account Type'] || '';
+        const matchingOption = Array.from(typeSelect.options).find(o => o.value === typeValue);
+        if (matchingOption) typeSelect.value = typeValue;
+
+        loadingState.classList.add('hidden');
+        form.classList.remove('hidden');
+      } catch (error) {
+        loadingState.innerHTML = '<p class="text-red-500">Failed to load account data.</p>';
+      }
+    }
+
+    loadAccount();
+
+    // Form submit — PATCH
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMessage.classList.add('hidden');
+      successMessage.classList.add('hidden');
+
+      const token = localStorage.getItem('jwt_token');
+      if (!token) { window.location.href = '/login'; return; }
+
+      const formData = new FormData(form);
+      const payload = {
+        id: parseInt(accountId!),
+        fields: {
+          'Account Name':    formData.get('accountName'),
+          'Company Name':    formData.get('companyName') || '',
+          'Phone Number':    formData.get('phone'),
+          'GST No':          formData.get('gstNo'),
+          'Email 1':         formData.get('email') || '',
+          'Website':         formData.get('website') || '',
+          'Industry':        formData.get('industry') || '',
+          'Account Type':    formData.get('accountType') || '',
+          'Billing Street':  formData.get('billingStreet') || '',
+          'Billing City':    formData.get('billingCity') || '',
+          'Billing State':   formData.get('billingState') || '',
+          'Billing Code':    formData.get('billingCode') || '',
+          'Billing Country': formData.get('billingCountry') || '',
+          'Shipping Street': formData.get('shippingStreet') || '',
+          'Shipping City':   formData.get('shippingCity') || '',
+          'Shipping State':  formData.get('shippingState') || '',
+          'Shipping Code':   formData.get('shippingCode') || '',
+          'Shipping Country':formData.get('shippingCountry') || '',
+          'Employees':       formData.get('employees') || '',
+          'Annual Revenue':  formData.get('annualRevenue') || '',
+          'Description':     formData.get('description') || '',
+        }
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Saving...';
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const err = await response.text();
+          console.error('[EDIT ACCOUNT] Error:', err);
+          throw new Error('Failed to update account');
+        }
+
+        successText.textContent = 'Account updated successfully!';
+        successMessage.classList.remove('hidden');
+
+        setTimeout(() => {
+          window.location.href = `/account-detail?id=${accountId}`;
+        }, 1200);
+      } catch (error) {
+        errorText.textContent = (error as Error).message || 'Failed to update account. Please try again.';
+        errorMessage.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Changes';
+      }
+    });
+  </script>
+</AdminLayout>
