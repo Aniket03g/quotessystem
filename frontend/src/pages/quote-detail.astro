@@ -451,7 +451,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Step 1: Fetch catalog products via links endpoint (WITHOUT Unit Price)
         console.log('[QUOTE DETAIL] Step 1: Fetching catalog products from links endpoint...');
         const catalogResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description`,
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description,Unit of Measurement UOM`,
           {
             method: 'GET',
             headers: {
@@ -523,7 +523,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               model: '',
               productCode: catalogProduct.fields['Model No'],
               tax: catalogProduct.fields['Tax'],
-              description: catalogProduct.fields['Description']
+              description: catalogProduct.fields['Description'],
+              uom: catalogProduct.fields['Unit of Measurement UOM'] || ''
             };
           } else {
             console.warn(`[QUOTE DETAIL] No junction record found for product ${productId} - using defaults`);
@@ -540,7 +541,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               model: '',
               productCode: catalogProduct.fields['Model No'],
               tax: catalogProduct.fields['Tax'],
-              description: catalogProduct.fields['Description']
+              description: catalogProduct.fields['Description'],
+              uom: catalogProduct.fields['Unit of Measurement UOM'] || ''
             };
           }
         });
@@ -558,7 +560,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           productCode: record.productCode,
           tax: record.tax,
           hsnCode: record.hsnCode,
-          description: record.description
+          description: record.description,
+          uom: record.uom || ''
         }));
 
         // Store for PDF generation (same structure as download function)
@@ -1277,15 +1280,21 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     async function removeLineItem(junctionId: string) {
       try {
         console.log(`[LINE ITEM] Removing junction record ${junctionId}`);
-        
+
+        // Find productId before mutating local state
+        const productToRemove = currentProducts.find(p => p.junctionId === parseInt(junctionId));
+        const productId = productToRemove?.productId;
+
+        // Step 1: Delete the junction record (prices/qty)
         const response = await fetch(
-          `${API_BASE_URL}/proxy/products_for_quotes/records/${junctionId}`,
+          `${API_BASE_URL}/proxy/products_for_quotes/records`,
           {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
-            }
+            },
+            body: JSON.stringify({ id: parseInt(junctionId) })
           }
         );
 
@@ -1300,16 +1309,37 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           throw new Error('Failed to remove line item');
         }
 
-        console.log('[LINE ITEM] Line item removed successfully');
-        
+        console.log('[LINE ITEM] Junction record deleted');
+
+        // Step 2: Unlink the product from the quote
+        if (productId) {
+          console.log(`[LINE ITEM] Unlinking product ${productId} from quote ${quoteId}`);
+          const unlinkResponse = await fetch(
+            `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`,
+            {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify([productId])
+            }
+          );
+          if (!unlinkResponse.ok) {
+            console.warn('[LINE ITEM] Failed to unlink product from quote (junction deleted successfully)');
+          } else {
+            console.log('[LINE ITEM] Product unlinked from quote successfully');
+          }
+        }
+
         // Remove from local state
         currentProducts = currentProducts.filter(p => p.junctionId !== parseInt(junctionId));
         renderProducts();
-        
+
         // Recalculate total and update quote
         const newTotal = calculateTotal();
         await updateQuote({ "Total Amount": newTotal });
-        
+
         // Reload quote to get updated data
         await loadQuoteDetails();
       } catch (error) {
@@ -1557,10 +1587,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         results.innerHTML = products.map((prod: any) => {
           const name = prod.fields?.['Product Name'] || 'Unnamed';
           const brand = prod.fields?.['Brand'] || '';
+          const modelNo = prod.fields?.['Model No'] || '';
           const price = prod.fields?.[priceField] || 0;
           return `
             <button type="button" class="product-option w-full px-4 py-2.5 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0" data-id="${prod.id}" data-name="${name}" data-price="${price}">
-              <div class="text-sm font-medium text-slate-900">${name}</div>
+              <div class="text-sm font-medium text-slate-900">${name}${modelNo ? ` <span class="font-normal text-slate-400">(${modelNo})</span>` : ''}</div>
               <div class="text-xs text-slate-500 mt-0.5">${brand ? brand + ' • ' : ''}₹${price}</div>
             </button>
           `;

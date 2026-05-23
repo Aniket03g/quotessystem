@@ -17,6 +17,7 @@ interface QuoteProduct {
   hsnCode?: string;
   warranty?: number;
   quantity?: number;
+  uom?: string;
 }
 
 interface QuoteData {
@@ -242,21 +243,21 @@ export const POST: APIRoute = async ({ request }) => {
         product.productCode || '-',
         warrantyMonths.toString(),
         price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-        qty.toString(),
+        `${qty}${product.uom ? ' ' + product.uom : ''}`,
         taxLabel,
         itemTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       ];
     });
 
     // Column widths sum to 180mm (usableWidth)
-    // Sr.No(9) + Details(58) + Code(19) + Warranty(22) + UnitPrice(24) + Qty/UOM(14) + Tax(16) + Total(18) = 180
+    // Sr.No(9) + Details(52) + Code(18) + Warranty(18) + UnitPrice(28) + Qty/UOM(13) + Tax(14) + Total(28) = 180
     autoTable(doc, {
       startY: currentY,
       head: [
         [
           'Sr. No',
           'Product Details',
-          'Product Code',
+          'Model No',
           'Warranty (months)',
           'Unit Price (Rs.)',
           'Qty/UOM',
@@ -283,13 +284,13 @@ export const POST: APIRoute = async ({ request }) => {
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 9 },
-        1: { halign: 'left',   cellWidth: 58 },
-        2: { halign: 'center', cellWidth: 19 },
-        3: { halign: 'center', cellWidth: 22 },
-        4: { halign: 'right',  cellWidth: 24 },
-        5: { halign: 'center', cellWidth: 14 },
-        6: { halign: 'center', cellWidth: 16 },
-        7: { halign: 'right',  cellWidth: 18 },
+        1: { halign: 'left',   cellWidth: 52 },
+        2: { halign: 'center', cellWidth: 18 },
+        3: { halign: 'center', cellWidth: 18 },
+        4: { halign: 'right',  cellWidth: 28 },
+        5: { halign: 'center', cellWidth: 13 },
+        6: { halign: 'center', cellWidth: 14 },
+        7: { halign: 'right',  cellWidth: 28 },
       },
       styles: {
         lineColor: [200, 200, 200],

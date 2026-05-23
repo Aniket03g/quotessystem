@@ -340,6 +340,34 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     (document.getElementById('quoteDate') as HTMLInputElement).value = today;
     (document.getElementById('validUntil') as HTMLInputElement).value = validUntil.toISOString().split('T')[0];
 
+    // Pre-fill account when coming from account-detail page
+    const urlParams = new URLSearchParams(window.location.search);
+    const prefillAccountId = urlParams.get('accountId');
+    const prefillAccountName = urlParams.get('accountName');
+
+    if (prefillAccountId && prefillAccountName) {
+      accountSearch.value = decodeURIComponent(prefillAccountName);
+      selectedAccountId.value = prefillAccountId;
+
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/proxy/accounts_duplicate/records/${prefillAccountId}?fields=Company Name,Phone Number,Billing Street,Billing City,Shipping City`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        if (res.ok) {
+          const data = await safeJsonParse(res);
+          const fields = data.fields || {};
+          companyNameInput.value = fields['Company Name'] || '';
+          phoneInput.value = fields['Phone Number'] || '';
+          billingStreetInput.value = fields['Billing Street'] || '';
+          billingCityInput.value = fields['Billing City'] || '';
+          shippingCityInput.value = fields['Shipping City'] || '';
+        }
+      } catch (e) {
+        console.error('[CREATE QUOTE] Error pre-filling account details:', e);
+      }
+    }
+
     function showAlert(message: string, type: 'success' | 'error') {
       alertDiv.textContent = message;
       alertDiv.className = `mb-6 p-4 rounded-lg ${
@@ -617,9 +645,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             const div = document.createElement('div');
             div.className = 'px-4 py-2 hover:bg-slate-50 cursor-pointer text-sm';
             const productName = product.fields?.['Product Name'] || product['Product Name'] || 'Unnamed Product';
+            const modelNo = product.fields?.['Model No'] || product['Model No'] || '';
             const customerPrice = product.fields?.['Customer Unit Price'] || product['Customer Unit Price'] || 0;
             const dealerPrice = product.fields?.['Dealer Unit Price'] || product['Dealer Unit Price'] || 0;
-            div.innerHTML = `<div class="font-medium">${productName}</div><div class="text-xs text-slate-500">Customer: ₹${customerPrice} | Dealer: ₹${dealerPrice}</div>`;
+            div.innerHTML = `<div class="font-medium">${productName}${modelNo ? ` <span class="text-slate-400 font-normal">(${modelNo})</span>` : ''}</div><div class="text-xs text-slate-500">Customer: ₹${customerPrice} | Dealer: ₹${dealerPrice}</div>`;
             div.onclick = async () => {
               searchInput.value = productName;
               productIdInput.value = product.id.toString();
