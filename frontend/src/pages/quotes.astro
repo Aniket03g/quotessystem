@@ -20,20 +20,70 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
   <!-- Search and Filter Bar -->
   <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-    <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex flex-col lg:flex-row gap-3">
       <!-- Search -->
       <div class="flex-1 relative">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="absolute left-3 top-3 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Search..." 
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by name or status..."
           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           autocomplete="off"
         />
       </div>
+
+      <!-- Status Filter -->
+      <select
+        id="statusFilter"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[160px]"
+      >
+        <option value="">All</option>
+        <option value="Draft">Draft</option>
+        <option value="Sent">Sent</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+        <option value="Final">Final</option>
+      </select>
+
+      <!-- Quote Type Filter -->
+      <select
+        id="typeFilter"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[160px]"
+      >
+        <option value="">All Types</option>
+        <option value="Customer">Customer</option>
+        <option value="Dealer">Dealer</option>
+      </select>
+
+      <!-- Sort -->
+      <select
+        id="sortBy"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[190px]"
+      >
+        <option value="">Sort: Default</option>
+        <option value="date-desc">Date: Newest First</option>
+        <option value="date-asc">Date: Oldest First</option>
+        <option value="amount-desc">Amount: High → Low</option>
+        <option value="amount-asc">Amount: Low → High</option>
+        <option value="name-asc">Name: A → Z</option>
+        <option value="name-desc">Name: Z → A</option>
+      </select>
+
+      <!-- Reset -->
+      <button
+        id="resetFilters"
+        class="px-4 py-2.5 text-sm text-slate-600 border border-slate-200 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap"
+      >
+        Reset
+      </button>
+    </div>
+
+    <!-- Results count -->
+    <div class="mt-3">
+      <span id="searchStatus" class="text-sm text-slate-500"></span>
     </div>
   </div>
 
@@ -60,7 +110,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     <!-- Table -->
     <div id="quotesTable" class="hidden overflow-x-auto">
-      <table class="w-full">
+      <table class="w-full table-fixed">
+        <colgroup>
+          <col class="w-12" />
+          <col class="w-[38%]" />
+          <col class="w-[14%]" />
+          <col class="w-[14%]" />
+          <col class="w-[16%]" />
+          <col class="w-[10%]" />
+        </colgroup>
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
@@ -117,8 +175,73 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const quotesBody = document.getElementById('quotesBody') as HTMLTableSectionElement;
     const emptyState = document.getElementById('emptyState') as HTMLDivElement;
     const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    const statusFilter = document.getElementById('statusFilter') as HTMLSelectElement;
+    const typeFilter = document.getElementById('typeFilter') as HTMLSelectElement;
+    const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
+    const resetFilters = document.getElementById('resetFilters') as HTMLButtonElement;
+    const searchStatus = document.getElementById('searchStatus') as HTMLSpanElement;
 
     let latestQuotes: any[] = [];
+
+    function applyFilters() {
+      const term = searchInput.value.toLowerCase().trim();
+      const status = statusFilter.value;
+      const type = typeFilter.value;
+      const sort = sortBy.value;
+
+      let result = latestQuotes.filter((record: any) => {
+        const fields = record.fields || {};
+
+        if (term) {
+          const subject = (fields['Subject'] || '').toLowerCase();
+          const quoteStatus = (fields['Quote Status'] || '').toLowerCase();
+          if (!subject.includes(term) && !quoteStatus.includes(term)) return false;
+        }
+
+        if (status && fields['Quote Status'] !== status) return false;
+
+        if (type) {
+          const quoteType = (fields['Quote Type'] || '').trim();
+          if (quoteType !== type) return false;
+        }
+
+        return true;
+      });
+
+      if (sort === 'date-desc') {
+        result.sort((a: any, b: any) => (b.fields['Quote Date'] || '').localeCompare(a.fields['Quote Date'] || ''));
+      } else if (sort === 'date-asc') {
+        result.sort((a: any, b: any) => (a.fields['Quote Date'] || '').localeCompare(b.fields['Quote Date'] || ''));
+      } else if (sort === 'amount-desc') {
+        result.sort((a: any, b: any) => (Number(b.fields['Total Amount']) || 0) - (Number(a.fields['Total Amount']) || 0));
+      } else if (sort === 'amount-asc') {
+        result.sort((a: any, b: any) => (Number(a.fields['Total Amount']) || 0) - (Number(b.fields['Total Amount']) || 0));
+      } else if (sort === 'name-asc') {
+        result.sort((a: any, b: any) => (a.fields['Subject'] || '').localeCompare(b.fields['Subject'] || ''));
+      } else if (sort === 'name-desc') {
+        result.sort((a: any, b: any) => (b.fields['Subject'] || '').localeCompare(a.fields['Subject'] || ''));
+      }
+
+      const total = latestQuotes.length;
+      const shown = result.length;
+      searchStatus.textContent = shown === total
+        ? `${total} quote${total !== 1 ? 's' : ''}`
+        : `${shown} of ${total} quote${total !== 1 ? 's' : ''}`;
+
+      renderQuotes(result);
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    statusFilter.addEventListener('change', applyFilters);
+    typeFilter.addEventListener('change', applyFilters);
+    sortBy.addEventListener('change', applyFilters);
+    resetFilters.addEventListener('click', () => {
+      searchInput.value = '';
+      statusFilter.value = '';
+      typeFilter.value = '';
+      sortBy.value = '';
+      applyFilters();
+    });
 
     function renderQuotes(records: any[]) {
       if (records.length === 0) {
@@ -178,24 +301,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       });
     }
 
-    function applySearch() {
-      const term = searchInput.value.toLowerCase().trim();
-      if (!term) {
-        renderQuotes(latestQuotes);
-        return;
-      }
-      const filtered = latestQuotes.filter((record: any) => {
-        const fields = record.fields || {};
-        const subject = (fields['Subject'] || '').toLowerCase();
-        const status = (fields['Quote Status'] || '').toLowerCase();
-        const date = (fields['Quote Date'] || '').toLowerCase();
-        return subject.includes(term) || status.includes(term) || date.includes(term);
-      });
-      renderQuotes(filtered);
-    }
-
-    searchInput.addEventListener('input', applySearch);
-
     async function loadQuotes() {
       try {
         const userEmail = getUserEmail();
@@ -237,7 +342,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         latestQuotes = allQuotes.filter((quote: any) => !parentQuoteIds.has(quote.id));
 
         loadingDiv.classList.add('hidden');
-        renderQuotes(latestQuotes);
+        applyFilters();
       } catch (error) {
         loadingDiv.classList.add('hidden');
         const errorText = errorDiv.querySelector('#errorText');

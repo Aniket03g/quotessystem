@@ -652,10 +652,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             div.onclick = async () => {
               searchInput.value = productName;
               productIdInput.value = product.id.toString();
-              
+
               // Fetch detailed product information
               await fetchProductDetails(product.id, productItem);
-              
+
+              // Default quantity to 1 when a product is selected
+              const quantityInput = productItem.querySelector('.product-quantity') as HTMLInputElement;
+              if (quantityInput && !quantityInput.value) {
+                quantityInput.value = '1';
+              }
+
               dropdown.classList.add('hidden');
             };
             results.appendChild(div);
@@ -689,8 +695,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     addProductBtn.addEventListener('click', () => {
       const newItem = productsContainer.querySelector('.product-item')!.cloneNode(true) as HTMLElement;
-      newItem.querySelectorAll('input').forEach(input => (input as HTMLInputElement).value = '');
-      (newItem.querySelector('.product-quantity') as HTMLInputElement).value = '1';
+      newItem.querySelectorAll('input, textarea').forEach(el => (el as HTMLInputElement | HTMLTextAreaElement).value = '');
+      (newItem.querySelector('.product-discount') as HTMLInputElement).value = '0';
       productsContainer.appendChild(newItem);
       setupProductSearch(newItem);
     });
