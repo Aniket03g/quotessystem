@@ -1694,8 +1694,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     });
 
     let _pdfPreviewMode = false;
-    let savedDeliveryTerms: string | null = null;
-    let savedPaymentTerms: string | null = null;
+    let savedDeliveryTerms: string | null = localStorage.getItem('pdfDeliveryTerms');
+    let savedPaymentTerms: string | null = localStorage.getItem('pdfPaymentTerms');
     let _changeTermsOnly = false;
 
     function openPdfTermsModal(preview: boolean) {
@@ -1741,6 +1741,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const paymentTerms = (document.getElementById('paymentTermsInput') as HTMLInputElement).value.trim();
       savedDeliveryTerms = deliveryTerms;
       savedPaymentTerms = paymentTerms;
+      localStorage.setItem('pdfDeliveryTerms', deliveryTerms);
+      localStorage.setItem('pdfPaymentTerms', paymentTerms);
       document.getElementById('pdfTermsModal')!.classList.add('hidden');
 
       if (!_changeTermsOnly) {

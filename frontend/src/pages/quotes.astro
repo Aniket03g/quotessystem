@@ -64,7 +64,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[190px]"
       >
         <option value="">Sort: Default</option>
-        <option value="date-desc">Date: Newest First</option>
+        <option value="date-desc" selected>Date: Newest First</option>
         <option value="date-asc">Date: Oldest First</option>
         <option value="amount-desc">Amount: High → Low</option>
         <option value="amount-asc">Amount: Low → High</option>
@@ -239,7 +239,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       searchInput.value = '';
       statusFilter.value = '';
       typeFilter.value = '';
-      sortBy.value = '';
+      sortBy.value = 'date-desc';
       applyFilters();
     });
 
@@ -645,6 +645,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function openQuotesPdfModal(quoteId: string, button: HTMLButtonElement) {
       _pendingQuoteId = quoteId;
       _pendingButton = button;
+
+      const savedDelivery = localStorage.getItem('pdfDeliveryTerms');
+      const savedPayment = localStorage.getItem('pdfPaymentTerms');
+
+      if (savedDelivery !== null) {
+        previewQuotePDF(quoteId, button, savedDelivery, savedPayment || '');
+        return;
+      }
+
       (document.getElementById('qDeliveryTermsInput') as HTMLInputElement).value = '';
       (document.getElementById('qPaymentTermsInput') as HTMLInputElement).value = '';
       document.getElementById('quotesPdfModal')!.classList.remove('hidden');
@@ -657,6 +666,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     document.getElementById('qPdfTermsConfirm')?.addEventListener('click', async () => {
       const deliveryTerms = (document.getElementById('qDeliveryTermsInput') as HTMLInputElement).value.trim();
       const paymentTerms = (document.getElementById('qPaymentTermsInput') as HTMLInputElement).value.trim();
+      localStorage.setItem('pdfDeliveryTerms', deliveryTerms);
+      localStorage.setItem('pdfPaymentTerms', paymentTerms);
       document.getElementById('quotesPdfModal')!.classList.add('hidden');
       await previewQuotePDF(_pendingQuoteId, _pendingButton ?? undefined, deliveryTerms, paymentTerms);
     });

@@ -23,30 +23,56 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
   <!-- Search and Filter Bar -->
   <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
-    <div class="flex flex-col lg:flex-row gap-4">
+    <div class="flex flex-col lg:flex-row gap-3">
       <!-- Search -->
       <div class="flex-1 relative">
         <svg class="absolute left-3 top-3 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Search..." 
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by name or email..."
           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           autocomplete="off"
         />
-        <!-- Search Status -->
-        <div class="flex items-center gap-2 mt-2">
-          <div id="searchSpinner" class="hidden animate-spin w-4 h-4 text-blue-600">
-            <svg class="w-full h-full" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
-          <span id="searchStatus" class="text-sm text-slate-600"></span>
-        </div>
       </div>
+
+      <!-- Account Filter -->
+      <select
+        id="accountFilter"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[200px]"
+      >
+        <option value="">All Accounts</option>
+      </select>
+
+      <!-- Sort -->
+      <select
+        id="sortBy"
+        class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[180px]"
+      >
+        <option value="name-asc" selected>Name A → Z</option>
+        <option value="name-desc">Name Z → A</option>
+      </select>
+
+      <!-- Reset -->
+      <button
+        id="resetFilters"
+        class="px-4 py-2.5 text-sm text-slate-600 border border-slate-200 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap"
+      >
+        Reset
+      </button>
+    </div>
+
+    <!-- Status line -->
+    <div class="flex items-center gap-2 mt-3">
+      <div id="searchSpinner" class="hidden animate-spin w-4 h-4 text-blue-600">
+        <svg class="w-full h-full" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+      <span id="searchStatus" class="text-sm text-slate-600"></span>
     </div>
   </div>
 
@@ -185,37 +211,26 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const emptyState = document.getElementById('emptyState') as HTMLDivElement;
       const searchInput = document.getElementById('searchInput') as HTMLInputElement;
       const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
-      const searchStatus = document.getElementById('searchStatus') as HTMLDivElement;
+      const searchStatus = document.getElementById('searchStatus') as HTMLSpanElement;
+      const accountFilter = document.getElementById('accountFilter') as HTMLSelectElement;
+      const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
+      const resetFilters = document.getElementById('resetFilters') as HTMLButtonElement;
 
       if (!loadingDiv || !errorDiv || !errorText || !contactsTable || !contactsBody || !emptyState || !searchInput || !searchSpinner || !searchStatus) {
         console.error('[CONTACT LOOKUP] Some DOM elements not found');
         return;
       }
 
-    function buildSearchQuery(searchTerm: string): string {
-      if (!searchTerm.trim()) {
-        return '';
-      }
-      const rawWhere = `(Name,like,%${searchTerm}%)`;
-      const encodedWhere = encodeURIComponent(rawWhere);
-      return `where=${encodedWhere}&pageSize=15`;
-    }
+    let allContacts: any[] = [];
 
-    async function searchContacts(searchTerm: string) {
+    async function loadContacts() {
       try {
-        searchSpinner.classList.remove('hidden');
-        searchStatus.textContent = 'Searching...';
-        searchStatus.classList.add('text-blue-600');
-        errorDiv.classList.add('hidden');
+        loadingDiv.classList.remove('hidden');
         contactsTable.classList.add('hidden');
         emptyState.classList.add('hidden');
+        errorDiv.classList.add('hidden');
 
-        const queryString = buildSearchQuery(searchTerm);
-        const url = queryString 
-          ? `${API_BASE_URL}/proxy/contacts/records?${queryString}`
-          : `${API_BASE_URL}/proxy/contacts/records?pageSize=15`;
-
-        const response = await fetch(url, {
+        const response = await fetch(`${API_BASE_URL}/proxy/contacts/records`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -228,43 +243,72 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
 
         const data = await safeJsonParse(response);
-        console.log('[CONTACT LOOKUP] Response received, records count:', data.records?.length || 0);
-        
-        // Log only first 3 records for debugging
-        if (data.records && data.records.length > 0) {
-          console.log('[CONTACT LOOKUP] Sample records (first 3):', data.records.slice(0, 3));
-        }
-        
-        displayResults(data.records || [], searchTerm);
+        allContacts = data.records || [];
+        populateAccountFilter();
+        applyFilters();
 
       } catch (error) {
-        console.error('[CONTACT SEARCH ERROR]', error);
-        searchSpinner.classList.add('hidden');
-        searchStatus.textContent = '';
-        searchStatus.classList.remove('text-blue-600');
-        errorText.textContent = error instanceof Error ? error.message : 'Search failed';
+        console.error('[CONTACT LOAD ERROR]', error);
+        loadingDiv.classList.add('hidden');
+        errorText.textContent = error instanceof Error ? error.message : 'Failed to load contacts';
         errorDiv.classList.remove('hidden');
 
         if (error instanceof Error && error.message.includes('Unauthorized')) {
-          setTimeout(() => {
-            window.location.href = '/login';
-          }, 2000);
+          setTimeout(() => { window.location.href = '/login'; }, 2000);
         }
       }
     }
 
-    function displayResults(contacts: any[], searchTerm: string) {
+    function populateAccountFilter() {
+      const currentValue = accountFilter.value;
+      const names = [...new Set(
+        allContacts
+          .map((r: any) => r.fields?.['Accounts duplicate']?.fields?.['Account Name'])
+          .filter(Boolean)
+      )].sort() as string[];
+
+      accountFilter.innerHTML = '<option value="">All Accounts</option>' +
+        names.map(n => `<option value="${n}"${n === currentValue ? ' selected' : ''}>${n}</option>`).join('');
+    }
+
+    function applyFilters() {
+      const search = searchInput.value.trim().toLowerCase();
+      const selectedAccount = accountFilter.value;
+      const sort = sortBy.value;
+
+      let result = allContacts.filter((record: any) => {
+        const fields = record.fields || {};
+        const name = (fields['Name'] || '').toLowerCase();
+        const email = (fields['Email'] || '').toLowerCase();
+        const accountName = fields['Accounts duplicate']?.fields?.['Account Name'] || '';
+        if (search && !name.includes(search) && !email.includes(search)) return false;
+        if (selectedAccount && accountName !== selectedAccount) return false;
+        return true;
+      });
+
+      if (sort === 'name-asc') {
+        result.sort((a: any, b: any) => (a.fields['Name'] || '').localeCompare(b.fields['Name'] || ''));
+      } else if (sort === 'name-desc') {
+        result.sort((a: any, b: any) => (b.fields['Name'] || '').localeCompare(a.fields['Name'] || ''));
+      }
+
+      displayResults(result);
+    }
+
+    function displayResults(contacts: any[]) {
       searchSpinner.classList.add('hidden');
       loadingDiv.classList.add('hidden');
-      
+
       if (contacts.length === 0) {
-        searchStatus.textContent = searchTerm ? `No results for "${searchTerm}"` : 'No contacts found';
+        const search = searchInput.value.trim();
+        searchStatus.textContent = search ? `No results for "${search}"` : 'No contacts found';
         searchStatus.classList.remove('text-blue-600');
         emptyState.classList.remove('hidden');
+        contactsTable.classList.add('hidden');
         return;
       }
 
-      searchStatus.textContent = `Found ${contacts.length} contact${contacts.length !== 1 ? 's' : ''}`;
+      searchStatus.textContent = `Showing ${contacts.length} contact${contacts.length !== 1 ? 's' : ''}`;
       searchStatus.classList.remove('text-blue-600');
 
       contactsBody.innerHTML = contacts.map((record: any, index: number) => {
@@ -318,26 +362,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }).join('');
 
       contactsTable.classList.remove('hidden');
-      
-      // Update contact count
-      const contactCountEl = document.getElementById('contactCount');
-      if (contactCountEl) {
-        contactCountEl.textContent = contacts.length.toString();
-      }
+      emptyState.classList.add('hidden');
     }
 
     // Initial load
-    loadingDiv.classList.remove('hidden');
-    searchContacts('');
+    loadContacts();
 
-    // Debounced search on input
-    const debouncedSearch = debounce((searchTerm: string) => {
-      searchContacts(searchTerm);
-    }, 400);
-
-    searchInput.addEventListener('input', (e) => {
-      const target = e.target as HTMLInputElement;
-      debouncedSearch(target.value);
+    searchInput.addEventListener('input', debounce(() => applyFilters(), 300));
+    accountFilter.addEventListener('change', applyFilters);
+    sortBy.addEventListener('change', applyFilters);
+    resetFilters.addEventListener('click', () => {
+      searchInput.value = '';
+      accountFilter.value = '';
+      sortBy.value = 'name-asc';
+      applyFilters();
     });
 
     // --- Edit / Delete via event delegation ---
@@ -493,7 +531,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
 
         closeModal();
-        searchContacts(searchInput.value);
+        await loadContacts();
       } catch (err: any) {
         editModalErrorText.textContent = err.message || 'Failed to save changes';
         editModalError.classList.remove('hidden');
@@ -518,7 +556,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           throw new Error('Failed to delete contact');
         }
 
-        searchContacts(searchInput.value);
+        await loadContacts();
       } catch (err: any) {
         errorText.textContent = err.message || 'Failed to delete contact';
         errorDiv.classList.remove('hidden');
