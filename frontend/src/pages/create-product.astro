@@ -19,15 +19,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     <p class="text-sm text-slate-500 mt-1">Fill in the details below to add a product to the catalogue.</p>
   </div>
 
-  <!-- Error Banner -->
-  <div id="errorBanner" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-    <div class="flex items-center gap-3">
-      <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      <p class="text-sm text-red-800" id="errorText"></p>
-    </div>
-  </div>
 
   <!-- Form -->
   <form id="createProductForm" class="space-y-6">
@@ -219,28 +210,30 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       window.location.href = '/login';
     }
 
+    function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
+      const container = document.getElementById('toastContainer')!;
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-red-500' : 'bg-slate-700';
+      const icon = type === 'success'
+        ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`
+        : `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      toast.setAttribute('data-toast', '');
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm font-semibold shadow-xl max-w-sm ${bg} opacity-0 translate-x-4 transition-all duration-200`;
+      toast.innerHTML = `${icon}<span class="flex-1 leading-snug">${message}</span><button class="ml-2 opacity-60 hover:opacity-100 text-base leading-none transition-opacity" onclick="this.closest('[data-toast]').remove()">✕</button>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-x-4')));
+      setTimeout(() => { toast.classList.add('opacity-0', 'translate-x-4'); setTimeout(() => toast.remove(), 200); }, 3500);
+    }
+
     const form = document.getElementById('createProductForm') as HTMLFormElement;
     const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
-    const errorBanner = document.getElementById('errorBanner') as HTMLDivElement;
-    const errorText = document.getElementById('errorText') as HTMLParagraphElement;
-
-    function showError(msg: string) {
-      errorText.textContent = msg;
-      errorBanner.classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function hideError() {
-      errorBanner.classList.add('hidden');
-    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      hideError();
 
       const productName = (document.getElementById('productName') as HTMLInputElement).value.trim();
       if (!productName) {
-        showError('Product Name is required.');
+        showToast('Product Name is required.', 'error');
         return;
       }
 
@@ -298,7 +291,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         window.location.href = '/products';
       } catch (error) {
-        showError(error instanceof Error ? error.message : 'Failed to save product. Please try again.');
+        showToast(error instanceof Error ? error.message : 'Failed to save product. Please try again.', 'error');
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,4 +301,5 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     });
   </script>
+  <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
 </AdminLayout>

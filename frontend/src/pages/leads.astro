@@ -9,68 +9,69 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <div>
         <h1 class="text-2xl font-semibold text-slate-800">Lead Management</h1>
       </div>
-      <a href="/create-lead" class="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        Add New Lead
-      </a>
+      <div class="flex items-center gap-3">
+        <button id="holidayModeBtn" class="inline-flex items-center gap-2 px-4 py-3 bg-amber-50 text-amber-700 text-sm font-semibold rounded-lg hover:bg-amber-100 transition-all border border-amber-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          Away / Holiday
+        </button>
+        <a href="/create-lead" class="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Add New Lead
+        </a>
+      </div>
     </div>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <!-- Total Leads -->
-    <div class="bg-blue-500 rounded-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium opacity-90">Total Leads</p>
-          <p id="totalLeads" class="text-3xl font-bold mt-1">0</p>
-        </div>
-        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+  <!-- Holiday / Away Panel -->
+  <div id="holidayPanel" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-wrap">
+      <div class="flex items-center gap-2 text-amber-800 font-semibold text-sm">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
         </svg>
+        Away / Holiday — showing leads needing attention while you're out
+      </div>
+      <div class="flex items-center gap-2 flex-wrap sm:ml-auto">
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-medium text-amber-700 whitespace-nowrap">From</label>
+          <input type="date" id="holidayStart" class="px-3 py-1.5 border border-amber-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+        </div>
+        <div class="flex items-center gap-2">
+          <label class="text-xs font-medium text-amber-700 whitespace-nowrap">To</label>
+          <input type="date" id="holidayEnd" class="px-3 py-1.5 border border-amber-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+        </div>
+        <span id="holidaySummary" class="text-xs font-semibold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full"></span>
+        <button id="exitHolidayBtn" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-700 text-xs font-semibold rounded-lg hover:bg-amber-50 transition-colors">
+          Exit
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Active Leads -->
-    <div class="bg-green-500 rounded-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium opacity-90">Active Leads</p>
-          <p id="activeLeads" class="text-3xl font-bold mt-1">0</p>
-        </div>
-        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Sales -->
-    <div class="bg-yellow-500 rounded-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium opacity-90">Sales</p>
-          <p id="salesLeads" class="text-3xl font-bold mt-1">0</p>
-        </div>
-        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-      </div>
-    </div>
-
-    <!-- Closed -->
-    <div class="bg-slate-500 rounded-lg p-6 text-white">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm font-medium opacity-90">Closed</p>
-          <p id="closedLeads" class="text-3xl font-bold mt-1">0</p>
-        </div>
-        <svg class="w-12 h-12 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </div>
-    </div>
+  <!-- Smart Action Tabs -->
+  <div class="flex gap-2 mb-6 flex-wrap">
+    <button class="smart-tab px-4 py-2 rounded-full text-sm font-semibold bg-slate-800 text-white shadow-sm transition-all" data-tab="all">
+      All <span class="tab-count ml-1.5 bg-white/20 px-1.5 py-0.5 rounded-full text-xs font-bold text-white" id="tabAll">0</span>
+    </button>
+    <button class="smart-tab px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-sm transition-all" data-tab="overdue">
+      <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1.5 align-middle"></span>Overdue <span class="tab-count ml-1 bg-slate-100 px-1.5 py-0.5 rounded-full text-xs font-bold text-slate-700" id="tabOverdue">0</span>
+    </button>
+    <button class="smart-tab px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-sm transition-all" data-tab="today">
+      <span class="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1.5 align-middle"></span>Today <span class="tab-count ml-1 bg-slate-100 px-1.5 py-0.5 rounded-full text-xs font-bold text-slate-700" id="tabToday">0</span>
+    </button>
+    <button class="smart-tab px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-sm transition-all" data-tab="tomorrow">
+      <span class="inline-block w-2 h-2 rounded-full bg-blue-400 mr-1.5 align-middle"></span>Tomorrow <span class="tab-count ml-1 bg-slate-100 px-1.5 py-0.5 rounded-full text-xs font-bold text-slate-700" id="tabTomorrow">0</span>
+    </button>
+    <button class="smart-tab px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-sm transition-all" data-tab="week">
+      <span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1.5 align-middle"></span>This Week <span class="tab-count ml-1 bg-slate-100 px-1.5 py-0.5 rounded-full text-xs font-bold text-slate-700" id="tabWeek">0</span>
+    </button>
+    <button class="smart-tab px-4 py-2 rounded-full text-sm font-semibold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-sm transition-all" data-tab="no-date">
+      <span class="inline-block w-2 h-2 rounded-full bg-slate-400 mr-1.5 align-middle"></span>No Date <span class="tab-count ml-1 bg-slate-100 px-1.5 py-0.5 rounded-full text-xs font-bold text-slate-700" id="tabNoDate">0</span>
+    </button>
   </div>
 
   <!-- Search and Filter Bar -->
@@ -180,10 +181,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
             <th class="w-[20%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Lead Info</th>
-            <th class="w-[18%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Contact</th>
-            <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+            <th class="w-[16%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Contact</th>
+            <th class="w-[13%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
             <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Type</th>
-            <th class="w-[12%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned</th>
+            <th class="w-[11%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Assigned</th>
             <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Last Contact</th>
             <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Follow-up</th>
             <th class="w-[10%] px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
@@ -200,179 +201,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       </svg>
       <p class="text-slate-600 font-medium mb-1">No leads found</p>
       <p class="text-sm text-slate-500">Click "Add New Lead" to get started</p>
-    </div>
-  </div>
-
-  <!-- View Lead Modal -->
-  <div id="viewLeadModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-      <!-- Modal Header -->
-      <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h2 class="text-xl font-bold text-slate-800" id="viewLeadTitle">Lead Details</h2>
-          <p class="text-xs text-slate-500 mt-0.5" id="viewLeadId"></p>
-        </div>
-        <button id="closeViewModalBtn" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-          <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="p-6 space-y-6">
-        <!-- Status + Source badges -->
-        <div class="flex flex-wrap gap-2">
-          <span id="viewStatus" class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold"></span>
-          <span id="viewSource" class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold"></span>
-        </div>
-
-        <!-- Lead Info -->
-        <div>
-          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Lead Information</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Lead Name</p>
-              <p class="text-sm font-medium text-slate-800" id="viewLeadName">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Company</p>
-              <p class="text-sm font-medium text-slate-800" id="viewCompany">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Contact Person</p>
-              <p class="text-sm font-medium text-slate-800" id="viewContactPerson">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Assigned To</p>
-              <p class="text-sm font-medium text-slate-800" id="viewAssignedTo">—</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Contact Info -->
-        <div>
-          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Contact</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Phone Number</p>
-              <p class="text-sm font-medium text-slate-800" id="viewPhone">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Email</p>
-              <p class="text-sm font-medium text-slate-800" id="viewEmail">—</p>
-            </div>
-            <div id="viewPhone2Section" class="hidden">
-              <p class="text-xs text-slate-500 mb-0.5">Phone 2</p>
-              <p class="text-sm font-medium text-slate-800" id="viewPhone2">—</p>
-            </div>
-            <div id="viewPhone3Section" class="hidden">
-              <p class="text-xs text-slate-500 mb-0.5">Phone 3</p>
-              <p class="text-sm font-medium text-slate-800" id="viewPhone3">—</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Billing Address -->
-        <div id="viewBillingSection" class="hidden">
-          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Billing Address</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="sm:col-span-2">
-              <p class="text-xs text-slate-500 mb-0.5">Street</p>
-              <p class="text-sm font-medium text-slate-800" id="viewBillingStreet">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">City</p>
-              <p class="text-sm font-medium text-slate-800" id="viewBillingCity">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">State</p>
-              <p class="text-sm font-medium text-slate-800" id="viewBillingState">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Postal Code</p>
-              <p class="text-sm font-medium text-slate-800" id="viewBillingCode">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Country</p>
-              <p class="text-sm font-medium text-slate-800" id="viewBillingCountry">—</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Shipping Address -->
-        <div id="viewShippingSection" class="hidden">
-          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Shipping Address</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="sm:col-span-2">
-              <p class="text-xs text-slate-500 mb-0.5">Street</p>
-              <p class="text-sm font-medium text-slate-800" id="viewShippingStreet">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">City</p>
-              <p class="text-sm font-medium text-slate-800" id="viewShippingCity">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">State</p>
-              <p class="text-sm font-medium text-slate-800" id="viewShippingState">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Postal Code</p>
-              <p class="text-sm font-medium text-slate-800" id="viewShippingCode">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Country</p>
-              <p class="text-sm font-medium text-slate-800" id="viewShippingCountry">—</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Dates -->
-        <div>
-          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Dates</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Last Contacted</p>
-              <p class="text-sm font-medium text-slate-800" id="viewLastContacted">—</p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 mb-0.5">Next Follow-up</p>
-              <p class="text-sm font-medium" id="viewNextFollowUp">—</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Notes -->
-        <div id="viewNotesSection">
-          <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Notes / Requirements</h3>
-          <p class="text-sm text-slate-700 whitespace-pre-wrap bg-slate-50 rounded-lg p-4 border border-slate-200" id="viewNotes"></p>
-        </div>
-
-        <!-- Footer -->
-        <div class="flex justify-end gap-3 pt-2 border-t border-slate-200">
-          <button
-            id="viewToConvertBtn"
-            class="hidden px-5 py-2.5 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-700 transition-colors items-center gap-2"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-            </svg>
-            Convert to Account
-          </button>
-          <button
-            id="viewToEditBtn"
-            class="px-5 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors"
-          >
-            Edit Lead
-          </button>
-          <button
-            id="closeViewModalBtnBottom"
-            class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -600,11 +428,73 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
   </div>
 
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Confirm Dialog -->
+  <div id="confirmDialog" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9998] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+      <p class="text-slate-800 font-semibold text-sm mb-5" id="confirmMessage"></p>
+      <div class="flex gap-3 justify-end">
+        <button id="confirmCancelBtn" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+        <button id="confirmOkBtn" class="px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"></button>
+      </div>
+    </div>
+  </div>
+
+
   <script>
     import { getToken, logout, safeJsonParse, getUserInfo } from '../lib/api';
     import { debounce } from '../utils/debounce';
 
     const API_BASE_URL = `http://${window.location.hostname}:8082`;
+
+    function showConfirm(message: string, okLabel = 'Confirm', okClass = 'bg-red-600 hover:bg-red-700'): Promise<boolean> {
+      return new Promise((resolve) => {
+        const dialog = document.getElementById('confirmDialog') as HTMLDivElement;
+        const okBtn = document.getElementById('confirmOkBtn') as HTMLButtonElement;
+        const cancelBtn = document.getElementById('confirmCancelBtn') as HTMLButtonElement;
+        (document.getElementById('confirmMessage') as HTMLElement).textContent = message;
+        okBtn.textContent = okLabel;
+        okBtn.className = `px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${okClass}`;
+        dialog.classList.remove('hidden');
+        function cleanup(result: boolean) {
+          dialog.classList.add('hidden');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          dialog.removeEventListener('click', onOutside);
+          resolve(result);
+        }
+        const onOk = () => cleanup(true);
+        const onCancel = () => cleanup(false);
+        const onOutside = (e: MouseEvent) => { if (e.target === dialog) cleanup(false); };
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        dialog.addEventListener('click', onOutside);
+      });
+    }
+
+    function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
+      const container = document.getElementById('toastContainer')!;
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-red-500' : 'bg-slate-700';
+      const icon = type === 'success'
+        ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`
+        : type === 'error'
+        ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+        : `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      toast.setAttribute('data-toast', '');
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm font-semibold shadow-xl max-w-sm ${bg} opacity-0 translate-x-4 transition-all duration-200`;
+      toast.innerHTML = `${icon}<span class="flex-1 leading-snug">${message}</span><button class="ml-2 opacity-60 hover:opacity-100 text-base leading-none transition-opacity" onclick="this.closest('[data-toast]').remove()">✕</button>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        toast.classList.remove('opacity-0', 'translate-x-4');
+      }));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-x-4');
+        setTimeout(() => toast.remove(), 200);
+      }, 3500);
+    }
 
     function getUserEmail(): string | null {
       return localStorage.getItem('user_email');
@@ -774,18 +664,38 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
-    function updateStats(leads: any[]) {
-      const total = leads.length;
-      const active = leads.filter((l: any) => 
-        ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation'].includes(l.fields?.['Status'])
-      ).length;
-      const sales = leads.filter((l: any) => l.fields?.['Status'] === 'Converted').length;
-      const closed = leads.filter((l: any) => ['Converted', 'Lost'].includes(l.fields?.['Status'])).length;
+    function getFollowUpCategory(dateStr: string): string {
+      if (!dateStr) return 'no-date';
+      const d = new Date(dateStr);
+      d.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays < 0) return 'overdue';
+      if (diffDays === 0) return 'today';
+      if (diffDays === 1) return 'tomorrow';
+      if (diffDays <= 7) return 'week';
+      return 'future';
+    }
 
-      (document.getElementById('totalLeads') as HTMLElement).textContent = total.toString();
-      (document.getElementById('activeLeads') as HTMLElement).textContent = active.toString();
-      (document.getElementById('salesLeads') as HTMLElement).textContent = sales.toString();
-      (document.getElementById('closedLeads') as HTMLElement).textContent = closed.toString();
+    function updateStats(leads: any[]) {
+      let overdue = 0, today = 0, tomorrow = 0, week = 0, noDate = 0;
+
+      leads.forEach((lead: any) => {
+        const cat = getFollowUpCategory(lead.fields?.['Next Follow-up'] || '');
+        if (cat === 'overdue') overdue++;
+        else if (cat === 'today') today++;
+        else if (cat === 'tomorrow') tomorrow++;
+        else if (cat === 'week') week++;
+        else if (cat === 'no-date') noDate++;
+      });
+
+      (document.getElementById('tabAll') as HTMLElement).textContent = leads.length.toString();
+      (document.getElementById('tabOverdue') as HTMLElement).textContent = overdue.toString();
+      (document.getElementById('tabToday') as HTMLElement).textContent = today.toString();
+      (document.getElementById('tabTomorrow') as HTMLElement).textContent = tomorrow.toString();
+      (document.getElementById('tabWeek') as HTMLElement).textContent = (today + tomorrow + week).toString();
+      (document.getElementById('tabNoDate') as HTMLElement).textContent = noDate.toString();
     }
 
     function renderLeads(leads: any[]) {
@@ -835,7 +745,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const isOverdue = nextFollowUp && new Date(nextFollowUp) < new Date();
 
         return `
-          <tr class="group hover:bg-slate-50/80 transition-all border-b border-slate-100 last:border-0">
+          <tr class="group hover:bg-slate-50/80 transition-all border-b border-slate-100 last:border-0 cursor-pointer lead-row" data-lead-id="${record.id}">
             <td class="px-4 py-4">
               <div class="min-w-0">
                 <div class="text-sm font-semibold text-slate-900 truncate">${leadName}</div>
@@ -849,8 +759,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               </div>
             </td>
             <td class="px-4 py-4">
-              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${statusClasses} shadow-sm whitespace-nowrap">
+              <span class="status-chip inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${statusClasses} whitespace-nowrap cursor-pointer select-none hover:opacity-80 transition-opacity" data-lead-id="${record.id}">
                 ${status}
+                <svg class="w-3 h-3 opacity-50 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </span>
             </td>
             <td class="px-4 py-4">
@@ -876,30 +787,42 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               ` : '<div class="text-xs text-slate-400">-</div>'}
             </td>
             <td class="px-4 py-4">
-              <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button class="view-lead-btn p-1.5 rounded-lg hover:bg-blue-50 hover:shadow-sm transition-all" title="View Details" data-lead-id="${record.id}">
-                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                </button>
-                <button class="edit-lead-btn p-1.5 rounded-lg hover:bg-green-50 hover:shadow-sm transition-all" title="Edit" data-lead-id="${record.id}">
-                  <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                </button>
-                ${canConvert ? `
-                <button class="convert-lead-btn p-1.5 rounded-lg hover:bg-emerald-50 hover:shadow-sm transition-all" title="Convert to Account" data-lead-id="${record.id}">
-                  <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
-                  </svg>
-                </button>
-                ` : ''}
-                <button class="delete-lead-btn p-1.5 rounded-lg hover:bg-red-50 hover:shadow-sm transition-all" title="Delete" data-lead-id="${record.id}">
-                  <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
+              <div class="flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex items-center gap-1">
+                  <a href="/lead-detail?id=${record.id}" class="p-1.5 rounded-lg hover:bg-blue-50 hover:shadow-sm transition-all" title="View Details">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </a>
+                  <button class="edit-lead-btn p-1.5 rounded-lg hover:bg-green-50 hover:shadow-sm transition-all" title="Edit" data-lead-id="${record.id}">
+                    <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                  </button>
+                  ${canConvert ? `
+                  <button class="convert-lead-btn p-1.5 rounded-lg hover:bg-emerald-50 hover:shadow-sm transition-all" title="Convert to Account" data-lead-id="${record.id}">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                    </svg>
+                  </button>
+                  ` : ''}
+                  <button class="delete-lead-btn p-1.5 rounded-lg hover:bg-red-50 hover:shadow-sm transition-all" title="Delete" data-lead-id="${record.id}">
+                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </div>
+                <div class="flex items-center gap-1 flex-wrap">
+                  ${status !== 'Converted' && status !== 'Lost' ? `
+                  <button class="contacted-btn px-2 py-0.5 text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full hover:bg-cyan-100 transition-colors whitespace-nowrap" title="Mark as Contacted + set Last Contacted to today" data-lead-id="${record.id}">
+                    ✓ Contacted
+                  </button>` : ''}
+                  ${nextFollowUp ? `
+                  <button class="snooze-btn px-2 py-0.5 text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200 rounded-full hover:bg-violet-100 transition-colors whitespace-nowrap" title="Push follow-up forward by 1 day" data-lead-id="${record.id}">
+                    +1 Day
+                  </button>` : ''}
+                </div>
               </div>
             </td>
           </tr>
@@ -908,6 +831,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       emptyState.classList.add('hidden');
       leadsTable.classList.remove('hidden');
+    }
+
+    let activeTab = 'all';
+    let holidayModeActive = false;
+
+    function setActiveTab(tab: string) {
+      activeTab = tab;
+
+      document.querySelectorAll('.smart-tab').forEach((btn) => {
+        const b = btn as HTMLButtonElement;
+        const badge = b.querySelector('.tab-count') as HTMLElement;
+        if (b.dataset.tab === tab) {
+          b.classList.add('bg-slate-800', 'text-white');
+          b.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200', 'hover:bg-slate-50');
+          if (badge) { badge.classList.remove('bg-slate-100', 'text-slate-700'); badge.classList.add('bg-white/20', 'text-white'); }
+        } else {
+          b.classList.remove('bg-slate-800', 'text-white');
+          b.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200', 'hover:bg-slate-50');
+          if (badge) { badge.classList.add('bg-slate-100', 'text-slate-700'); badge.classList.remove('bg-white/20', 'text-white'); }
+        }
+      });
+
+      applyFilters();
     }
 
     function applyFilters() {
@@ -926,17 +872,42 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const source = fields['Source'] || '';
         const assignedTo = fields['Assigned to'] || '';
 
-        const matchesSearch = !searchTerm || 
-          leadName.includes(searchTerm) || 
-          company.includes(searchTerm) || 
+        let matchesTab = true;
+        if (holidayModeActive) {
+          const startVal = (document.getElementById('holidayStart') as HTMLInputElement).value;
+          const endVal = (document.getElementById('holidayEnd') as HTMLInputElement).value;
+          if (startVal && endVal) {
+            const followUp = fields['Next Follow-up'];
+            if (!followUp) {
+              matchesTab = false;
+            } else {
+              const d = new Date(followUp);
+              d.setHours(0, 0, 0, 0);
+              const start = new Date(startVal); start.setHours(0, 0, 0, 0);
+              const end = new Date(endVal); end.setHours(23, 59, 59, 999);
+              matchesTab = d >= start && d <= end;
+            }
+          }
+        } else if (activeTab !== 'all') {
+          const cat = getFollowUpCategory(fields['Next Follow-up'] || '');
+          if (activeTab === 'overdue') matchesTab = cat === 'overdue';
+          else if (activeTab === 'today') matchesTab = cat === 'today';
+          else if (activeTab === 'tomorrow') matchesTab = cat === 'tomorrow';
+          else if (activeTab === 'week') matchesTab = cat === 'today' || cat === 'tomorrow' || cat === 'week';
+          else if (activeTab === 'no-date') matchesTab = cat === 'no-date';
+        }
+
+        const matchesSearch = !searchTerm ||
+          leadName.includes(searchTerm) ||
+          company.includes(searchTerm) ||
           phone.includes(searchTerm) ||
           email.includes(searchTerm);
-        
+
         const matchesStatus = !statusValue || status === statusValue;
         const matchesSource = !sourceValue || source === sourceValue;
         const matchesAssignedTo = !assignedToValue || assignedTo === assignedToValue;
 
-        return matchesSearch && matchesStatus && matchesSource && matchesAssignedTo;
+        return matchesTab && matchesSearch && matchesStatus && matchesSource && matchesAssignedTo;
       });
 
       renderLeads(filtered);
@@ -1002,7 +973,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function openEditModal(leadId: number) {
       const lead = allLeads.find((l: any) => l.id === leadId);
       if (!lead) {
-        alert('Lead not found');
+        showToast('Lead not found', 'error');
         return;
       }
 
@@ -1075,7 +1046,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const notes = (document.getElementById('editNotes') as HTMLTextAreaElement).value;
 
       if (!leadName || !phoneNumber || !source || !status) {
-        alert('Please fill in all required fields');
+        showToast('Please fill in all required fields', 'error');
         return;
       }
 
@@ -1128,11 +1099,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Reload leads to reflect changes
         await loadLeads();
 
-        // Show success message (optional)
-        alert('Lead updated successfully!');
+        showToast('Lead updated successfully!', 'success');
       } catch (error) {
         console.error('[LEAD UPDATE] Error:', error);
-        alert(error instanceof Error ? error.message : 'Failed to update lead');
+        showToast(error instanceof Error ? error.message : 'Failed to update lead', 'error');
       } finally {
         saveEditBtn.disabled = false;
         saveEditBtn.textContent = 'Save Changes';
@@ -1156,7 +1126,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       
       // Check if user is admin
       if (userRole !== 'admin') {
-        alert('Only administrators can delete leads.');
+        showToast('Only administrators can delete leads.', 'error');
         return;
       }
 
@@ -1164,7 +1134,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const lead = allLeads.find((l: any) => l.id === leadId);
       const leadName = lead?.fields?.['Lead Name'] || 'this lead';
       
-      if (!confirm(`Are you sure you want to delete "${leadName}"? This action cannot be undone.`)) {
+      if (!await showConfirm(`Delete "${leadName}"? This cannot be undone.`, 'Delete')) {
         return;
       }
 
@@ -1193,10 +1163,66 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Reload leads to reflect changes
         await loadLeads();
 
-        alert('Lead deleted successfully!');
+        showToast('Lead deleted successfully!', 'success');
       } catch (error) {
         console.error('[LEAD DELETE] Error:', error);
-        alert(error instanceof Error ? error.message : 'Failed to delete lead');
+        showToast(error instanceof Error ? error.message : 'Failed to delete lead', 'error');
+      }
+    }
+
+    // Quick action: mark as Contacted + set Last Contacted = today
+    async function markContacted(leadId: number) {
+      const lead = allLeads.find((l: any) => l.id === leadId);
+      if (!lead) return;
+
+      const today = new Date().toISOString().split('T')[0];
+
+      // Optimistic update
+      lead.fields['Status'] = 'Contacted';
+      lead.fields['Last Contacted'] = today;
+      updateStats(allLeads);
+      applyFilters();
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: leadId, fields: { 'Status': 'Contacted', 'Last Contacted': today } })
+        });
+        if (!res.ok) throw new Error('PATCH failed');
+      } catch {
+        await loadLeads();
+        showToast('Failed to mark as contacted. Changes reverted.', 'error');
+      }
+    }
+
+    // Quick action: push Next Follow-up forward by 1 day
+    async function snoozeFollowUp(leadId: number) {
+      const lead = allLeads.find((l: any) => l.id === leadId);
+      if (!lead) return;
+
+      const current = lead.fields?.['Next Follow-up'];
+      if (!current) return;
+
+      const d = new Date(current);
+      d.setDate(d.getDate() + 1);
+      const newDate = d.toISOString().split('T')[0];
+
+      // Optimistic update
+      lead.fields['Next Follow-up'] = newDate;
+      updateStats(allLeads);
+      applyFilters();
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: leadId, fields: { 'Next Follow-up': newDate } })
+        });
+        if (!res.ok) throw new Error('PATCH failed');
+      } catch {
+        await loadLeads();
+        showToast('Failed to snooze follow-up. Changes reverted.', 'error');
       }
     }
 
@@ -1379,216 +1405,238 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     confirmConvertBtn.addEventListener('click', performConversion);
     convertModal.addEventListener('click', (e) => { if (e.target === convertModal) closeConvertModal(); });
 
-    // View Modal
-    const viewLeadModal = document.getElementById('viewLeadModal') as HTMLDivElement;
-    const closeViewModalBtn = document.getElementById('closeViewModalBtn') as HTMLButtonElement;
-    const closeViewModalBtnBottom = document.getElementById('closeViewModalBtnBottom') as HTMLButtonElement;
-    const viewToEditBtn = document.getElementById('viewToEditBtn') as HTMLButtonElement;
-    let currentViewingLeadId: number | null = null;
-
-    function openViewModal(leadId: number) {
-      const lead = allLeads.find((l: any) => l.id === leadId);
-      if (!lead) return;
-
-      currentViewingLeadId = leadId;
-      const fields = lead.fields || {};
-
-      const status = fields['Status'] || 'New';
-      const source = fields['Source'] || '';
-
-      // Header
-      (document.getElementById('viewLeadTitle') as HTMLElement).textContent = fields['Lead Name'] || 'Lead Details';
-      (document.getElementById('viewLeadId') as HTMLElement).textContent = `ID: #${lead.id}`;
-
-      // Status badge
-      const statusEl = document.getElementById('viewStatus') as HTMLElement;
-      const statusColors: Record<string, string> = {
-        'New': 'bg-blue-100 text-blue-800',
-        'Contacted': 'bg-cyan-100 text-cyan-800',
-        'Qualified': 'bg-teal-100 text-teal-800',
-        'Proposal Sent': 'bg-purple-100 text-purple-800',
-        'Negotiation': 'bg-orange-100 text-orange-800',
-        'Converted': 'bg-green-100 text-green-800',
-        'Lost': 'bg-red-100 text-red-800',
-      };
-      statusEl.textContent = status;
-      statusEl.className = `inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold ${statusColors[status] || 'bg-slate-100 text-slate-800'}`;
-
-      // Source badge
-      const sourceEl = document.getElementById('viewSource') as HTMLElement;
-      const sourceColors: Record<string, string> = {
-        'Website': 'bg-blue-100 text-blue-800',
-        'Referral': 'bg-cyan-100 text-cyan-800',
-        'Cold Call': 'bg-teal-100 text-teal-800',
-        'IndiaMart': 'bg-pink-100 text-pink-800',
-        'Event': 'bg-red-100 text-red-800',
-      };
-      if (source) {
-        sourceEl.textContent = source;
-        sourceEl.className = `inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold ${sourceColors[source] || 'bg-slate-100 text-slate-800'}`;
-        sourceEl.classList.remove('hidden');
-      } else {
-        sourceEl.classList.add('hidden');
-      }
-
-      // Fields
-      const setText = (id: string, val: string | undefined, fallback = '—') => {
-        (document.getElementById(id) as HTMLElement).textContent = val || fallback;
-      };
-
-      setText('viewLeadName', fields['Lead Name']);
-      setText('viewCompany', fields['Company']);
-      setText('viewContactPerson', fields['Contact Person']);
-      setText('viewPhone', fields['Phone Number']);
-      setText('viewEmail', fields['Email']);
-
-      // Phone 2 & 3
-      const phone2 = fields['Phone Number 2'] || '';
-      const phone2Section = document.getElementById('viewPhone2Section') as HTMLElement;
-      if (phone2) { setText('viewPhone2', phone2); phone2Section.classList.remove('hidden'); }
-      else { phone2Section.classList.add('hidden'); }
-
-      const phone3 = fields['Phone Number 3'] || '';
-      const phone3Section = document.getElementById('viewPhone3Section') as HTMLElement;
-      if (phone3) { setText('viewPhone3', phone3); phone3Section.classList.remove('hidden'); }
-      else { phone3Section.classList.add('hidden'); }
-
-      // Billing Address
-      const billingSection = document.getElementById('viewBillingSection') as HTMLElement;
-      const hasBilling = fields['Billing Street'] || fields['Billing City'] || fields['Billing State'] || fields['Billing Code'] || fields['Billing Country'];
-      if (hasBilling) {
-        setText('viewBillingStreet', fields['Billing Street']);
-        setText('viewBillingCity', fields['Billing City']);
-        setText('viewBillingState', fields['Billing State']);
-        setText('viewBillingCode', fields['Billing Code']);
-        setText('viewBillingCountry', fields['Billing Country']);
-        billingSection.classList.remove('hidden');
-      } else {
-        billingSection.classList.add('hidden');
-      }
-
-      // Shipping Address
-      const shippingSection = document.getElementById('viewShippingSection') as HTMLElement;
-      const hasShipping = fields['Shipping Street'] || fields['Shipping City'] || fields['Shipping State'] || fields['Shipping Code'] || fields['Shipping Country'];
-      if (hasShipping) {
-        setText('viewShippingStreet', fields['Shipping Street']);
-        setText('viewShippingCity', fields['Shipping City']);
-        setText('viewShippingState', fields['Shipping State']);
-        setText('viewShippingCode', fields['Shipping Code']);
-        setText('viewShippingCountry', fields['Shipping Country']);
-        shippingSection.classList.remove('hidden');
-      } else {
-        shippingSection.classList.add('hidden');
-      }
-
-      const assignedEmail = fields['Assigned to'] || '';
-      setText('viewAssignedTo', assignedEmail ? (usersMap.get(assignedEmail) || assignedEmail) : undefined);
-
-      // Dates — show formatted date with relative time
-      const fmt = (dateStr: string) => {
-        if (!dateStr) return '';
-        const d = new Date(dateStr);
-        return d.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Kolkata' });
-      };
-
-      setText('viewLastContacted', fmt(fields['Last Contacted']));
-
-      const followUpEl = document.getElementById('viewNextFollowUp') as HTMLElement;
-      const followUpDate = fields['Next Follow-up'];
-      if (followUpDate) {
-        const isOverdue = new Date(followUpDate) < new Date();
-        followUpEl.textContent = fmt(followUpDate);
-        followUpEl.className = `text-sm font-medium ${isOverdue ? 'text-red-600' : 'text-slate-800'}`;
-      } else {
-        followUpEl.textContent = '—';
-        followUpEl.className = 'text-sm font-medium text-slate-800';
-      }
-
-      // Notes
-      const notes = fields['Notes'] || '';
-      const notesSection = document.getElementById('viewNotesSection') as HTMLElement;
-      if (notes) {
-        (document.getElementById('viewNotes') as HTMLElement).textContent = notes;
-        notesSection.classList.remove('hidden');
-      } else {
-        notesSection.classList.add('hidden');
-      }
-
-      // Show convert button only for admin or lead creator
-      const viewConvertBtn = document.getElementById('viewToConvertBtn') as HTMLButtonElement;
-      const leadCreator = fields['Lead Created By'] || '';
-      if (userRole === 'admin' || userEmail === leadCreator) {
-        viewConvertBtn.classList.remove('hidden');
-        viewConvertBtn.classList.add('flex');
-      } else {
-        viewConvertBtn.classList.add('hidden');
-        viewConvertBtn.classList.remove('flex');
-      }
-
-      viewLeadModal.classList.remove('hidden');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeViewModal() {
-      viewLeadModal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-      currentViewingLeadId = null;
-    }
-
-    closeViewModalBtn.addEventListener('click', closeViewModal);
-    closeViewModalBtnBottom.addEventListener('click', closeViewModal);
-    viewLeadModal.addEventListener('click', (e) => { if (e.target === viewLeadModal) closeViewModal(); });
-
-    viewToEditBtn.addEventListener('click', () => {
-      if (currentViewingLeadId !== null) {
-        closeViewModal();
-        openEditModal(currentViewingLeadId);
-      }
-    });
-
-    document.getElementById('viewToConvertBtn')!.addEventListener('click', () => {
-      if (currentViewingLeadId !== null) {
-        closeViewModal();
-        openConvertModal(currentViewingLeadId);
-      }
-    });
-
     // Attach button handlers (delegated event)
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
-      const viewBtn = target.closest('.view-lead-btn') as HTMLButtonElement;
+
+      // Status chip → open stage popover
+      const statusChip = target.closest('.status-chip') as HTMLElement;
+      if (statusChip) {
+        e.stopPropagation();
+        const leadId = parseInt(statusChip.getAttribute('data-lead-id') || '0');
+        if (leadId) openStagePopover(leadId, statusChip);
+        return;
+      }
+
       const editBtn = target.closest('.edit-lead-btn') as HTMLButtonElement;
       const deleteBtn = target.closest('.delete-lead-btn') as HTMLButtonElement;
       const convertBtn = target.closest('.convert-lead-btn') as HTMLButtonElement;
-
-      if (viewBtn) {
-        e.stopPropagation();
-        const leadId = parseInt(viewBtn.getAttribute('data-lead-id') || '0');
-        if (leadId) openViewModal(leadId);
-      }
+      const contactedBtn = target.closest('.contacted-btn') as HTMLButtonElement;
+      const snoozeBtn = target.closest('.snooze-btn') as HTMLButtonElement;
 
       if (editBtn) {
         e.stopPropagation();
         const leadId = parseInt(editBtn.getAttribute('data-lead-id') || '0');
-        if (leadId) {
-          openEditModal(leadId);
-        }
+        if (leadId) openEditModal(leadId);
+        return;
       }
 
       if (deleteBtn) {
         e.stopPropagation();
         const leadId = parseInt(deleteBtn.getAttribute('data-lead-id') || '0');
-        if (leadId) {
-          deleteLead(leadId);
-        }
+        if (leadId) deleteLead(leadId);
+        return;
       }
 
       if (convertBtn) {
         e.stopPropagation();
         const leadId = parseInt(convertBtn.getAttribute('data-lead-id') || '0');
         if (leadId) openConvertModal(leadId);
+        return;
+      }
+
+      if (contactedBtn) {
+        e.stopPropagation();
+        const leadId = parseInt(contactedBtn.getAttribute('data-lead-id') || '0');
+        if (leadId) markContacted(leadId);
+        return;
+      }
+
+      if (snoozeBtn) {
+        e.stopPropagation();
+        const leadId = parseInt(snoozeBtn.getAttribute('data-lead-id') || '0');
+        if (leadId) snoozeFollowUp(leadId);
+        return;
+      }
+
+      // Row click → navigate to detail page (only if no action was matched)
+      if (!editBtn && !deleteBtn && !convertBtn && !contactedBtn) {
+        const row = (target as HTMLElement).closest('.lead-row') as HTMLTableRowElement;
+        if (row) {
+          const leadId = row.getAttribute('data-lead-id');
+          if (leadId) window.location.href = `/lead-detail?id=${leadId}`;
+        }
       }
     });
+
+    // Smart tab click handlers
+    document.querySelectorAll('.smart-tab').forEach((btn) => {
+      btn.addEventListener('click', () => setActiveTab((btn as HTMLButtonElement).dataset.tab || 'all'));
+    });
+
+    // Holiday / Away mode
+    const holidayPanel = document.getElementById('holidayPanel') as HTMLDivElement;
+    const holidayStartInput = document.getElementById('holidayStart') as HTMLInputElement;
+    const holidayEndInput = document.getElementById('holidayEnd') as HTMLInputElement;
+    const holidaySummary = document.getElementById('holidaySummary') as HTMLSpanElement;
+    const smartTabsContainer = document.querySelector('.flex.gap-2.mb-6.flex-wrap') as HTMLDivElement;
+
+    function updateHolidaySummary() {
+      const startVal = holidayStartInput.value;
+      const endVal = holidayEndInput.value;
+      if (!startVal || !endVal) { holidaySummary.textContent = ''; return; }
+      const start = new Date(startVal); start.setHours(0, 0, 0, 0);
+      const end = new Date(endVal); end.setHours(23, 59, 59, 999);
+      const count = allLeads.filter((lead: any) => {
+        const followUp = lead.fields?.['Next Follow-up'];
+        if (!followUp) return false;
+        const d = new Date(followUp); d.setHours(0, 0, 0, 0);
+        return d >= start && d <= end;
+      }).length;
+      holidaySummary.textContent = count === 0 ? 'No leads in this period' : `${count} lead${count !== 1 ? 's' : ''} need attention`;
+    }
+
+    function enterHolidayMode() {
+      holidayModeActive = true;
+      holidayPanel.classList.remove('hidden');
+      smartTabsContainer.classList.add('hidden');
+      // Default: tomorrow to a week from now
+      const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+      const weekOut = new Date(); weekOut.setDate(weekOut.getDate() + 7);
+      holidayStartInput.value = tomorrow.toISOString().split('T')[0];
+      holidayEndInput.value = weekOut.toISOString().split('T')[0];
+      updateHolidaySummary();
+      applyFilters();
+    }
+
+    function exitHolidayMode() {
+      holidayModeActive = false;
+      holidayPanel.classList.add('hidden');
+      smartTabsContainer.classList.remove('hidden');
+      holidaySummary.textContent = '';
+      applyFilters();
+    }
+
+    document.getElementById('holidayModeBtn')!.addEventListener('click', enterHolidayMode);
+    document.getElementById('exitHolidayBtn')!.addEventListener('click', exitHolidayMode);
+
+    holidayStartInput.addEventListener('change', () => { updateHolidaySummary(); applyFilters(); });
+    holidayEndInput.addEventListener('change', () => { updateHolidaySummary(); applyFilters(); });
+
+    // ── Stage popover ──────────────────────────────────────────
+    const STAGES = ['New', 'Contacted', 'Qualified', 'Proposal Sent', 'Negotiation', 'Converted'];
+    let popoverLeadId: number | null = null;
+    let popoverEl: HTMLDivElement | null = null;
+
+    function openStagePopover(leadId: number, anchor: HTMLElement) {
+      closeStagePopover();
+      popoverLeadId = leadId;
+      const lead = allLeads.find((l: any) => l.id === leadId);
+      if (!lead) return;
+      const current = lead.fields?.['Status'] || 'New';
+
+      // Create element fresh every time, appended directly to body.
+      // Use position:absolute (not fixed) — fixed can silently fail when ancestor
+      // has overflow:hidden. Since the window never scrolls in this layout
+      // (only <main> scrolls), absolute on body stays at its viewport coords.
+      popoverEl = document.createElement('div');
+      Object.assign(popoverEl.style, {
+        position: 'absolute',
+        zIndex: '9999',
+        background: 'white',
+        borderRadius: '0.75rem',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 10px 25px -3px rgba(0,0,0,0.1),0 4px 6px -4px rgba(0,0,0,0.1)',
+        padding: '0.75rem',
+        width: '13rem',
+        fontFamily: 'inherit',
+        fontSize: 'inherit',
+      });
+
+      const stageItems = STAGES.map(stage => {
+        const isCurrent = stage === current;
+        return `<button class="popover-stage-btn w-full text-left flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-xs font-semibold transition-colors ${isCurrent ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}" data-stage="${stage}">
+          <span class="w-2 h-2 rounded-full flex-shrink-0 border ${isCurrent ? 'bg-indigo-500 border-indigo-500' : 'border-slate-300'}"></span>
+          ${stage}${isCurrent ? '<span class="ml-auto text-indigo-400 font-normal">now</span>' : ''}
+        </button>`;
+      }).join('');
+
+      popoverEl.innerHTML = `
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Move to Stage</p>
+        <div class="space-y-0.5">${stageItems}</div>
+        <div class="mt-2 pt-2 border-t border-slate-100">
+          <button class="popover-mark-lost w-full text-left text-xs font-semibold text-red-500 hover:text-red-700 flex items-center gap-2 px-2 py-1.5 hover:bg-red-50 rounded-lg transition-colors">
+            <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Mark as Lost
+          </button>
+        </div>`;
+
+      const rect = anchor.getBoundingClientRect();
+      popoverEl.style.top  = `${rect.bottom + 6}px`;
+      popoverEl.style.left = `${Math.min(rect.left, window.innerWidth - 224)}px`;
+      document.body.appendChild(popoverEl);
+
+      document.querySelector('main')?.addEventListener('scroll', closeStagePopover, { once: true });
+
+      popoverEl.querySelectorAll<HTMLButtonElement>('.popover-stage-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const newStage = btn.dataset.stage!;
+          if (newStage !== current && popoverLeadId) changeLeadStatus(popoverLeadId, newStage);
+          closeStagePopover();
+        });
+      });
+
+      popoverEl.querySelector<HTMLButtonElement>('.popover-mark-lost')!.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (!popoverLeadId) return;
+        const l = allLeads.find((x: any) => x.id === popoverLeadId);
+        const name = l?.fields?.['Lead Name'] || 'this lead';
+        const id = popoverLeadId;
+        closeStagePopover();
+        if (await showConfirm(`Mark "${name}" as Lost?`, 'Mark as Lost', 'bg-orange-600 hover:bg-orange-700')) changeLeadStatus(id, 'Lost');
+      });
+    }
+
+    function closeStagePopover() {
+      if (popoverEl) { popoverEl.remove(); popoverEl = null; }
+      popoverLeadId = null;
+    }
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (popoverEl
+          && !popoverEl.contains(e.target as Node)
+          && !(e.target as HTMLElement).closest('.status-chip')) {
+        closeStagePopover();
+      }
+    });
+
+    async function changeLeadStatus(leadId: number, newStatus: string) {
+      const lead = allLeads.find((l: any) => l.id === leadId);
+      if (!lead) return;
+      const oldStatus = lead.fields?.['Status'];
+
+      // Optimistic
+      lead.fields['Status'] = newStatus;
+      updateStats(allLeads);
+      applyFilters();
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: leadId, fields: { 'Status': newStatus } })
+        });
+        if (!res.ok) throw new Error('PATCH failed');
+      } catch {
+        lead.fields['Status'] = oldStatus;
+        updateStats(allLeads);
+        applyFilters();
+        showToast('Failed to update status. Please try again.', 'error');
+      }
+    }
+    // ── End stage popover ───────────────────────────────────────
 
     loadUsers();
     loadUsersForModal();

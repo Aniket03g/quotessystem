@@ -284,7 +284,7 @@ export const POST: APIRoute = async ({ request }) => {
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 9 },
-        1: { halign: 'left',   cellWidth: 52 },
+        1: { halign: 'left',   cellWidth: 52, overflow: 'linebreak' },
         2: { halign: 'center', cellWidth: 18 },
         3: { halign: 'center', cellWidth: 18 },
         4: { halign: 'right',  cellWidth: 28 },
@@ -304,28 +304,28 @@ export const POST: APIRoute = async ({ request }) => {
         if (data.column.index === 1 && data.section === 'body') {
           const cell = data.cell;
           const rawText = cell.raw as string;
-          
           if (rawText) {
-            const lines = rawText.split('\n');
-            if (lines.length > 0) {
-              // Draw the first line (product name) in bold over the existing text
-              const productName = lines[0];
-              doc.setFontSize(8);
-              doc.setFont('helvetica', 'bold');
-              doc.setTextColor(0, 0, 0);
-              
-              // Position at the start of the cell text
-              const textX = cell.x + 2;
-              const textY = cell.y + 4;
-              
-              // Draw white rectangle to cover the normal text of product name
-              const textWidth = doc.getTextWidth(productName);
+            const productName = rawText.split('\n')[0];
+            const availableWidth = cell.width - 4; // minus L+R padding
+
+            doc.setFontSize(8);
+            // IMPORTANT: split using normal weight so line breaks match autoTable's rendering
+            doc.setFont('helvetica', 'normal');
+            const nameLines: string[] = doc.splitTextToSize(productName, availableWidth);
+
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+
+            const textX = cell.x + 2;
+            let textY = cell.y + 4;
+
+            nameLines.forEach((line: string) => {
               doc.setFillColor(255, 255, 255);
-              doc.rect(textX - 0.5, textY - 3, textWidth + 1, 4, 'F');
-              
-              // Draw bold product name
-              doc.text(productName, textX, textY);
-            }
+              // Cover the full line width (not just text width) so no autotable text bleeds through
+              doc.rect(textX - 0.5, textY - 3.5, availableWidth + 1, 4.5, 'F');
+              doc.text(line, textX, textY);
+              textY += 4;
+            });
           }
         }
       },

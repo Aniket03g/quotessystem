@@ -117,6 +117,23 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     const API_BASE_URL = `http://${window.location.hostname}:8082`;
 
+    function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
+      const container = document.getElementById('toastContainer')!;
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-red-500' : 'bg-slate-700';
+      const icon = type === 'success'
+        ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`
+        : type === 'error'
+        ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+        : `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      toast.setAttribute('data-toast', '');
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm font-semibold shadow-xl max-w-sm ${bg} opacity-0 translate-x-4 transition-all duration-200`;
+      toast.innerHTML = `${icon}<span class="flex-1 leading-snug">${message}</span><button class="ml-2 opacity-60 hover:opacity-100 text-base leading-none transition-opacity" onclick="this.closest('[data-toast]').remove()">✕</button>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-x-4')));
+      setTimeout(() => { toast.classList.add('opacity-0', 'translate-x-4'); setTimeout(() => toast.remove(), 200); }, 3500);
+    }
+
     const token = getToken();
     if (!token) {
       window.location.href = '/login';
@@ -309,7 +326,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 
     async function generatePDF(preview: boolean = false) {
       if (!currentQuoteData) {
-        alert('Quote data not loaded');
+        showToast('Quote data not loaded', 'error');
         return;
       }
 
@@ -345,7 +362,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
         window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error('Failed to generate PDF:', error);
-        alert('Failed to generate PDF. Please try again.');
+        showToast('Failed to generate PDF. Please try again.', 'error');
       }
     }
 
@@ -356,4 +373,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     // Load quote details on page load
     loadQuoteDetails();
   </script>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
 </DashboardLayout>

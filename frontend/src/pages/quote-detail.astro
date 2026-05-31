@@ -283,7 +283,49 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     import { debounce } from '../utils/debounce';
 
     const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:8082`;
-     
+
+    function showConfirm(message: string, okLabel = 'Confirm', okClass = 'bg-red-600 hover:bg-red-700'): Promise<boolean> {
+      return new Promise((resolve) => {
+        const dialog = document.getElementById('confirmDialog') as HTMLDivElement;
+        const okBtn = document.getElementById('confirmOkBtn') as HTMLButtonElement;
+        const cancelBtn = document.getElementById('confirmCancelBtn') as HTMLButtonElement;
+        (document.getElementById('confirmMessage') as HTMLElement).textContent = message;
+        okBtn.textContent = okLabel;
+        okBtn.className = `px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${okClass}`;
+        dialog.classList.remove('hidden');
+        function cleanup(result: boolean) {
+          dialog.classList.add('hidden');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          dialog.removeEventListener('click', onOutside);
+          resolve(result);
+        }
+        const onOk = () => cleanup(true);
+        const onCancel = () => cleanup(false);
+        const onOutside = (e: MouseEvent) => { if (e.target === dialog) cleanup(false); };
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        dialog.addEventListener('click', onOutside);
+      });
+    }
+
+    function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
+      const container = document.getElementById('toastContainer')!;
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-red-500' : 'bg-slate-700';
+      const icon = type === 'success'
+        ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`
+        : type === 'error'
+        ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+        : `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+      toast.setAttribute('data-toast', '');
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm font-semibold shadow-xl max-w-sm ${bg} opacity-0 translate-x-4 transition-all duration-200`;
+      toast.innerHTML = `${icon}<span class="flex-1 leading-snug">${message}</span><button class="ml-2 opacity-60 hover:opacity-100 text-base leading-none transition-opacity" onclick="this.closest('[data-toast]').remove()">✕</button>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-x-4')));
+      setTimeout(() => { toast.classList.add('opacity-0', 'translate-x-4'); setTimeout(() => toast.remove(), 200); }, 3500);
+    }
+
     const token = getToken();
     if (!token) { 
       window.location.href = '/login';
@@ -668,7 +710,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       
       if (!currentQuoteData) {
         console.error('ERROR: Quote data not loaded');
-        alert('Quote data not loaded');
+        showToast('Quote data not loaded', 'error');
         return;
       }
 
@@ -715,7 +757,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           
           console.error('=== PDF GENERATION FAILED ===');
           console.error(errorDetails);
-          alert('Failed to generate PDF:\n' + errorDetails);
+          showToast('Failed to generate PDF: ' + errorDetails, 'error');
           throw new Error(errorDetails);
         }
 
@@ -743,7 +785,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error('Failed to generate PDF:', error);
-        alert('Failed to generate PDF. Please try again.');
+        showToast('Failed to generate PDF. Please try again.', 'error');
       }
     }
 
@@ -874,7 +916,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         document.querySelectorAll('.remove-product-btn').forEach(btn => {
           btn.addEventListener('click', async (e) => {
             const junctionId = (btn as HTMLElement).getAttribute('data-junction-id');
-            if (junctionId && confirm('Remove this product from the quote?')) {
+            if (junctionId && await showConfirm('Remove this product from the quote?', 'Remove', 'bg-red-600 hover:bg-red-700')) {
               await removeLineItem(junctionId);
             }
           });
@@ -1139,7 +1181,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         
       } catch (error) {
         console.error('[LINE ITEM] Error updating discount:', error);
-        alert('Failed to update discount. Please try again.');
+        showToast('Failed to update discount. Please try again.', 'error');
         // Reload to revert optimistic update
         await loadQuoteDetails();
       }
@@ -1196,7 +1238,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         updateSubtotalDisplay(junctionId);
       } catch (error) {
         console.error('Error updating quantity:', error);
-        alert('Failed to update quantity. Please try again.');
+        showToast('Failed to update quantity. Please try again.', 'error');
       }
     }
 
@@ -1251,7 +1293,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         updateSubtotalDisplay(junctionId);
       } catch (error) {
         console.error('Error updating price:', error);
-        alert('Failed to update price. Please try again.');
+        showToast('Failed to update price. Please try again.', 'error');
       }
     }
 
@@ -1349,7 +1391,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         await loadQuoteDetails();
       } catch (error) {
         console.error('Error removing line item:', error);
-        alert('Failed to remove product. Please try again.');
+        showToast('Failed to remove product. Please try again.', 'error');
       }
     }
 
@@ -1430,7 +1472,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         await loadQuoteDetails();
       } catch (error) {
         console.error('Error unlinking product:', error);
-        alert('Failed to remove product. Please try again.');
+        showToast('Failed to remove product. Please try again.', 'error');
       }
     }
 
@@ -1528,7 +1570,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         console.log('[ADD PRODUCT] Product added successfully');
       } catch (error) {
         console.error('Error adding product:', error);
-        alert('Failed to add product. Please try again.');
+        showToast('Failed to add product. Please try again.', 'error');
       }
     }
 
@@ -1664,7 +1706,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }, 2000);
       } catch (error) {
         console.error('Error saving changes:', error);
-        alert('Failed to save changes. Please try again.');
+        showToast('Failed to save changes. Please try again.', 'error');
       }
     });
     
@@ -2351,7 +2393,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       } catch (error) {
         console.error('[VERSION] Error creating new version:', error);
-        alert(`Failed to create new version: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        showToast(`Failed to create new version: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
         
         // Restore button
         btn.disabled = false;
@@ -2414,7 +2456,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (!response.ok) {
           const errorText = await response.text();
           console.error('[DELETE QUOTE] Failed:', errorText);
-          alert('Failed to delete quote. Please try again.');
+          showToast('Failed to delete quote. Please try again.', 'error');
           confirmBtn.disabled = false;
           confirmBtn.textContent = 'Delete';
           return;
@@ -2423,7 +2465,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         window.location.href = '/quotes';
       } catch (error) {
         console.error('[DELETE QUOTE] Error:', error);
-        alert('An error occurred while deleting the quote.');
+        showToast('An error occurred while deleting the quote.', 'error');
         confirmBtn.disabled = false;
         confirmBtn.textContent = 'Delete';
       }
@@ -2484,6 +2526,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <div class="flex justify-end gap-3">
         <button id="deleteQuoteCancel" class="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">Cancel</button>
         <button id="deleteQuoteConfirm" class="px-4 py-2 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Confirm Dialog -->
+  <div id="confirmDialog" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9998] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+      <p class="text-slate-800 font-semibold text-sm mb-5" id="confirmMessage"></p>
+      <div class="flex gap-3 justify-end">
+        <button id="confirmCancelBtn" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+        <button id="confirmOkBtn" class="px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"></button>
       </div>
     </div>
   </div>

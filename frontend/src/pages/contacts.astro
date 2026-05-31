@@ -198,6 +198,48 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const API_BASE_URL = `http://${window.location.hostname}:8082`;
       const token = getToken();
 
+      function showConfirm(message, okLabel = 'Confirm', okClass = 'bg-red-600 hover:bg-red-700') {
+        return new Promise((resolve) => {
+          const dialog = document.getElementById('confirmDialog');
+          const okBtn = document.getElementById('confirmOkBtn');
+          const cancelBtn = document.getElementById('confirmCancelBtn');
+          document.getElementById('confirmMessage').textContent = message;
+          okBtn.textContent = okLabel;
+          okBtn.className = `px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors ${okClass}`;
+          dialog.classList.remove('hidden');
+          function cleanup(result) {
+            dialog.classList.add('hidden');
+            okBtn.removeEventListener('click', onOk);
+            cancelBtn.removeEventListener('click', onCancel);
+            dialog.removeEventListener('click', onOutside);
+            resolve(result);
+          }
+          const onOk = () => cleanup(true);
+          const onCancel = () => cleanup(false);
+          const onOutside = (e) => { if (e.target === dialog) cleanup(false); };
+          okBtn.addEventListener('click', onOk);
+          cancelBtn.addEventListener('click', onCancel);
+          dialog.addEventListener('click', onOutside);
+        });
+      }
+
+      function showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const bg = type === 'success' ? 'bg-emerald-500' : type === 'error' ? 'bg-red-500' : 'bg-slate-700';
+        const icon = type === 'success'
+          ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`
+          : type === 'error'
+          ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+          : `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+        toast.setAttribute('data-toast', '');
+        toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl text-white text-sm font-semibold shadow-xl max-w-sm ${bg} opacity-0 translate-x-4 transition-all duration-200`;
+        toast.innerHTML = `${icon}<span class="flex-1 leading-snug">${message}</span><button class="ml-2 opacity-60 hover:opacity-100 text-base leading-none transition-opacity" onclick="this.closest('[data-toast]').remove()">✕</button>`;
+        container.appendChild(toast);
+        requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.remove('opacity-0', 'translate-x-4')));
+        setTimeout(() => { toast.classList.add('opacity-0', 'translate-x-4'); setTimeout(() => toast.remove(), 200); }, 3500);
+      }
+
       if (!token) {
         window.location.href = '/login';
         return;
@@ -541,7 +583,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     });
 
     async function deleteContact(id: string, name: string) {
-      if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+      if (!await showConfirm(`Delete "${name}"? This cannot be undone.`, 'Delete')) return;
 
       try {
         const res = await fetch(`${API_BASE_URL}/proxy/contacts/records`, {
@@ -573,4 +615,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     }); // Close DOMContentLoaded event listener
   </script>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Confirm Dialog -->
+  <div id="confirmDialog" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9998] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6">
+      <p class="text-slate-800 font-semibold text-sm mb-5" id="confirmMessage"></p>
+      <div class="flex gap-3 justify-end">
+        <button id="confirmCancelBtn" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+        <button id="confirmOkBtn" class="px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"></button>
+      </div>
+    </div>
+  </div>
 </AdminLayout>
