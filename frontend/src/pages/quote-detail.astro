@@ -619,7 +619,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           version: fields['Quote Version'] || '1.0',
           total: fields['Total Amount'] || 0,
           account: {
-            name: accountName
+            name: accountName,
+            street: accountData?.['Billing Street'] || '',
+            city: accountData?.['Billing City'] || '',
+            state: accountData?.['Billing State'] || '',
+            pinCode: accountData?.['Billing Code'] || '',
+            country: accountData?.['Billing Country'] || '',
           },
           products: products
         };

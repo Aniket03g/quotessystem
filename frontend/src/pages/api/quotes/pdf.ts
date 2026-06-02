@@ -28,6 +28,11 @@ interface QuoteData {
   total: number;
   account: {
     name: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    pinCode?: string;
+    country?: string;
   };
   products: QuoteProduct[];
   logo?: string;
@@ -193,7 +198,19 @@ export const POST: APIRoute = async ({ request }) => {
     });
     currentY += 5;
     doc.text(`Date: ${quoteData.date}`, rightX, currentY, { align: 'right' });
-    currentY += 8;
+
+    // Address lines below account name
+    doc.setFontSize(9);
+    doc.setTextColor(90, 90, 90);
+    const { street, city, state, pinCode, country } = quoteData.account;
+    if (street) { doc.text(street, margin, currentY); currentY += 4.5; }
+    const cityLine = [city, state, pinCode].filter(Boolean).join(', ');
+    if (cityLine) { doc.text(cityLine, margin, currentY); currentY += 4.5; }
+    if (country) { doc.text(country, margin, currentY); currentY += 4.5; }
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+
+    currentY += 4;
 
     // Divider
     doc.line(margin, currentY, pageWidth - margin, currentY);
@@ -250,7 +267,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     // Column widths sum to 180mm (usableWidth)
-    // Sr.No(9) + Details(52) + Code(18) + Warranty(18) + UnitPrice(28) + Qty/UOM(13) + Tax(14) + Total(28) = 180
+    // Sr.No(9) + Details(49) + Code(18) + Warranty(18) + UnitPrice(28) + Qty/UOM(16) + Tax(14) + Total(28) = 180
     autoTable(doc, {
       startY: currentY,
       head: [
@@ -261,7 +278,7 @@ export const POST: APIRoute = async ({ request }) => {
           'Warranty (months)',
           'Unit Price (Rs.)',
           'Qty/UOM',
-          'Tax',
+          'Tax(%)',
           'Total (Rs.)',
         ],
       ],
@@ -284,11 +301,11 @@ export const POST: APIRoute = async ({ request }) => {
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 9 },
-        1: { halign: 'left',   cellWidth: 52, overflow: 'linebreak' },
+        1: { halign: 'left',   cellWidth: 49, overflow: 'linebreak' },
         2: { halign: 'center', cellWidth: 18 },
         3: { halign: 'center', cellWidth: 18 },
         4: { halign: 'right',  cellWidth: 28 },
-        5: { halign: 'center', cellWidth: 13 },
+        5: { halign: 'center', cellWidth: 16 },
         6: { halign: 'center', cellWidth: 14 },
         7: { halign: 'right',  cellWidth: 28 },
       },
@@ -309,11 +326,9 @@ export const POST: APIRoute = async ({ request }) => {
             const availableWidth = cell.width - 4; // minus L+R padding
 
             doc.setFontSize(8);
-            // IMPORTANT: split using normal weight so line breaks match autoTable's rendering
-            doc.setFont('helvetica', 'normal');
-            const nameLines: string[] = doc.splitTextToSize(productName, availableWidth);
-
+            // Split using bold weight so measured widths match rendered widths
             doc.setFont('helvetica', 'bold');
+            const nameLines: string[] = doc.splitTextToSize(productName, availableWidth);
             doc.setTextColor(0, 0, 0);
 
             const textX = cell.x + 2;

@@ -535,8 +535,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const date = new Date(dateString);
       const now = new Date();
       const diffMs = date.getTime() - now.getTime();
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
       const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+      // Calendar-day diff (midnight-to-midnight, local timezone) so this stays
+      // in sync with getFollowUpCategory and the smart-chip counts.
+      const dateNorm = new Date(dateString);
+      dateNorm.setHours(0, 0, 0, 0);
+      const todayNorm = new Date();
+      todayNorm.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((dateNorm.getTime() - todayNorm.getTime()) / (1000 * 60 * 60 * 24));
       
       let relative = '';
       
