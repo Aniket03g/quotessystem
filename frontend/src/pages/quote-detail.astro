@@ -775,19 +775,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         console.log('Object URL created:', url);
 
         if (preview) {
-          // Open in new tab for preview
           window.open(url, '_blank');
+          setTimeout(() => window.URL.revokeObjectURL(url), 10000);
         } else {
-          // Download
           const a = document.createElement('a');
           a.href = url;
           a.download = `quote-${quoteId}.pdf`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
+          // Delay revocation so Chrome can read the blob after the Save As dialog
+          setTimeout(() => window.URL.revokeObjectURL(url), 60000);
         }
-
-        window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error('Failed to generate PDF:', error);
         showToast('Failed to generate PDF. Please try again.', 'error');
