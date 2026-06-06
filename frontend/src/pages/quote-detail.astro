@@ -498,7 +498,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Step 1: Fetch catalog products via links endpoint (WITHOUT Unit Price)
         console.log('[QUOTE DETAIL] Step 1: Fetching catalog products from links endpoint...');
         const catalogResponse = await fetch(
-          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description,Unit of Measurement UOM`,
+          `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description,Unit of Measurement UOM,warranty`,
           {
             method: 'GET',
             headers: {
@@ -572,7 +572,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               tax: catalogProduct.fields['Tax'],
               description: catalogProduct.fields['Description'],
               uom: catalogProduct.fields['Unit of Measurement UOM'] || '',
-              warranty: catalogProduct.fields['Warranty'] ?? null
+              warranty: catalogProduct.fields['warranty'] ?? null
             };
           } else {
             console.warn(`[QUOTE DETAIL] No junction record found for product ${productId} - using defaults`);
@@ -591,7 +591,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               tax: catalogProduct.fields['Tax'],
               description: catalogProduct.fields['Description'],
               uom: catalogProduct.fields['Unit of Measurement UOM'] || '',
-              warranty: catalogProduct.fields['Warranty'] ?? null
+              warranty: catalogProduct.fields['warranty'] ?? null
             };
           }
         });
@@ -819,6 +819,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Brand</th>
                 <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Model No</th>
                 <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">HSN Code</th>
+                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Warranty (months)</th>
                 <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Qty</th>
                 <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Unit Price</th>
                 <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Discount %</th>
@@ -833,6 +834,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 const brand = product.brand || '-';
                 const productCode = product.productCode || '-';
                 const code = product.hsnCode || '-';
+                const warranty = product.warranty != null ? `${product.warranty}` : '-';
                 const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
                 const unitPrice = customPrice !== null ? customPrice : 0;
                 const quantity = Number(product.quantity) || 1;
@@ -894,6 +896,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                     <td class="px-4 py-3.5 text-sm text-slate-600">${brand}</td>
                     <td class="px-4 py-3.5 text-sm text-slate-600">${productCode}</td>
                     <td class="px-4 py-3.5 text-sm text-slate-600">${code}</td>
+                    <td class="px-4 py-3.5 text-sm text-slate-600 text-center">${warranty}</td>
                     ${qtyCell}
                     ${priceCell}
                     ${discountCell}

@@ -203,6 +203,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <input type="hidden" class="product-description" />
             <input type="hidden" class="product-customer-price" />
             <input type="hidden" class="product-dealer-price" />
+            <input type="hidden" class="product-warranty" />
             <div class="product-dropdown hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
               <div class="product-results py-1"></div>
               <div class="product-loading hidden px-4 py-3 text-sm text-slate-500 text-center">
@@ -256,6 +257,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1">Tax</label>
                 <input type="text" class="product-tax-display w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-md text-sm text-slate-700" readonly placeholder="-" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Warranty (months)</label>
+                <input type="text" class="product-warranty-display w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-md text-sm text-slate-700" readonly placeholder="-" />
               </div>
             </div>
             <div>
@@ -479,7 +484,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     async function fetchProductDetails(productId: number, productItem: HTMLElement) {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/proxy/products/records/${productId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description,Customer Unit Price,Dealer Unit Price`,
+          `${API_BASE_URL}/proxy/products/records/${productId}?fields=Id,Product Name,Brand,HSN/SAC Code,Model No,Tax,Description,Customer Unit Price,Dealer Unit Price,warranty`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -504,6 +509,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const productDescriptionInput = productItem.querySelector('.product-description') as HTMLInputElement;
         const productCustomerPriceInput = productItem.querySelector('.product-customer-price') as HTMLInputElement;
         const productDealerPriceInput = productItem.querySelector('.product-dealer-price') as HTMLInputElement;
+        const productWarrantyInput = productItem.querySelector('.product-warranty') as HTMLInputElement;
         const customPriceInput = productItem.querySelector('.product-custom-price') as HTMLInputElement;
 
         // Get visible display fields
@@ -511,6 +517,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const codeDisplay = productItem.querySelector('.product-code-display') as HTMLInputElement;
         const hsnDisplay = productItem.querySelector('.product-hsn-display') as HTMLInputElement;
         const taxDisplay = productItem.querySelector('.product-tax-display') as HTMLInputElement;
+        const warrantyDisplay = productItem.querySelector('.product-warranty-display') as HTMLInputElement;
         const descriptionDisplay = productItem.querySelector('.product-description-display') as HTMLTextAreaElement;
 
         // Populate hidden inputs
@@ -523,12 +530,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (productDescriptionInput) productDescriptionInput.value = fields['Description'] || '';
         if (productCustomerPriceInput) productCustomerPriceInput.value = fields['Customer Unit Price'] || '0';
         if (productDealerPriceInput) productDealerPriceInput.value = fields['Dealer Unit Price'] || '0';
+        if (productWarrantyInput) productWarrantyInput.value = fields['warranty'] != null ? String(fields['warranty']) : '';
 
         // Populate visible display fields
         if (brandDisplay) brandDisplay.value = fields['Brand'] || '-';
         if (codeDisplay) codeDisplay.value = fields['Model No'] || '-';
         if (hsnDisplay) hsnDisplay.value = fields['HSN/SAC Code'] || '-';
         if (taxDisplay) taxDisplay.value = fields['Tax'] || '-';
+        if (warrantyDisplay) warrantyDisplay.value = fields['warranty'] != null ? String(fields['warranty']) : '-';
         if (descriptionDisplay) descriptionDisplay.value = fields['Description'] || '-';
 
         // Set the price based on current quote type
