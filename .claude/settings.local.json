@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(Get-ChildItem -Recurse -Directory)",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(node import.mjs --preview)",
+      "Bash(curl *)"
     ]
   }
 }

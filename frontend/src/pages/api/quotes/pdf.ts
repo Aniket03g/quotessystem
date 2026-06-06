@@ -15,7 +15,7 @@ interface QuoteProduct {
   productCode?: string;
   tax?: string;
   hsnCode?: string;
-  warranty?: number;
+  warranty?: number | null;
   quantity?: number;
   uom?: string;
 }
@@ -251,14 +251,14 @@ export const POST: APIRoute = async ({ request }) => {
       if (product.brand) productDetails += `\nBrand: ${product.brand}`;
       if (product.description) productDetails += `\n${product.description}`;
 
-      const warrantyMonths = (product.warranty || 1) * 12;
+      const warrantyDisplay = product.warranty != null ? product.warranty.toString() : '-';
       const taxLabel = product.tax || 'GST-18%';
 
       return [
         (index + 1).toString(),
         productDetails,
         product.productCode || '-',
-        warrantyMonths.toString(),
+        warrantyDisplay,
         price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
         `${qty}${product.uom ? ' ' + product.uom : ''}`,
         taxLabel,
@@ -267,7 +267,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     // Column widths sum to 180mm (usableWidth)
-    // Sr.No(9) + Details(49) + Code(18) + Warranty(18) + UnitPrice(28) + Qty/UOM(16) + Tax(14) + Total(28) = 180
+    // Sr.No(9) + Details(53) + Code(18) + Warranty(18) + UnitPrice(24) + Qty/UOM(16) + Tax(14) + Total(28) = 180
     autoTable(doc, {
       startY: currentY,
       head: [
@@ -301,10 +301,10 @@ export const POST: APIRoute = async ({ request }) => {
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 9 },
-        1: { halign: 'left',   cellWidth: 49, overflow: 'linebreak' },
+        1: { halign: 'left',   cellWidth: 53, overflow: 'linebreak' },
         2: { halign: 'center', cellWidth: 18 },
         3: { halign: 'center', cellWidth: 18 },
-        4: { halign: 'right',  cellWidth: 28 },
+        4: { halign: 'right',  cellWidth: 24 },
         5: { halign: 'center', cellWidth: 16 },
         6: { halign: 'center', cellWidth: 14 },
         7: { halign: 'right',  cellWidth: 28 },
@@ -317,31 +317,44 @@ export const POST: APIRoute = async ({ request }) => {
       showHead: 'everyPage',
       rowPageBreak: 'avoid',
       didDrawCell: (data) => {
-        // Overlay bold product name on Product Details column
         if (data.column.index === 1 && data.section === 'body') {
           const cell = data.cell;
           const rawText = cell.raw as string;
-          if (rawText) {
-            const productName = rawText.split('\n')[0];
-            const availableWidth = cell.width - 4; // minus L+R padding
+          if (!rawText) return;
 
-            doc.setFontSize(8);
-            // Split using bold weight so measured widths match rendered widths
-            doc.setFont('helvetica', 'bold');
-            const nameLines: string[] = doc.splitTextToSize(productName, availableWidth);
-            doc.setTextColor(0, 0, 0);
+          const availableWidth = cell.width - 4;
+          const contentX = cell.x + 2;
 
-            const textX = cell.x + 2;
-            let textY = cell.y + 4;
+          // Cover entire cell interior so autotable's normal-weight text doesn't bleed through
+          doc.setFillColor(255, 255, 255);
+          doc.rect(cell.x + 0.5, cell.y + 0.5, cell.width - 1, cell.height - 1, 'F');
 
-            nameLines.forEach((line: string) => {
-              doc.setFillColor(255, 255, 255);
-              // Cover the full line width (not just text width) so no autotable text bleeds through
-              doc.rect(textX - 0.5, textY - 3.5, availableWidth + 1, 4.5, 'F');
-              doc.text(line, textX, textY);
+          let textY = cell.y + 4;
+          const parts = rawText.split('\n');
+          const productName = parts[0];
+          const rest = parts.slice(1);
+
+          doc.setFontSize(8);
+          doc.setTextColor(0, 0, 0);
+
+          // Product name in bold
+          doc.setFont('helvetica', 'bold');
+          const nameLines: string[] = doc.splitTextToSize(productName, availableWidth);
+          nameLines.forEach((line: string) => {
+            doc.text(line, contentX, textY);
+            textY += 4;
+          });
+
+          // Brand and description in normal weight
+          doc.setFont('helvetica', 'normal');
+          rest.forEach((part: string) => {
+            if (!part) return;
+            const subLines: string[] = doc.splitTextToSize(part, availableWidth);
+            subLines.forEach((line: string) => {
+              doc.text(line, contentX, textY);
               textY += 4;
             });
-          }
+          });
         }
       },
     });

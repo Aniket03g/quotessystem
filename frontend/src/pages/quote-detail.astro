@@ -571,7 +571,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               productCode: catalogProduct.fields['Model No'],
               tax: catalogProduct.fields['Tax'],
               description: catalogProduct.fields['Description'],
-              uom: catalogProduct.fields['Unit of Measurement UOM'] || ''
+              uom: catalogProduct.fields['Unit of Measurement UOM'] || '',
+              warranty: catalogProduct.fields['Warranty'] ?? null
             };
           } else {
             console.warn(`[QUOTE DETAIL] No junction record found for product ${productId} - using defaults`);
@@ -589,7 +590,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               productCode: catalogProduct.fields['Model No'],
               tax: catalogProduct.fields['Tax'],
               description: catalogProduct.fields['Description'],
-              uom: catalogProduct.fields['Unit of Measurement UOM'] || ''
+              uom: catalogProduct.fields['Unit of Measurement UOM'] || '',
+              warranty: catalogProduct.fields['Warranty'] ?? null
             };
           }
         });
@@ -608,7 +610,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           tax: record.tax,
           hsnCode: record.hsnCode,
           description: record.description,
-          uom: record.uom || ''
+          uom: record.uom || '',
+          warranty: record.warranty ?? null
         }));
 
         // Store for PDF generation (same structure as download function)

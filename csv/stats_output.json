@@ -1,0 +1,2491 @@
+{
+  "totalAccounts": 1131,
+  "totalContacts": 743,
+  "linkedContacts": 743,
+  "unlinkedContacts": 0,
+  "withContact": 743,
+  "withoutContact": 388,
+  "byType": {
+    "Partner": 2,
+    "Dealer": 491,
+    "Customer": 638
+  },
+  "dist": {
+    "0": 388,
+    "1": 743,
+    "2": 0,
+    "3+": 0
+  },
+  "topStates": [
+    [
+      "Delhi",
+      424
+    ],
+    [
+      "(No State)",
+      180
+    ],
+    [
+      "Uttar Pradesh",
+      170
+    ],
+    [
+      "Haryana",
+      159
+    ],
+    [
+      "Maharashtra",
+      100
+    ],
+    [
+      "Rajasthan",
+      24
+    ],
+    [
+      "Karnataka",
+      10
+    ],
+    [
+      "Uttarakhand",
+      8
+    ],
+    [
+      "Tamil Nadu",
+      8
+    ],
+    [
+      "Gujarat",
+      7
+    ],
+    [
+      "Punjab",
+      6
+    ],
+    [
+      "Assam",
+      6
+    ]
+  ],
+  "topByContacts": [
+    {
+      "name": "ZM Technologies",
+      "type": "Partner",
+      "count": 1,
+      "contacts": "Satyam Digrase"
+    },
+    {
+      "name": "SRC Technologies",
+      "type": "Partner",
+      "count": 1,
+      "contacts": "Sameer"
+    },
+    {
+      "name": "A.V. Edit Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Raj kumar"
+    },
+    {
+      "name": "A.V. Edit Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Raj kumar"
+    },
+    {
+      "name": "A2V TechZone Solutions LLP",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Arpana sethi"
+    },
+    {
+      "name": "A3C Construction LLP",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Avnish Kumar"
+    },
+    {
+      "name": "A3C Construction LLP",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Avid khan"
+    },
+    {
+      "name": "Aadrika Automation(OPC) Pvt. Ltd.",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Sapna"
+    },
+    {
+      "name": "Accutech Technologies Pvt. Ltd.",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Mr. Alok"
+    },
+    {
+      "name": "Acklron Security System",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "CK"
+    },
+    {
+      "name": "Actis Technologies Pvt. Ltd.",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Ajay Rane"
+    },
+    {
+      "name": "Adich Technology",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Aditya"
+    },
+    {
+      "name": "Advanced IT Solutions",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Prashant khampria"
+    },
+    {
+      "name": "Advanced IT Solutions",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Pallavi Khampria"
+    },
+    {
+      "name": "Aeontech Networks LLP",
+      "type": "Dealer",
+      "count": 1,
+      "contacts": "Dakshita"
+    }
+  ],
+  "noContactList": [
+    {
+      "name": "2Getherz Digitech Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "A-One Toner Solution",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "2Getherz Digitech Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "A-One Toner Solution",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "A&A Technovision LLP",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "A2Z Interiors",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "AAA Rental LLP",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Aamar Graphics",
+      "type": "Dealer",
+      "state": "Tripura",
+      "city": "Agartala"
+    },
+    {
+      "name": "Abrari Gadjet Trading Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Accenture Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Access Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Actis Technologies Pvt. Ltd.- New Delhi",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Acute Systems & Solutions",
+      "type": "Dealer",
+      "state": "Gujarat",
+      "city": "Surat"
+    },
+    {
+      "name": "Adaero Tech Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "East of Kailash"
+    },
+    {
+      "name": "Adex Digital Solution",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Admire Engicon",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "ADS Equipment India",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "South Delhi"
+    },
+    {
+      "name": "Advance Techtronics & Engineers",
+      "type": "Dealer",
+      "state": "West Bengal",
+      "city": "Kolkata"
+    },
+    {
+      "name": "Aerotech Systems Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Agranika Techlabs LLP",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Budh Nagar"
+    },
+    {
+      "name": "Aierosoft",
+      "type": "Dealer",
+      "state": "Kerala",
+      "city": "Trivandrum"
+    },
+    {
+      "name": "Aitess Networks Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai City"
+    },
+    {
+      "name": "AKIT Solutions",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "G.B. Nagar"
+    },
+    {
+      "name": "Alliance Digitech Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Alliance Digitech Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "Aluxe Traders Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Anaatech Services",
+      "type": "Dealer",
+      "state": "Himachal Pradesh",
+      "city": "Hamirpur"
+    },
+    {
+      "name": "Analog Eclipse",
+      "type": "Dealer",
+      "state": "Gujarat",
+      "city": "Ahmedabad"
+    },
+    {
+      "name": "Ananta Technologies",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Anaya Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Apeiron Projects Pvt. Ltd. ghaziabad",
+      "type": "Dealer",
+      "state": "",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "Apeiron Projects Pvt. Ltd., Gurgaon",
+      "type": "Dealer",
+      "state": "",
+      "city": "Sushant Lok-1"
+    },
+    {
+      "name": "Apeiron Projects Pvt. Ltd., Gurgaon",
+      "type": "Dealer",
+      "state": "",
+      "city": "Sushant Lok-1"
+    },
+    {
+      "name": "Arihant Infocom",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Arihant Infosys",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "ARN Systems P Ltd.",
+      "type": "Dealer",
+      "state": "Karnataka",
+      "city": "Bangalore"
+    },
+    {
+      "name": "ARP Technologies",
+      "type": "Dealer",
+      "state": "",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "Asian Electronics",
+      "type": "Dealer",
+      "state": "Karnataka",
+      "city": "Bangalore"
+    },
+    {
+      "name": "Asian Global Solution",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Audio Systems",
+      "type": "Dealer",
+      "state": "Uttarakhand",
+      "city": "Dehradun"
+    },
+    {
+      "name": "Balaji Sales Corporation",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "Rohini"
+    },
+    {
+      "name": "Beena Electronics",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Bloom Exim Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Chemistron Institute",
+      "type": "Dealer",
+      "state": "",
+      "city": "Delhi- 110053 Near Location:- Paris Medicos Indira Chowk"
+    },
+    {
+      "name": "Classic Concepts",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Comnet Exhibitions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Daksh Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "DISYS India Technologies Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "DISYS India Technologies Pvt. Ltd.- Pune",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Earthwood Interiors",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Eclat Infocom Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Edovu Ventures Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Enn Square Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Exovik Digital Pvt. Ltd.- Chandigarh",
+      "type": "Dealer",
+      "state": "Punjab",
+      "city": "SAS Nagar"
+    },
+    {
+      "name": "Exporing Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "G.S.M. Co.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Harnex Systems Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Helios Tech Solutions",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Helios Tech Solutions",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "HT Computers India Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Business Hub Sector 81"
+    },
+    {
+      "name": "Hyphasis Technologies and Consulting",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Panipat"
+    },
+    {
+      "name": "Hypro Engineers Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Innovative Minds",
+      "type": "Dealer",
+      "state": "",
+      "city": "Patparganj Delhi"
+    },
+    {
+      "name": "Interioarch Solutions",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "Phase-1"
+    },
+    {
+      "name": "Interioarch Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Invertis Technologies Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Jain Radio",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "South West Delhi"
+    },
+    {
+      "name": "Jaipur Electronic Company",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "KDN Infratech Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "West Delhi"
+    },
+    {
+      "name": "Klick Infotek",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Lamhas Satellite Services Ltd",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "MA Acoustic and Designing",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Maa Mahamaya Enterprises",
+      "type": "Dealer",
+      "state": "Jharkhand",
+      "city": "Palamu"
+    },
+    {
+      "name": "Mighty Solutions",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Netra Infotech",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Nexving Infotech",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Vasundhara"
+    },
+    {
+      "name": "OGS Technologies",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Om Enterprises",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Sonipat"
+    },
+    {
+      "name": "Onsite Computer Solutions",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Optimus Prime System",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Pal Business Systems",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Paramhans TradeCom Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Chetganj Varanasi"
+    },
+    {
+      "name": "Pentagon Tech Fusion Services Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Pro AV Care",
+      "type": "Dealer",
+      "state": "",
+      "city": "Nangloi Delhi"
+    },
+    {
+      "name": "Progility Technologies Pvt. Ltd.- Delhi",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "R J Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "West Delhi"
+    },
+    {
+      "name": "R.R. Speaker Gallery",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Rameshwar Electricals and A V Solutions",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Solapur"
+    },
+    {
+      "name": "RDS Group of Technologies",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Reef Technologies",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "Uttam Nagar"
+    },
+    {
+      "name": "Ridhi Sidhi Solutions",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Mathura"
+    },
+    {
+      "name": "RimZim Dadu",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Buddha Nagar"
+    },
+    {
+      "name": "S N S Products Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "Srikiwaian"
+    },
+    {
+      "name": "S.K. Audio",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Sai Network Inc",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "Samvik Marketing",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "Sanghavi Impex",
+      "type": "Dealer",
+      "state": "Karnataka",
+      "city": "Bangalore"
+    },
+    {
+      "name": "Sar Digital India",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "C12/198 Yamuna Vihar"
+    },
+    {
+      "name": "Satnam Plaza",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Satyam Electricals & A.V. Solutions",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Securetech AV Designs Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "Securitas System Integrator",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Sekhri & Sons",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Meerut"
+    },
+    {
+      "name": "Shaarp Technologies",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Shanti Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Sharma Computer",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gohana"
+    },
+    {
+      "name": "Shree Sai Enterprises",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Indirapuram Ghaziabad"
+    },
+    {
+      "name": "Shree Tech Solutions",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Palghar"
+    },
+    {
+      "name": "Shreejay Pandey",
+      "type": "Dealer",
+      "state": "",
+      "city": "Contact No.- 95943 25499"
+    },
+    {
+      "name": "Shreeji Business Corporation",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Shri Subhash Parasram Electronic Park Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Sigma AVIT Infra Services Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Karnataka",
+      "city": "Bangalore"
+    },
+    {
+      "name": "Signellent Technologies India Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "Silverline Traders",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "SK Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "Shahdara"
+    },
+    {
+      "name": "Skyking Electronics",
+      "type": "Dealer",
+      "state": "",
+      "city": "Contact No: 9840617188"
+    },
+    {
+      "name": "Smart Infovision",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "Smart Power",
+      "type": "Dealer",
+      "state": "",
+      "city": "Meham Rohtak"
+    },
+    {
+      "name": "Smart Samarth Enterprises",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Smartsparrow Technologies",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Sniper Systems & Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Solutions India Systems Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Karnataka",
+      "city": "Bangalore"
+    },
+    {
+      "name": "Source Solutions",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "Alaknanda"
+    },
+    {
+      "name": "Space Infolinks Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Space Office Systems (India) Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "SRSG Broadcast (India) Pvt. Ltd.- Bangalore",
+      "type": "Dealer",
+      "state": "Karnataka",
+      "city": "Bangalore"
+    },
+    {
+      "name": "SRSG Broadcast (India) Pvt. Ltd.- New Delhi",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Starlight Data Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Gautambuddha Nagar"
+    },
+    {
+      "name": "Starlight Data Solutions Pvt. Ltd.- Delhi",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Substance Infotech Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "Sunlite Systems Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "Sunny Musical Emporium",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Suresh Tosniwal",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Syniso IT Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "Team9i Infosolutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Tech 4 Logic Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Navi Mumbai"
+    },
+    {
+      "name": "Tech Wizard IT and Infra Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Techcart Integrated Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "TechnoCare",
+      "type": "Dealer",
+      "state": "Sikkim",
+      "city": "South Sikkim"
+    },
+    {
+      "name": "Technocity Solutions",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Techserv Innovations Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Tephra Infotech",
+      "type": "Dealer",
+      "state": "",
+      "city": "Neemrana"
+    },
+    {
+      "name": "The Arch Audio Visual",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "The Byte IQ",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Lucknow"
+    },
+    {
+      "name": "The Indian Hotels Company Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "TM Solutech Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Gujarat",
+      "city": "Ahmedabad"
+    },
+    {
+      "name": "TNS Technology Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Toucharchs Business Solutions India Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Transafe Services Ltd.",
+      "type": "Dealer",
+      "state": "",
+      "city": "Bhiwadi"
+    },
+    {
+      "name": "Triasa Technology",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Triasa Technology Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Trimaster Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "",
+      "city": "Okhla Phase 3"
+    },
+    {
+      "name": "Tycnodot Business Solutions Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "UG Solutions",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Unified Collaboration Services LLP",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Navi Mumbai"
+    },
+    {
+      "name": "Unitech Hub",
+      "type": "Dealer",
+      "state": "Uttar Pradesh",
+      "city": "Lucknow"
+    },
+    {
+      "name": "Varun Audio Video Technologies",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "East Delhi"
+    },
+    {
+      "name": "Vashi Integrated Solution Ltd.",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "VD Infotech",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "Venive Solution",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "BLK Mahipalpur Extn."
+    },
+    {
+      "name": "Venture Volt Technologies",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Vigyanlabs Innovations Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Karnataka",
+      "city": "Hebbal Mysore"
+    },
+    {
+      "name": "Violet Homes",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Vision India",
+      "type": "Dealer",
+      "state": "Assam",
+      "city": "Kamrup Metropolitan"
+    },
+    {
+      "name": "Visiotechon Services",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Visual Synergy Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Vital Computers",
+      "type": "Dealer",
+      "state": "Punjab",
+      "city": "Pathankot"
+    },
+    {
+      "name": "Vivid Hifi",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "VoIc Networks Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Voice and Data Networking Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Gujarat",
+      "city": "Ahmedabad"
+    },
+    {
+      "name": "WE9 Technologies",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "Pooth Kalan Village Road"
+    },
+    {
+      "name": "Workplace Facility Services",
+      "type": "Dealer",
+      "state": "Haryana",
+      "city": "Sector 68 Ramgarh"
+    },
+    {
+      "name": "World AV Solution",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Kalina Santacruz (E)"
+    },
+    {
+      "name": "XSYS Solutions",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Yotech Infocom Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Z and C Technobros",
+      "type": "Dealer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "ZeroMiles Technologies Services Pvt. Ltd.",
+      "type": "Dealer",
+      "state": "Maharashtra",
+      "city": "Navi Mumbai"
+    },
+    {
+      "name": "AAIRA India LLP",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "Agarwal Law Associates",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Ahuja Radios- Noida",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "AIDA Foods Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Air Force School",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Air Force Station Palam",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "All Corporate Solutions",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Amrit Paul Arya Shishu Shala",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Anandmala Distribution Technology",
+      "type": "Customer",
+      "state": "",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "Andaman Travel Lover",
+      "type": "Customer",
+      "state": "",
+      "city": "Andaman and Nicobar Island"
+    },
+    {
+      "name": "Apple Realtors Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Hapur"
+    },
+    {
+      "name": "Art Space Interior Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Ashana Enterprises Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "Ashoka Mission",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Assam Don Bosco University",
+      "type": "Customer",
+      "state": "Assam",
+      "city": "Guwahati"
+    },
+    {
+      "name": "Assam Don Bosco University- Azara",
+      "type": "Customer",
+      "state": "Assam",
+      "city": "Guwahati"
+    },
+    {
+      "name": "Auracle Solutions",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "AVS Unified",
+      "type": "Customer",
+      "state": "Rajasthan",
+      "city": "Jaipur"
+    },
+    {
+      "name": "Ayushman Hospital & Health Services",
+      "type": "Customer",
+      "state": "",
+      "city": "Sector 10 Dwarka"
+    },
+    {
+      "name": "C&S Electric Ltd. C-60",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Budh Nagar"
+    },
+    {
+      "name": "C&S Electric Ltd.- C-60",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Budh Nagar"
+    },
+    {
+      "name": "C&S Electric Ltd.- NSEZ",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Budh Nagar"
+    },
+    {
+      "name": "C&S Electric Ltd.- Plot No. 1A",
+      "type": "Customer",
+      "state": "Uttarakhand",
+      "city": "Haridwar"
+    },
+    {
+      "name": "C&S Electric Ltd.- Plot No.2",
+      "type": "Customer",
+      "state": "",
+      "city": "Haridwar Uttarakhand"
+    },
+    {
+      "name": "C&S Electric Ltd.- Sector-8",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Central Board of Direct Taxes (CBDT)",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Central Reserve Police Force (CRPF)",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Central Water Commission (CWC)",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Chinmya Mission Sewa Trust",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Christ King Higher Secondary School- Kohima",
+      "type": "Customer",
+      "state": "Nagaland",
+      "city": "Kohima"
+    },
+    {
+      "name": "CPA Global Support Services India Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Davo NGO",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Near Dwarka Metro Station"
+    },
+    {
+      "name": "Delhi Metro Rail Corporation Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Dexian India Services Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "DJ Interactive Solutions Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Dodhia Synthetics Limited",
+      "type": "Customer",
+      "state": "",
+      "city": "Dadra & Nagar Haveli-"
+    },
+    {
+      "name": "Don Bosco College- Kohima",
+      "type": "Customer",
+      "state": "Nagaland",
+      "city": "Kohima"
+    },
+    {
+      "name": "Don Bosco Higher Secondary School- Dimapur",
+      "type": "Customer",
+      "state": "Nagaland",
+      "city": "Dimapur"
+    },
+    {
+      "name": "Don Bosco Higher Secondary School- Kohima",
+      "type": "Customer",
+      "state": "Nagaland",
+      "city": "Kohima"
+    },
+    {
+      "name": "Don Bosco Higher Secondary School- Maram",
+      "type": "Customer",
+      "state": "Manipur",
+      "city": "Maram"
+    },
+    {
+      "name": "Don Bosco Hr. Sec. School- Tuli",
+      "type": "Customer",
+      "state": "Nagaland",
+      "city": "Tuli Mokokchung (Dt.)"
+    },
+    {
+      "name": "E-Verve Design",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Pitampura"
+    },
+    {
+      "name": "Fine Electrical Works",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Ford Foundation",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Fortune Stones Ltd. DPS CHATRAPUR",
+      "type": "Customer",
+      "state": "Madhya Pradesh",
+      "city": "Chhatarpur"
+    },
+    {
+      "name": "Globallogic Technologies Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Village- Gwal Pahari Gurugram"
+    },
+    {
+      "name": "GMR Warora Energy Ltd.",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Warora Chandrapur"
+    },
+    {
+      "name": "Godfrey Phillips India Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Gokhale Institute of Politics and Economics",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Govt. Boys Sr. Sec School",
+      "type": "Customer",
+      "state": "",
+      "city": "School ID- 1923011"
+    },
+    {
+      "name": "Govt. Coed Secondary School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "West Delhi"
+    },
+    {
+      "name": "Govt. Girls Secondary School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "GGSS Burari"
+    },
+    {
+      "name": "Gurdwara Sri Guru Singh Sabha (Regd.)- Lajpat Nagar",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Haryana central University",
+      "type": "Customer",
+      "state": "",
+      "city": "Haryana123031"
+    },
+    {
+      "name": "Haskoning India Consulting Pvt. Ltd.",
+      "type": "Customer",
+      "state": "",
+      "city": "Contact No: 8826731005"
+    },
+    {
+      "name": "Hotel Excelsior Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Connaught Place"
+    },
+    {
+      "name": "Human Welfare Foundation",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Humanity Foundation",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "District Moradabad"
+    },
+    {
+      "name": "IBI Group India Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "ICE Boy Machines Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Rajasthan",
+      "city": "Bhiwadi"
+    },
+    {
+      "name": "ICLEI Local Governments for Sustainability South Asia",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Ifirm Projects Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "IKEBANA Dharmarth Trust",
+      "type": "Customer",
+      "state": "",
+      "city": "Contact No: 7827554040"
+    },
+    {
+      "name": "Imbue Interior",
+      "type": "Customer",
+      "state": "Uttarakhand",
+      "city": "Dehradun"
+    },
+    {
+      "name": "Imperial Auto Industries Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "IMS Ghaziabad",
+      "type": "Customer",
+      "state": "",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "In-West Trend",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "India Renewable Energy development agency",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Indian Army- New Delhi",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Indian Institute of Information Technology",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "NAGPUR"
+    },
+    {
+      "name": "Indian Renewable Energy Development Agency",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Indo-Tech Magnetics Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Indraprastha Medical Corporation Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Innovatiview India Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida Gautam Buddha Nagar"
+    },
+    {
+      "name": "Institute for Defence Studies and Analyses",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Institute for Defence Studies and Analyses",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Institute for Studies in Industrial Development",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Institute for Studies in Industrial Development",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Institute of Marketing & Management",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Institute of Marketing & Management",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Integrated Infrastructure Consulting",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "International Institute of Health Management Research",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "International Institute of Health Management Research",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "International Society for Krishna Consciousness",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "J Entertainment",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Ghaziabad"
+    },
+    {
+      "name": "Jain Shiksha Samiti",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Jamia Millia Islamia",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "South East"
+    },
+    {
+      "name": "Janta Model Public School",
+      "type": "Customer",
+      "state": "",
+      "city": "Contact No: 9278105370"
+    },
+    {
+      "name": "JAWAHAR LAL NEHRU GOVERNMENT ENGINEERING COLLEGE, Himachal pradesh",
+      "type": "Customer",
+      "state": "Himachal Pradesh",
+      "city": "Sundernagar District Mandi"
+    },
+    {
+      "name": "Jay Bharat Maruti Ltd.",
+      "type": "Customer",
+      "state": "",
+      "city": "Gurgoan"
+    },
+    {
+      "name": "Jay Bharat Maruti Ltd.- Jharsa GGN",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Jay Bharat Maruti Ltd.- Jharsa GGN",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Jay Bharat Maruti Ltd.- Jharsa GGN",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Sonipat"
+    },
+    {
+      "name": "JBM Electric Vehicles Pvt. Ltd. palwal",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Dist. Palwal"
+    },
+    {
+      "name": "JBM Industries Ltd. Fbd",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "JBM Ogihara Die Tech Pvt. Ltd. Noida",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Gr. Noida"
+    },
+    {
+      "name": "JSS Academy of Technical Education, Noida",
+      "type": "Customer",
+      "state": "",
+      "city": "UP"
+    },
+    {
+      "name": "K R Mangalam Global School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Kamal Investments Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Kashi Vishwanath Steels Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Uttarakhand",
+      "city": "Kashipur Dist- Udham Singh Nagar"
+    },
+    {
+      "name": "Kendriya Vidyalaya No. 3 Delhi Cantt.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Kirori Mal College, Delhi University (KMC, DU)",
+      "type": "Customer",
+      "state": "",
+      "city": "University Enclave"
+    },
+    {
+      "name": "Krishna Grupo Antolin Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Kriti Engineering & Construction",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Kuk Medsolutions",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Vikas Marg"
+    },
+    {
+      "name": "La Bake Amore",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Leadership Boulevard Private Limited",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "Leverage Ed-Tech Pvt. Ltd., New Delhi",
+      "type": "Customer",
+      "state": "",
+      "city": "Old Rajinder Nagar"
+    },
+    {
+      "name": "Lexecute Industries",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Pandav Nagar"
+    },
+    {
+      "name": "M. M Consultant and Services",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Navi Mumbai"
+    },
+    {
+      "name": "Maa Karni Enterprise",
+      "type": "Customer",
+      "state": "",
+      "city": "Contact No.- 7002483127"
+    },
+    {
+      "name": "Madura Coats Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "Magica Facility Management Services",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Mahle Anand Filter Systems Pvt. Ltd. - Parwanoo",
+      "type": "Customer",
+      "state": "",
+      "city": "Parwanoo"
+    },
+    {
+      "name": "Mahle Anand Filter Systems Pvt. Ltd.- Chenglepet",
+      "type": "Customer",
+      "state": "Tamil Nadu",
+      "city": "Chenglepet"
+    },
+    {
+      "name": "Mahle Anand Filter Systems Pvt. Ltd.- Pune",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Mahle Anand Thermal Systems Pvt. Ltd.-Greater Noida",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "Mahle Engine Components India Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Madhya Pradesh",
+      "city": "Distt. Dhar"
+    },
+    {
+      "name": "MAHLE Engine Components India Pvt. Ltd.- Tamil Nadu",
+      "type": "Customer",
+      "state": "Tamil Nadu",
+      "city": "Kancheepuram District."
+    },
+    {
+      "name": "Manav Rachna International School- Gurgaon",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurugram Haryana"
+    },
+    {
+      "name": "Manav Rachna University",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "Max Asset Services Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Gautam Buddha Nagar"
+    },
+    {
+      "name": "Millennium Technotools Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Mind Wizards LLP",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Minda Corporation Ltd.- Uttarakhand",
+      "type": "Customer",
+      "state": "Uttarakhand",
+      "city": "Udham Singh Nagar"
+    },
+    {
+      "name": "Modern Public School, Bhiwadi",
+      "type": "Customer",
+      "state": "Rajasthan",
+      "city": "Bhiwadi"
+    },
+    {
+      "name": "Mother Mary School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Aya Nagar"
+    },
+    {
+      "name": "MVN University, Haryana",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Aurangabad"
+    },
+    {
+      "name": "Myth Media Enterprises Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "National Institute of Urban Affairs (NIUA)",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Navyug School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Lodi Road"
+    },
+    {
+      "name": "Neel Metal Products Ltd.- Chakan",
+      "type": "Customer",
+      "state": "",
+      "city": "Chakan"
+    },
+    {
+      "name": "Neel Metal Products Ltd.- Nalagarh",
+      "type": "Customer",
+      "state": "",
+      "city": "Nalagarh"
+    },
+    {
+      "name": "Neoflex Industries LLP",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "District Sonipat"
+    },
+    {
+      "name": "New Era Public School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "New Way Homes Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Greater Noida"
+    },
+    {
+      "name": "Newgen Software Technologies Limited",
+      "type": "Customer",
+      "state": "",
+      "city": "Sector 144"
+    },
+    {
+      "name": "Nilgiri Hills Public School",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Nilgiri Hills Public School",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "NGO Sapna",
+      "type": "Customer",
+      "state": "Rajasthan",
+      "city": "Alwar"
+    },
+    {
+      "name": "Northcap University",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurugram"
+    },
+    {
+      "name": "NTPC Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Om Logistics Ltd. - Mumbai",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Thane Mumbai"
+    },
+    {
+      "name": "Om Logistics Ltd. - pune",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Om Logistics Ltd. - Mumbai",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "Om Logistics Ltd. Bangalore",
+      "type": "Customer",
+      "state": "Karnataka",
+      "city": "Bangalore"
+    },
+    {
+      "name": "Om Logistics Ltd. D57 Noida",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Greater Noida Gautam Buddha Nagar"
+    },
+    {
+      "name": "Partap World School- Punjab",
+      "type": "Customer",
+      "state": "",
+      "city": "Punjab-4145001"
+    },
+    {
+      "name": "Pentagon Tech Fusion Services Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "PN International Pvt. Ltd. Noida",
+      "type": "Customer",
+      "state": "",
+      "city": "Uttar Pradesh- 2013001"
+    },
+    {
+      "name": "Power Finance Corporation",
+      "type": "Customer",
+      "state": "",
+      "city": "Kind Attn: GM Admin"
+    },
+    {
+      "name": "Presto Stantest Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridawad"
+    },
+    {
+      "name": "Principal Government College Of Education Ratnagiri",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Ratnagiri"
+    },
+    {
+      "name": "Probody Balance Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Navi Mumbai"
+    },
+    {
+      "name": "Project Concern International",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Qucom Infosoft Technologies Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Ram Krishna Senior Secondary School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Rama Krishna Sarada Mission",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Ratna Sagar P. Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Mukherjee Nagar"
+    },
+    {
+      "name": "Ratna Sagar Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Mukherjee Nagar"
+    },
+    {
+      "name": "Reserve Bank of India",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Rohit Industries",
+      "type": "Customer",
+      "state": "",
+      "city": "Phone -8287003362"
+    },
+    {
+      "name": "Royal Facilites & Management Services",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Ryan International School, JALANDHAR",
+      "type": "Customer",
+      "state": "Punjab",
+      "city": "Jalandhar"
+    },
+    {
+      "name": "Ryan International School, kerala",
+      "type": "Customer",
+      "state": "Kerala",
+      "city": "Ernakulam (Dist)"
+    },
+    {
+      "name": "Ryan International School, Punjab",
+      "type": "Customer",
+      "state": "Punjab",
+      "city": "Patiala"
+    },
+    {
+      "name": "Ryan International School,GURGAON",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Gurgaon"
+    },
+    {
+      "name": "Ryan Inyernational School, C/o Mother India Educational Societydelhi",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Saffron Public School",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "Saffron Public School- Faridabad",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "faridabad"
+    },
+    {
+      "name": "Salwan Public School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Smart Joules Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Sar Digital",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "C12/198 Yamuna Vihar"
+    },
+    {
+      "name": "Savencia Fromage & Dairy India Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Savera Association",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "SBI Employees CGHS Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Saraswati Vihar"
+    },
+    {
+      "name": "SBR Air Express",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "SDM Trust's",
+      "type": "Customer",
+      "state": "Karnataka",
+      "city": "Dist- Bangalore"
+    },
+    {
+      "name": "Shobhit University",
+      "type": "Customer",
+      "state": "",
+      "city": "Patparganj"
+    },
+    {
+      "name": "Shree Balaji Engineering Works",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Libaspur"
+    },
+    {
+      "name": "Shree Ganesh CGHS Ltd.",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Shree Krishna Marketing",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Nangli Poona"
+    },
+    {
+      "name": "Shree Shyam Constructions",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Greater Faridabad"
+    },
+    {
+      "name": "Shreeji Business Solutions",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Shri Devikoop Bhadrakali Shaktipeeth Temple",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Thanesar"
+    },
+    {
+      "name": "Shri Krishan",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Shri Krishna Maa Jalpa Bhawani Gaushala Samiti",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "Shri Lal Bahadur Shastri National Sanskrit University",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "South Delhi"
+    },
+    {
+      "name": "Shri Lal Bahadur Shastri National Sanskrit University, Delhi",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "South Delhi"
+    },
+    {
+      "name": "SIS Limited",
+      "type": "Customer",
+      "state": "Tripura",
+      "city": "Ps: West Agartala"
+    },
+    {
+      "name": "SMR Automotive Systems India Limited Noida",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida"
+    },
+    {
+      "name": "SMR Automotive Systems India Limited PUNE",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Society for Applied Microwave Electronics",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Mumbai"
+    },
+    {
+      "name": "Sodales Labs India pvt Ltd",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "pune"
+    },
+    {
+      "name": "Spandan Social & cultural association",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida Sector - 45"
+    },
+    {
+      "name": "Telenet Marketing Pvt Ltd.",
+      "type": "Customer",
+      "state": "Chandigarh",
+      "city": "Sector 22-B"
+    },
+    {
+      "name": "The Tourism School",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "The Women Education and Empowerment Trust",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Third Eye Vision",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "Karala"
+    },
+    {
+      "name": "Total Energies",
+      "type": "Customer",
+      "state": "",
+      "city": "Contact No. 8218398475"
+    },
+    {
+      "name": "Totall Institute of Health Education Pvt. Ltd.",
+      "type": "Customer",
+      "state": "Madhya Pradesh",
+      "city": "Indore"
+    },
+    {
+      "name": "University of Delhi",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "University of Delhi, New Delhi",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Veetee Fine Foods Ltd.",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Sonipat"
+    },
+    {
+      "name": "Victora Auto Pvt. Ltd. 20A FBD",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "Victora Auto Pvt. Ltd. Reawri",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Rewari"
+    },
+    {
+      "name": "Victora Auto Pvt. Ltd. Chennai",
+      "type": "Customer",
+      "state": "Tamil Nadu",
+      "city": "Chennai"
+    },
+    {
+      "name": "Victora Auto Pvt. Ltd.- Pune",
+      "type": "Customer",
+      "state": "Maharashtra",
+      "city": "Pune"
+    },
+    {
+      "name": "Victura Technologies Pvt. Ltd. Sikri",
+      "type": "Customer",
+      "state": "Haryana",
+      "city": "Faridabad"
+    },
+    {
+      "name": "Vidhi Centre for Legal Policy",
+      "type": "Customer",
+      "state": "Delhi",
+      "city": "New Delhi"
+    },
+    {
+      "name": "Yadu Public School Society",
+      "type": "Customer",
+      "state": "Uttar Pradesh",
+      "city": "Noida Gautambuddha Nagar"
+    }
+  ]
+}
