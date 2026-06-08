@@ -56,9 +56,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
   </div>
 
-  <!-- Search Bar -->
+  <!-- Search & Filter Bar -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
-    <div class="flex flex-col lg:flex-row gap-4 items-center">
+    <div class="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
+      <!-- Search -->
       <div class="flex-1 relative w-full">
         <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -67,10 +68,33 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           type="text"
           id="searchInput"
           placeholder="Search by account name..."
-          class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
+          class="w-full pl-12 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white transition-all"
           autocomplete="off"
         />
       </div>
+
+      <!-- Account Type filter -->
+      <select id="typeFilter" class="px-3 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-w-[150px]">
+        <option value="">All Types</option>
+      </select>
+
+      <!-- State filter -->
+      <select id="stateFilter" class="px-3 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-w-[160px]">
+        <option value="">All States</option>
+      </select>
+
+      <!-- Sort -->
+      <select id="sortBy" class="px-3 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-w-[170px]">
+        <option value="">Sort: Default</option>
+        <option value="name-asc">Name A → Z</option>
+        <option value="name-desc">Name Z → A</option>
+        <option value="state-asc">State A → Z</option>
+      </select>
+
+      <!-- Reset -->
+      <button id="resetFilters" class="px-4 py-3 text-sm text-slate-600 border-2 border-slate-200 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors whitespace-nowrap">
+        Reset
+      </button>
     </div>
     <div class="flex items-center gap-2 mt-3">
       <div id="searchSpinner" class="hidden animate-spin w-4 h-4 text-blue-600">
@@ -161,6 +185,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
       const searchStatus = document.getElementById('searchStatus') as HTMLSpanElement;
       const tableView = document.getElementById('tableView') as HTMLDivElement;
+      const typeFilter = document.getElementById('typeFilter') as HTMLSelectElement;
+      const stateFilter = document.getElementById('stateFilter') as HTMLSelectElement;
+      const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
+      const resetFiltersBtn = document.getElementById('resetFilters') as HTMLButtonElement;
 
       let allAccounts: any[] = [];
       let contactsByAccount: Record<string, string> = {};
@@ -197,6 +225,33 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             }
           }
 
+          // Deduplicate: group by GST No + billing address; same company/address imported
+          // multiple times (once per contact) should appear as a single row
+          const groupMap = new Map();
+          for (const acc of allAccounts) {
+            const f = acc.fields || {};
+            const gst = (f['GST No'] || '').trim().toLowerCase();
+            const addr = [f['Billing Street'], f['Billing City'], f['Billing State'], f['Billing Code']]
+              .map((s: string) => (s || '').trim().toLowerCase()).join('|');
+            const key = gst
+              ? `${gst}|${addr}`
+              : `n:${(f['Account Name'] || '').trim().toLowerCase()}|${addr}` || `id:${acc.id}`;
+            if (!groupMap.has(key)) groupMap.set(key, []);
+            groupMap.get(key).push(acc);
+          }
+          allAccounts = [];
+          for (const [, group] of groupMap) {
+            allAccounts.push({ ...group[0], _groupIds: group.map((a: any) => a.id).join(',') });
+          }
+
+          // Populate Type dropdown from unique values in the data
+          const types = [...new Set(allAccounts.map((a: any) => a.fields?.['Account Type']).filter((t: any) => t && t !== 'Partner') as string[])].sort();
+          typeFilter.innerHTML = '<option value="">All Types</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
+
+          // Populate State dropdown from unique values in the data
+          const states = [...new Set(allAccounts.map((a: any) => a.fields?.['Billing State']).filter(Boolean) as string[])].sort();
+          stateFilter.innerHTML = '<option value="">All States</option>' + states.map(s => `<option value="${s}">${s}</option>`).join('');
+
           applyFilters();
         } catch (error) {
           console.error('[ACCOUNT LOAD ERROR]', error);
@@ -209,9 +264,22 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       function applyFilters() {
         const search = searchInput.value.trim().toLowerCase();
-        const result = search
-          ? allAccounts.filter((r: any) => (r.fields?.['Account Name'] || '').toLowerCase().includes(search))
-          : allAccounts;
+        const type = typeFilter.value;
+        const state = stateFilter.value;
+        const sort = sortBy.value;
+
+        let result = allAccounts.filter((r: any) => {
+          const f = r.fields || {};
+          if (search && !(f['Account Name'] || '').toLowerCase().includes(search)) return false;
+          if (type && f['Account Type'] !== type) return false;
+          if (state && f['Billing State'] !== state) return false;
+          return true;
+        });
+
+        if (sort === 'name-asc') result.sort((a: any, b: any) => (a.fields?.['Account Name'] || '').localeCompare(b.fields?.['Account Name'] || ''));
+        else if (sort === 'name-desc') result.sort((a: any, b: any) => (b.fields?.['Account Name'] || '').localeCompare(a.fields?.['Account Name'] || ''));
+        else if (sort === 'state-asc') result.sort((a: any, b: any) => (a.fields?.['Billing State'] || '').localeCompare(b.fields?.['Billing State'] || ''));
+
         displayResults(result);
       }
 
@@ -241,13 +309,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const addressParts = [fields['Billing Street'], fields['Billing City'], fields['Billing State']].filter(Boolean);
           const address = addressParts.length ? addressParts.join(', ') : '<span class="text-slate-400 italic">—</span>';
           const accountType = fields['Account Type'] || '<span class="text-slate-400 italic">—</span>';
-          const contactName = contactsByAccount[record.id] || '<span class="text-slate-400 italic">—</span>';
+          const groupIds = (record._groupIds || String(record.id)).split(',').map(Number);
+          const contactName = groupIds.map((gid: number) => contactsByAccount[gid]).find(Boolean) || '<span class="text-slate-400 italic">—</span>';
           const phone = fields['Phone Number'] || '<span class="text-slate-400 italic">—</span>';
+          const groupIdsParam = record._groupIds || record.id;
 
           return `
             <tr data-account-id="${record.id}" class="transition-colors hover:bg-blue-50">
               <td class="px-6 py-4 text-sm text-slate-900">
-                <a href="/account-detail?id=${record.id}" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                <a href="/account-detail?ids=${groupIdsParam}" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
                   ${accountName}
                 </a>
               </td>
@@ -262,6 +332,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       searchInput.addEventListener('input', debounce(() => applyFilters(), 300));
       searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });
+      typeFilter.addEventListener('change', () => applyFilters());
+      stateFilter.addEventListener('change', () => applyFilters());
+      sortBy.addEventListener('change', () => applyFilters());
+      resetFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        typeFilter.value = '';
+        stateFilter.value = '';
+        sortBy.value = '';
+        applyFilters();
+      });
 
       loadAll();
     });

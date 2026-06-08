@@ -221,6 +221,8 @@ export const POST: APIRoute = async ({ request }) => {
     let totalTax = 0;
     let totalDiscount = 0;
 
+    const nameLineCounts: number[] = [];
+
     const tableData = quoteData.products.map((product, index) => {
       const price = product.price || 0;
       const qty = product.quantity || 1;
@@ -245,9 +247,14 @@ export const POST: APIRoute = async ({ request }) => {
       totalDiscount += discountAmount;
       totalTax += itemTax;
 
-      // Build product details with proper formatting
-      const productNameBold = { content: product.name, styles: { fontStyle: 'bold' } };
-      let productDetails = product.name;
+      // Pre-split name with bold metrics so autotable allocates the correct row height
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      const boldNameLines: string[] = doc.splitTextToSize(product.name, 49);
+      nameLineCounts.push(boldNameLines.length);
+      doc.setFont('helvetica', 'normal');
+
+      let productDetails = boldNameLines.join('\n');
       if (product.brand) productDetails += `\nBrand: ${product.brand}`;
       if (product.description) productDetails += `\n${product.description}`;
 
@@ -325,29 +332,26 @@ export const POST: APIRoute = async ({ request }) => {
           const availableWidth = cell.width - 4;
           const contentX = cell.x + 2;
 
-          // Cover entire cell interior so autotable's normal-weight text doesn't bleed through
           doc.setFillColor(255, 255, 255);
           doc.rect(cell.x + 0.5, cell.y + 0.5, cell.width - 1, cell.height - 1, 'F');
 
           let textY = cell.y + 4;
-          const parts = rawText.split('\n');
-          const productName = parts[0];
-          const rest = parts.slice(1);
+          const lines = rawText.split('\n');
+          const nameLineCount = nameLineCounts[data.row.index] ?? 1;
 
           doc.setFontSize(8);
           doc.setTextColor(0, 0, 0);
 
-          // Product name in bold
+          // First nameLineCount lines are the pre-split bold product name
           doc.setFont('helvetica', 'bold');
-          const nameLines: string[] = doc.splitTextToSize(productName, availableWidth);
-          nameLines.forEach((line: string) => {
+          lines.slice(0, nameLineCount).forEach((line: string) => {
             doc.text(line, contentX, textY);
             textY += 4;
           });
 
-          // Brand and description in normal weight
+          // Remaining lines are brand / description — normal weight, may need wrapping
           doc.setFont('helvetica', 'normal');
-          rest.forEach((part: string) => {
+          lines.slice(nameLineCount).forEach((part: string) => {
             if (!part) return;
             const subLines: string[] = doc.splitTextToSize(part, availableWidth);
             subLines.forEach((line: string) => {

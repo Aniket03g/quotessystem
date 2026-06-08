@@ -424,15 +424,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const accountId = urlParams.get('id');
+    // Support ?ids=1,2,3 (group of duplicates) and legacy ?id=123 (single)
+    const idsParam = urlParams.get('ids') || urlParams.get('id') || '';
+    const accountIds = idsParam.split(',').map(s => s.trim()).filter(Boolean);
+    const primaryId = accountIds[0];
 
-    if (!accountId) {
+    if (!primaryId) {
       showError('No account ID provided');
     } else {
-      loadAccountDetails(accountId);
+      loadAccountDetails(primaryId, accountIds);
     }
 
-    async function loadAccountDetails(accountId) {
+    async function loadAccountDetails(accountId, accountIds) {
       try {
         const token = localStorage.getItem('jwt_token');
         if (!token) {
@@ -543,8 +546,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Load contacts and cases in parallel
         await Promise.all([
-          loadAccountContacts(accountId, token, accountName),
-          loadAccountCases(accountId, token),
+          loadAccountContacts(accountIds, token, accountName),
+          loadAccountCases(accountIds, token),
         ]);
 
       } catch (error) {
@@ -553,23 +556,31 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
-    async function loadAccountContacts(accountId, token, accountName) {
+    async function loadAccountContacts(accountIds, token, accountName) {
       const section = document.getElementById('contactsSection');
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/proxy/accounts_duplicate/links/contacts_new/${accountId}?fields=Id,Name,Email,Phone%20Number,Department`,
-          { headers: { 'Authorization': `Bearer ${token}` } }
+        // Fetch contacts for all account IDs in the group in parallel, then deduplicate by contact ID
+        const results = await Promise.all(
+          accountIds.map((id: string) =>
+            fetch(
+              `${API_BASE_URL}/proxy/accounts_duplicate/links/contacts_new/${id}?fields=Id,Name,Email,Phone%20Number,Department`,
+              { headers: { 'Authorization': `Bearer ${token}` } }
+            ).then(r => r.ok ? r.json() : { records: [] }).catch(() => ({ records: [] }))
+          )
         );
 
-        if (!res.ok) {
-          section.innerHTML = '';
-          return;
+        const seen = new Set();
+        const contacts: any[] = [];
+        for (const result of results) {
+          for (const c of (result.records || [])) {
+            if (!seen.has(c.id)) {
+              seen.add(c.id);
+              contacts.push(c);
+            }
+          }
         }
 
-        const data = await res.json();
-        const contacts = data.records || [];
-
-        const addContactHref = `/add-contact?accountId=${accountId}&accountName=${encodeURIComponent(accountName)}`;
+        const addContactHref = `/add-contact?accountId=${accountIds[0]}&accountName=${encodeURIComponent(accountName)}`;
         const addContactBtn = `<a href="${addContactHref}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
           Add Contact
@@ -630,7 +641,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     // Cache for quote versions per case
     const caseQuotesCache = new Map();
 
-    async function loadAccountCases(accountId, token) {
+    async function loadAccountCases(accountIds, token) {
       try {
         const userEmail = getUserEmail();
         const userRole = getUserRole();
@@ -660,15 +671,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const allCases = casesData.records || [];
           console.log('[ACCOUNT DETAIL] Total cases fetched:', allCases.length);
           
-          // Filter cases that have this account linked
+          // Filter cases linked to any account ID in the group
           const accountCases = allCases.filter(caseRecord => {
             const accountsField = caseRecord.fields?.['Accounts duplicate'];
             if (!accountsField) return false;
-            
-            // Check if it's an object with id or an array
-            if (accountsField.id == accountId) return true;
-            if (Array.isArray(accountsField) && accountsField.some(acc => acc.id == accountId)) return true;
-            
+            if (accountIds.some((id: string) => accountsField.id == id)) return true;
+            if (Array.isArray(accountsField) && accountsField.some((acc: any) => accountIds.some((id: string) => acc.id == id))) return true;
             return false;
           });
           
