@@ -222,6 +222,7 @@ export const POST: APIRoute = async ({ request }) => {
     let totalDiscount = 0;
 
     const nameLineCounts: number[] = [];
+    const requiredCellHeights: number[] = [];
 
     const tableData = quoteData.products.map((product, index) => {
       const price = product.price || 0;
@@ -247,16 +248,29 @@ export const POST: APIRoute = async ({ request }) => {
       totalDiscount += discountAmount;
       totalTax += itemTax;
 
-      // Pre-split name with bold metrics so autotable allocates the correct row height
+      // Pre-split every display line at 49mm so autotable counts the exact same
+      // lines that didDrawCell will render at 4mm spacing each.
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
       const boldNameLines: string[] = doc.splitTextToSize(product.name, 49);
       nameLineCounts.push(boldNameLines.length);
       doc.setFont('helvetica', 'normal');
 
-      let productDetails = boldNameLines.join('\n');
-      if (product.brand) productDetails += `\nBrand: ${product.brand}`;
-      if (product.description) productDetails += `\n${product.description}`;
+      const allDisplayLines: string[] = [...boldNameLines];
+      if (product.brand) {
+        allDisplayLines.push(...doc.splitTextToSize(`Brand: ${product.brand}`, 49));
+      }
+      if (product.description) {
+        const descParts = (product.description as string).replace(/\r\n?/g, '\n').split('\n');
+        for (const part of descParts) {
+          if (part.trim()) allDisplayLines.push(...doc.splitTextToSize(part, 49));
+        }
+      }
+
+      // Force minCellHeight to fit all lines: autotable top offset(4.4) + lines*lineH(4) + bottom_pad(2)
+      requiredCellHeights.push(allDisplayLines.length * 4 + 3);
+
+      const productDetails = allDisplayLines.join('\n');
 
       const warrantyDisplay = product.warranty != null ? product.warranty.toString() : '-';
       const taxLabel = product.tax || 'GST-18%';
@@ -323,6 +337,12 @@ export const POST: APIRoute = async ({ request }) => {
       margin: { left: margin, right: margin },
       showHead: 'everyPage',
       rowPageBreak: 'avoid',
+      didParseCell: (data) => {
+        if (data.column.index === 1 && data.section === 'body') {
+          const required = requiredCellHeights[data.row.index];
+          if (required !== undefined) data.cell.styles.minCellHeight = required;
+        }
+      },
       didDrawCell: (data) => {
         if (data.column.index === 1 && data.section === 'body') {
           const cell = data.cell;
@@ -335,12 +355,15 @@ export const POST: APIRoute = async ({ request }) => {
           doc.setFillColor(255, 255, 255);
           doc.rect(cell.x + 0.5, cell.y + 0.5, cell.width - 1, cell.height - 1, 'F');
 
-          let textY = cell.y + 4;
-          const lines = rawText.split('\n');
-          const nameLineCount = nameLineCounts[data.row.index] ?? 1;
-
           doc.setFontSize(8);
           doc.setTextColor(0, 0, 0);
+
+          // Match autotable's valign:'top' baseline: cellPadding.top + fontSize * (2 - lineHeightFactor)
+          const fontMm = doc.internal.getFontSize() / doc.internal.scaleFactor;
+          let textY = cell.y + 2 + fontMm * (2 - 1.15);
+
+          const lines = rawText.split('\n');
+          const nameLineCount = nameLineCounts[data.row.index] ?? 1;
 
           // First nameLineCount lines are the pre-split bold product name
           doc.setFont('helvetica', 'bold');
@@ -349,15 +372,12 @@ export const POST: APIRoute = async ({ request }) => {
             textY += 4;
           });
 
-          // Remaining lines are brand / description — normal weight, may need wrapping
+          // Remaining lines are brand / description — already pre-split, normal weight
           doc.setFont('helvetica', 'normal');
-          lines.slice(nameLineCount).forEach((part: string) => {
-            if (!part) return;
-            const subLines: string[] = doc.splitTextToSize(part, availableWidth);
-            subLines.forEach((line: string) => {
-              doc.text(line, contentX, textY);
-              textY += 4;
-            });
+          lines.slice(nameLineCount).forEach((line: string) => {
+            if (!line) return;
+            doc.text(line, contentX, textY);
+            textY += 4;
           });
         }
       },

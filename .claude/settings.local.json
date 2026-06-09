@@ -6,7 +6,14 @@
       "Bash(npm --version)",
       "Bash(npm install *)",
       "Bash(node import.mjs --preview)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(python.exe -c ' *)",
+      "Bash(python.exe *)",
+      "Bash(grep -v \"//\\\\|parse\\\\|style\")",
+      "Bash(grep -v \"//\\\\|parse\\\\|style\\\\|min\\\\|max\\\\|merge\")",
+      "Bash(grep -v \"//\\\\|minCellHeight\\\\|remainingSpace\\\\|oneRowHeight\")"
     ]
   }
 }
