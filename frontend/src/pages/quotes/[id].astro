@@ -115,7 +115,8 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   <script>
     import { getToken, logout, safeJsonParse } from '../../lib/api';
 
-    const API_BASE_URL = `http://${window.location.hostname}:8082`;
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+      `${window.location.protocol}//${window.location.hostname}:8082`;
 
     function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
       const container = document.getElementById('toastContainer')!;

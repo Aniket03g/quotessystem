@@ -1,8 +1,7 @@
 import { getToken, safeJsonParse, logout } from './api';
 
-const API_BASE_URL = typeof window !== 'undefined' 
-  ? `http://${window.location.hostname}:8082` 
-  : 'http://localhost:8082';
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+  (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8082` : 'http://localhost:8082');
 
 /**
  * Quote details structure returned by this module

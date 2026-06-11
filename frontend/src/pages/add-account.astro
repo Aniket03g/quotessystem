@@ -354,7 +354,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   </div>
 
   <script>
-    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || `http://${window.location.hostname}:8082`;
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+      `${window.location.protocol}//${window.location.hostname}:8082`;
     function showToast(message, type = 'info') {
       const container = document.getElementById('toastContainer');
       const toast = document.createElement('div');

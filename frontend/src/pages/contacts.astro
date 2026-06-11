@@ -203,7 +203,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     // Wait for DOM to be ready
     document.addEventListener('DOMContentLoaded', () => {
-      const API_BASE_URL = `http://${window.location.hostname}:8082`;
+      const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8082`;
       const token = getToken();
 
       function showConfirm(message, okLabel = 'Confirm', okClass = 'bg-red-600 hover:bg-red-700') {

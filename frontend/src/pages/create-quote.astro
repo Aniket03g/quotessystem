@@ -311,7 +311,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     import { getToken, logout, safeJsonParse } from '../lib/api';
     import { debounce } from '../utils/debounce';
 
-    const API_BASE_URL = `http://${window.location.hostname}:8082`;
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+      `${window.location.protocol}//${window.location.hostname}:8082`;
     
     const token = getToken();
     if (!token) {

@@ -297,7 +297,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   <script>
     import { getToken, logout, getUserInfo } from '../lib/api';
 
-    const API_BASE_URL = `http://${window.location.hostname}:8082`;
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+      `${window.location.protocol}//${window.location.hostname}:8082`;
     const token = getToken();
 
     function showConfirm(message: string, okLabel = 'Confirm', okClass = 'bg-red-600 hover:bg-red-700'): Promise<boolean> {
