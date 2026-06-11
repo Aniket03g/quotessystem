@@ -31,12 +31,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - PUBLIC_API_BASE_URL=https://api.grovesystems.co
     container_name: grove-frontend
     ports:
       - "4321:4321"
     environment:
       - NODE_ENV=production
-      - PUBLIC_API_BASE_URL=http://backend:8082
+      - PUBLIC_API_BASE_URL=https://api.grovesystems.co
     depends_on:
       - backend
     restart: unless-stopped

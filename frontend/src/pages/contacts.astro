@@ -163,7 +163,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     <!-- Table -->
     <div id="contactsTable" class="hidden overflow-x-auto">
-      <table class="w-full">
+      <table class="w-full table-fixed">
+        <colgroup>
+          <col class="w-[5%]" />
+          <col class="w-[21%]" />
+          <col class="w-[23%]" />
+          <col class="w-[25%]" />
+          <col class="w-[17%]" />
+          <col class="w-[9%]" />
+        </colgroup>
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
             <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
@@ -364,10 +372,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return `
           <tr class="hover:bg-slate-50 transition-colors">
             <td class="px-6 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
-            <td class="px-6 py-4 text-sm text-slate-900">${contactName}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">${account}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">${email}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">${phone}</td>
+            <td class="px-6 py-4 text-sm text-slate-900 truncate max-w-0">${contactName}</td>
+            <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-0">${account}</td>
+            <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-0">${email}</td>
+            <td class="px-6 py-4 text-sm text-slate-600 truncate max-w-0">${phone}</td>
             <td class="px-6 py-4 text-sm">
               <div class="flex items-center gap-2">
                 <button

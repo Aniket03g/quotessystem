@@ -1,6 +1,5 @@
-// Use environment variable if set, otherwise dynamically construct from current hostname
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 
-  (typeof window !== 'undefined' ? `http://${window.location.hostname}:8082` : 'http://localhost:8082');
+const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+  (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:8082` : 'http://localhost:8082');
 
 interface LoginResponse {
   token: string;

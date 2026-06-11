@@ -134,7 +134,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   <!-- Table View -->
   <div id="tableView" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <div id="accountsTable" class="overflow-x-auto">
-      <table class="w-full">
+      <table class="w-full table-fixed">
+        <colgroup>
+          <col class="w-[25%]" />
+          <col class="w-[30%]" />
+          <col class="w-[15%]" />
+          <col class="w-[15%]" />
+          <col class="w-[15%]" />
+        </colgroup>
         <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b-2 border-slate-200">
           <tr>
             <th class="px-6 py-4 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Account Name</th>
@@ -316,15 +323,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
           return `
             <tr data-account-id="${record.id}" class="transition-colors hover:bg-blue-50">
-              <td class="px-6 py-4 text-sm text-slate-900">
-                <a href="/account-detail?ids=${groupIdsParam}" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+              <td class="px-6 py-4 text-sm text-slate-900 truncate max-w-0">
+                <a href="/account-detail?ids=${groupIdsParam}" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline block truncate">
                   ${accountName}
                 </a>
               </td>
-              <td class="px-6 py-4 text-sm text-slate-700">${address}</td>
-              <td class="px-6 py-4 text-sm text-slate-700">${accountType}</td>
-              <td class="px-6 py-4 text-sm text-slate-700">${contactName}</td>
-              <td class="px-6 py-4 text-sm text-slate-700">${phone}</td>
+              <td class="px-6 py-4 text-sm text-slate-700 truncate max-w-0">${address}</td>
+              <td class="px-6 py-4 text-sm text-slate-700 truncate max-w-0">${accountType}</td>
+              <td class="px-6 py-4 text-sm text-slate-700 truncate max-w-0">${contactName}</td>
+              <td class="px-6 py-4 text-sm text-slate-700 truncate max-w-0">${phone}</td>
             </tr>
           `;
         }).join('');
