@@ -95,6 +95,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
           </button>
+          <button id="sendEmailBtn" class="inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors" title="Send to Customer">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </button>
           <button id="previewPdfBtn" class="inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors" title="Preview PDF">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -1784,6 +1789,67 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     document.getElementById('downloadPdfBtn')?.addEventListener('click', () => openPdfTermsModal(false));
     document.getElementById('changeTermsBtn')?.addEventListener('click', () => openChangeTermsModal());
 
+    document.getElementById('sendEmailBtn')?.addEventListener('click', () => {
+      if (!currentQuoteData) { showToast('Quote data not loaded yet', 'error'); return; }
+      const subjectInput = document.getElementById('emailSubjectInput') as HTMLInputElement;
+      subjectInput.value = `Quotation: ${currentQuoteData.subject}`;
+      (document.getElementById('emailToInput') as HTMLInputElement).value = '';
+      (document.getElementById('emailNoteInput') as HTMLTextAreaElement).value = '';
+      document.getElementById('sendEmailModal')!.classList.remove('hidden');
+    });
+
+    document.getElementById('sendEmailCancel')?.addEventListener('click', () => {
+      document.getElementById('sendEmailModal')!.classList.add('hidden');
+    });
+
+    document.getElementById('sendEmailConfirm')?.addEventListener('click', async () => {
+      const toEmail = (document.getElementById('emailToInput') as HTMLInputElement).value.trim();
+      const emailSubject = (document.getElementById('emailSubjectInput') as HTMLInputElement).value.trim();
+      const note = (document.getElementById('emailNoteInput') as HTMLTextAreaElement).value.trim();
+      const confirmBtn = document.getElementById('sendEmailConfirm') as HTMLButtonElement;
+
+      if (!toEmail) {
+        showToast('Please enter a recipient email address', 'error');
+        return;
+      }
+
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Sending...';
+
+      try {
+        const logoSelect = document.getElementById('logoSelect') as HTMLSelectElement;
+        const payload = {
+          ...currentQuoteData,
+          logo: logoSelect?.value || 'greenocare',
+          deliveryTerms: savedDeliveryTerms || '',
+          paymentTerms: savedPaymentTerms || '',
+          toEmail,
+          emailSubject: emailSubject || `Quotation: ${currentQuoteData.subject}`,
+          note,
+        };
+
+        const response = await fetch('/api/quotes/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.error || 'Failed to send email');
+        }
+
+        document.getElementById('sendEmailModal')!.classList.add('hidden');
+        showToast(`Email sent to ${toEmail}`, 'success');
+      } catch (err) {
+        showToast(err instanceof Error ? err.message : 'Failed to send email', 'error');
+      } finally {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Send';
+      }
+    });
+
     document.getElementById('pdfTermsCancel')?.addEventListener('click', () => {
       document.getElementById('pdfTermsModal')!.classList.add('hidden');
       _changeTermsOnly = false;
@@ -2485,6 +2551,52 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     // Load quote details on page load
     loadQuoteDetails();
   </script>
+
+  <!-- Send Email Modal -->
+  <div id="sendEmailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="flex-shrink-0 w-9 h-9 bg-indigo-100 rounded-full flex items-center justify-center">
+          <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-base font-semibold text-slate-800">Send Quote to Customer</h3>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">To <span class="text-red-500">*</span></label>
+          <input
+            type="email"
+            id="emailToInput"
+            placeholder="customer@example.com"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Subject</label>
+          <input
+            type="text"
+            id="emailSubjectInput"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Note <span class="text-slate-400 font-normal">(optional)</span></label>
+          <textarea
+            id="emailNoteInput"
+            rows="3"
+            placeholder="Add a personal note to the email body..."
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          ></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 mt-6">
+        <button id="sendEmailCancel" class="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">Cancel</button>
+        <button id="sendEmailConfirm" class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50">Send</button>
+      </div>
+    </div>
+  </div>
 
   <!-- PDF Terms Modal -->
   <div id="pdfTermsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">

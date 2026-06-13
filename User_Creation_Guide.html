@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grove Systems CRM — User Creation Guide</title>
+  <style>
+    /* ── Print / PDF layout ── */
+    @page {
+      size: A4;
+      margin: 20mm 18mm 20mm 18mm;
+    }
+    @media print {
+      body { background: #fff; }
+      .no-print { display: none; }
+      .page-break { page-break-before: always; }
+      .card { box-shadow: none !important; border: 1px solid #d1d5db !important; }
+    }
+
+    /* ── Base ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #1e293b;
+      background: #f1f5f9;
+    }
+    .page {
+      max-width: 780px;
+      margin: 32px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+      color: #fff;
+      padding: 36px 40px 28px;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+    .logo-box {
+      width: 44px; height: 44px;
+      background: #22c55e;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -1px;
+    }
+    .header h1 {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.3px;
+    }
+    .header .subtitle {
+      font-size: 13px; color: #94a3b8; margin-top: 4px;
+    }
+    .header-meta {
+      display: flex; gap: 20px; margin-top: 18px;
+    }
+    .meta-pill {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 11px; color: #cbd5e1;
+    }
+
+    /* ── Body ── */
+    .body { padding: 36px 40px 44px; }
+
+    /* ── Section heading ── */
+    .section-heading {
+      display: flex; align-items: center; gap: 10px;
+      margin: 28px 0 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    .section-heading:first-child { margin-top: 0; }
+    .section-num {
+      width: 26px; height: 26px;
+      background: #1e3a5f;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .section-heading h2 {
+      font-size: 15px; font-weight: 700; color: #0f172a;
+    }
+
+    /* ── Cards ── */
+    .card {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .card-blue   { background: #eff6ff; border-left: 4px solid #3b82f6; }
+    .card-green  { background: #f0fdf4; border-left: 4px solid #22c55e; }
+    .card-yellow { background: #fffbeb; border-left: 4px solid #f59e0b; }
+    .card-red    { background: #fef2f2; border-left: 4px solid #ef4444; }
+    .card-gray   { background: #f8fafc; border-left: 4px solid #64748b; }
+
+    .card-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 6px;
+    }
+    .card-blue   .card-title { color: #1d4ed8; }
+    .card-green  .card-title { color: #15803d; }
+    .card-yellow .card-title { color: #b45309; }
+    .card-red    .card-title { color: #b91c1c; }
+    .card-gray   .card-title { color: #475569; }
+
+    /* ── Steps ── */
+    .steps { counter-reset: step; }
+    .step {
+      display: flex; gap: 14px;
+      margin-bottom: 14px;
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      background: #0f172a;
+      color: #fff;
+      border-radius: 50%;
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 1px;
+    }
+    .step-body { flex: 1; }
+    .step-body strong { display: block; font-size: 13px; margin-bottom: 3px; }
+    .step-body p, .step-body ul { font-size: 13px; color: #475569; }
+
+    /* ── Table ── */
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13px; margin: 10px 0;
+    }
+    thead tr { background: #0f172a; color: #fff; }
+    thead th {
+      padding: 9px 14px; text-align: left;
+      font-weight: 600; font-size: 12px; letter-spacing: 0.3px;
+    }
+    tbody tr:nth-child(even) { background: #f8fafc; }
+    tbody tr:hover { background: #eff6ff; }
+    tbody td { padding: 8px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-req  { background: #fee2e2; color: #991b1b; }
+    .badge-opt  { background: #f1f5f9; color: #475569; }
+    .badge-user { background: #dbeafe; color: #1e40af; }
+    .badge-admin{ background: #f3e8ff; color: #6b21a8; }
+
+    /* ── URL / code block ── */
+    .url-block {
+      background: #0f172a; color: #86efac;
+      border-radius: 6px; padding: 10px 16px;
+      font-family: 'Courier New', monospace; font-size: 13px;
+      margin: 10px 0; letter-spacing: 0.3px;
+    }
+
+    /* ── Inline code ── */
+    code {
+      background: #f1f5f9; color: #0f172a;
+      padding: 1px 6px; border-radius: 4px;
+      font-family: 'Courier New', monospace; font-size: 12px;
+    }
+
+    /* ── Bullet list ── */
+    ul.doc-list { padding-left: 18px; }
+    ul.doc-list li { margin-bottom: 5px; color: #475569; }
+    ul.doc-list li strong { color: #1e293b; }
+
+    /* ── Role comparison ── */
+    .role-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+      margin: 10px 0;
+    }
+    .role-card {
+      border-radius: 8px; padding: 16px;
+      border: 1px solid #e2e8f0;
+    }
+    .role-card.user-role  { background: #eff6ff; }
+    .role-card.admin-role { background: #faf5ff; }
+    .role-card h3 {
+      font-size: 14px; font-weight: 700; margin-bottom: 8px;
+    }
+    .role-card.user-role  h3 { color: #1d4ed8; }
+    .role-card.admin-role h3 { color: #6b21a8; }
+    .role-card ul { padding-left: 16px; }
+    .role-card li { font-size: 12px; color: #475569; margin-bottom: 4px; }
+
+    /* ── Status indicators ── */
+    .status-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid #e2e8f0;
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot-green  { background: #22c55e; }
+    .dot-yellow { background: #f59e0b; }
+    .status-row .label { font-weight: 600; font-size: 13px; min-width: 180px; }
+    .status-row .desc  { font-size: 12px; color: #64748b; }
+
+    /* ── Footer ── */
+    .footer {
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      padding: 18px 40px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .footer p { font-size: 11px; color: #94a3b8; }
+
+    /* ── Print button ── */
+    .print-bar {
+      max-width: 780px; margin: 0 auto 16px;
+      display: flex; justify-content: flex-end; gap: 10px;
+      padding: 0 4px;
+    }
+    .print-btn {
+      background: #1e3a5f; color: #fff;
+      border: none; border-radius: 6px;
+      padding: 8px 20px; font-size: 13px; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap-7px;
+    }
+    .print-btn:hover { background: #0f172a; }
+  </style>
+</head>
+<body>
+
+<!-- Print button (hidden in PDF) -->
+<div class="print-bar no-print">
+  <button class="print-btn" onclick="window.print()">&#x1F5A8;&nbsp; Save as PDF / Print</button>
+</div>
+
+<div class="page">
+
+  <!-- ══ HEADER ══════════════════════════════════════════════════════════════ -->
+  <div class="header">
+    <div class="header-top">
+      <div class="logo-box">G</div>
+      <div>
+        <h1>Grove Systems CRM</h1>
+        <div class="subtitle">Administrator Guide — User Creation &amp; Management</div>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="meta-pill">Admin Role Required</span>
+      <span class="meta-pill">Version 1.0</span>
+      <span class="meta-pill">June 2026</span>
+    </div>
+  </div>
+
+  <!-- ══ BODY ════════════════════════════════════════════════════════════════ -->
+  <div class="body">
+
+    <!-- ── 1. Prerequisites ─────────────────────────────────────────────── -->
+    <div class="section-heading">
+      <div class="section-num">1</div>
+      <h2>Before You Begin</h2>
+    </div>
+
+    <div class="card card-blue">
+      <div class="card-title">Requirement</div>
+      You must be logged in with an <strong>Admin</strong> account to create or manage users.
+      Regular user accounts will be redirected away from the user management page.
+    </div>
+
+    <p style="color:#475569; margin-bottom:10px;">Open your browser and navigate to:</p>
+    <div class="url-block">https://crm.grovesystems.co/admin/users</div>
+
+    <!-- ── 2. Creating a User ─────────────────────────────────────────── -->
+    <div class="section-heading">
+      <div class="section-num">2</div>
+      <h2>Creating a New User</h2>
+    </div>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Click "Create User"</strong>
+          <p>The button is in the top-right corner of the User Management page. The user list will slide out and a form will appear.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Fill in the form</strong>
+          <p style="margin-bottom:8px;">Complete the fields below, then click <strong>Create User</strong>.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Field</th>
+                <th>Required</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Full Name</strong></td>
+                <td><span class="badge badge-opt">Optional</span></td>
+                <td>Display name shown in the user list</td>
+              </tr>
+              <tr>
+                <td><strong>Email Address</strong></td>
+                <td><span class="badge badge-req">Required</span></td>
+                <td>Must be unique — duplicate emails are rejected. This cannot be changed after creation.</td>
+              </tr>
+              <tr>
+                <td><strong>Role</strong></td>
+                <td><span class="badge badge-req">Required</span></td>
+                <td>Select <strong>User</strong> for standard access, or <strong>Admin</strong> for full access. See Section 4 for details.</td>
+              </tr>
+              <tr>
+                <td><strong>Password</strong></td>
+                <td>—</td>
+                <td>Auto-generated by the system. You do not enter one.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Copy the temporary password</strong>
+          <p>A green success card will appear showing the new user's email, role, and their <strong>temporary password</strong>. Click the <strong>Copy</strong> button to copy it.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Share the password securely</strong>
+          <p>Send the temporary password to the user via a secure channel (WhatsApp, encrypted email, etc.). Do not send it over plain unencrypted email or SMS if avoidable.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card card-yellow">
+      <div class="card-title">&#9888;&nbsp; Important — Password Shown Once Only</div>
+      The temporary password is displayed <strong>immediately after creation and never again</strong>.
+      If you close the screen without copying it, you will need to use <strong>Reset Password</strong> to generate a new one.
+    </div>
+
+    <!-- ── 3. First Login (End User) ─────────────────────────────────── -->
+    <div class="section-heading">
+      <div class="section-num">3</div>
+      <h2>What the New User Does on First Login</h2>
+    </div>
+
+    <p style="color:#475569; margin-bottom:12px;">
+      Share these steps with the new user so they know what to expect.
+    </p>
+
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Open the CRM login page</strong>
+          <p>Go to <code>https://crm.grovesystems.co/login</code></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Log in with the temporary password</strong>
+          <p>Enter their email address and the temporary password you shared with them.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Change password when prompted</strong>
+          <p>The system will automatically show a <strong>Change Password</strong> screen. They must set a new password (minimum 6 characters) before they can use the CRM. They will enter:</p>
+          <ul style="padding-left:16px; margin-top:6px; color:#475569;">
+            <li><strong>Old Password</strong> — the temporary password just used to log in</li>
+            <li><strong>New Password</strong> — their chosen permanent password (min. 6 characters)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Access is granted</strong>
+          <p>After changing the password, they are logged in and can use the CRM normally.</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="card card-green">
+      <div class="card-title">&#10003;&nbsp; After First Login</div>
+      Once the user changes their password, their status in the admin user list changes from
+      <strong>"Password Reset Required"</strong> to <strong>"Active"</strong>.
+    </div>
+
+    <!-- ── 4. Roles ──────────────────────────────────────────────────── -->
+    <div class="section-heading">
+      <div class="section-num">4</div>
+      <h2>User Roles</h2>
+    </div>
+
+    <div class="role-grid">
+      <div class="role-card user-role">
+        <h3>&#128100;&nbsp; User</h3>
+        <ul>
+          <li>Access all CRM data (leads, quotes, products, accounts, contacts, cases)</li>
+          <li>Create and edit records</li>
+          <li>Generate quote PDFs</li>
+          <li>Cannot access user management</li>
+          <li>Cannot create other users</li>
+        </ul>
+      </div>
+      <div class="role-card admin-role">
+        <h3>&#128737;&nbsp; Admin</h3>
+        <ul>
+          <li>Everything a User can do</li>
+          <li>Access <code>/admin/users</code></li>
+          <li>Create new users</li>
+          <li>Reset any user's password</li>
+          <li>Bypasses all data access restrictions</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card card-red">
+      <div class="card-title">&#9888;&nbsp; Be Careful with Admin Role</div>
+      An Admin account has unrestricted access to all data and can manage all other users, including other Admins.
+      Assign the Admin role only to people who need to manage the system.
+    </div>
+
+    <!-- ── 5. Resetting a Password ──────────────────────────────────── -->
+    <div class="section-heading">
+      <div class="section-num">5</div>
+      <h2>Resetting a User's Password</h2>
+    </div>
+
+    <p style="color:#475569; margin-bottom:12px;">
+      Use this when a user is locked out or has forgotten their password.
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Go to User Management</strong>
+          <p>Navigate to <code>/admin/users</code> and find the user in the table.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Click "Reset Password"</strong>
+          <p>This is in the Actions column next to the user's row.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Confirm and copy</strong>
+          <p>A modal will ask you to confirm. After confirming, a new 16-character temporary password is generated and shown in the modal. Copy it and share it with the user.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>User changes their password on next login</strong>
+          <p>The same first-login flow applies — they must set a new password before accessing the CRM.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 6. User Status ─────────────────────────────────────────────── -->
+    <div class="section-heading">
+      <div class="section-num">6</div>
+      <h2>Understanding User Status</h2>
+    </div>
+
+    <div class="card card-gray">
+      <div class="status-row">
+        <div class="status-dot dot-green"></div>
+        <div class="label">Active</div>
+        <div class="desc">User has set their own password and can log in normally.</div>
+      </div>
+      <div class="status-row">
+        <div class="status-dot dot-yellow"></div>
+        <div class="label">Password Reset Required</div>
+        <div class="desc">User was just created or had their password reset by an admin. They must change their password on next login.</div>
+      </div>
+    </div>
+
+    <!-- ── 7. Common Issues ──────────────────────────────────────────── -->
+    <div class="section-heading">
+      <div class="section-num">7</div>
+      <h2>Common Issues</h2>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Issue</th>
+          <th>Cause</th>
+          <th>Solution</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>"User with this email already exists"</td>
+          <td>The email address is already registered</td>
+          <td>Check the user list — the account may already exist. Use a different email if this is a new person.</td>
+        </tr>
+        <tr>
+          <td>User cannot log in after creation</td>
+          <td>Wrong password shared, or copied incorrectly</td>
+          <td>Use Reset Password to generate a new temporary password and share it again.</td>
+        </tr>
+        <tr>
+          <td>User sees "Change Password" every login</td>
+          <td>They skipped the password change step</td>
+          <td>The user must complete the password change. They cannot bypass it.</td>
+        </tr>
+        <tr>
+          <td>Cannot access <code>/admin/users</code></td>
+          <td>Logged in with a User role account</td>
+          <td>Log in with an Admin account, or ask an existing admin to promote your account.</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div><!-- /body -->
+
+  <!-- ══ FOOTER ══════════════════════════════════════════════════════════════ -->
+  <div class="footer">
+    <p>Grove Systems Pvt. Ltd. &nbsp;|&nbsp; Internal Use Only</p>
+    <p>crm.grovesystems.co &nbsp;|&nbsp; June 2026</p>
+  </div>
+
+</div><!-- /page -->
+
+</body>
+</html>
