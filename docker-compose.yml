@@ -39,6 +39,8 @@ services:
     environment:
       - NODE_ENV=production
       - PUBLIC_API_BASE_URL=https://api.grovesystems.co
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_FROM=${EMAIL_FROM}
     depends_on:
       - backend
     restart: unless-stopped
