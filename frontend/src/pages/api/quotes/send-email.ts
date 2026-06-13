@@ -22,8 +22,8 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const apiKey = import.meta.env.RESEND_API_KEY;
-    const fromAddress = import.meta.env.EMAIL_FROM;
+    const apiKey = process.env.RESEND_API_KEY;
+    const fromAddress = process.env.EMAIL_FROM;
 
     if (!apiKey || !fromAddress) {
       return new Response(JSON.stringify({ error: 'Email service not configured' }), {
