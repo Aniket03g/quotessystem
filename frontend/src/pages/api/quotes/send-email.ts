@@ -40,8 +40,8 @@ export const POST: APIRoute = async ({ request }) => {
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
         <p>Dear ${quoteData.account?.name || 'Customer'},</p>
         <p>Please find attached your quotation <strong>${quoteData.subject}</strong> (Version ${quoteData.version || '1.0'}).</p>
-        ${note ? `<p>${note.replace(/\n/g, '<br/>')}</p>` : ''}
         <p>If you have any questions, please feel free to reach out to us.</p>
+        ${note ? `<p>${note.replace(/\n/g, '<br/>')}</p>` : ''}
         <p>Best regards,<br/>
         ${quoteData.logo === 'grove' ? 'Grove Systems Pvt. Ltd.' : 'GreenOCare Solutions Pvt. Ltd.'}</p>
       </div>

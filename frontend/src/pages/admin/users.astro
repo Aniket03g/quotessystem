@@ -258,47 +258,37 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         </div>
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-slate-800 mb-1">User Created Successfully!</h3>
-          <p class="text-sm text-slate-600 mb-4">The user account has been created. Share the temporary password securely.</p>
-          
+          <p class="text-sm text-slate-600 mb-4">An invitation email with login credentials has been sent to the user.</p>
+
           <div class="bg-white rounded-lg border border-green-200 p-4 space-y-3">
             <div>
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Email</p>
               <p class="text-sm font-medium text-slate-800" id="createdEmail">-</p>
             </div>
             <div>
-              <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Temporary Password</p>
-              <div class="flex items-center gap-2">
-                <code class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm font-mono text-slate-800" id="tempPassword">-</code>
-                <button
-                  id="copyBtn"
-                  class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                  title="Copy to clipboard"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div>
               <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Role</p>
               <span id="createdRole" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">User</span>
             </div>
-          </div>
-
-          <div class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div class="flex gap-3">
-              <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            <div id="emailSentStatus" class="flex items-center gap-2 text-sm text-green-700">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
               </svg>
-              <div>
-                <p class="text-sm font-medium text-yellow-800 mb-1">Important Security Notice</p>
-                <ul class="text-xs text-yellow-700 space-y-1">
-                  <li>• This password is shown only once and cannot be retrieved later</li>
-                  <li>• Share it securely with the user (encrypted email, secure messaging, etc.)</li>
-                  <li>• User will be required to change this password on first login</li>
-                  <li>• Do not store this password in plain text</li>
-                </ul>
+              Invitation email sent
+            </div>
+            <div id="emailFailedStatus" class="hidden">
+              <div class="flex items-center gap-2 text-sm text-amber-700 mb-2">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Email delivery failed — share the password manually
+              </div>
+              <div class="flex items-center gap-2">
+                <code class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-sm font-mono text-slate-800" id="tempPassword">-</code>
+                <button id="copyBtn" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-all" title="Copy to clipboard">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -325,7 +315,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           <h3 class="font-semibold text-slate-800 mb-2">How User Creation Works</h3>
           <ul class="text-sm text-slate-600 space-y-1">
             <li>• A secure random password (16+ characters) is automatically generated</li>
-            <li>• The user receives the temporary password from you (admin)</li>
+            <li>• An invitation email with login credentials is sent directly to the user</li>
             <li>• On first login, they must change their password</li>
             <li>• Until they change it, they cannot access the system</li>
           </ul>
@@ -488,12 +478,24 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       try {
         confirmResetBtn.disabled = true;
         confirmResetBtn.textContent = 'Resetting...';
-        
+
         const result = await resetUserPassword(currentResetUserId);
+
+        confirmResetBtn.textContent = 'Sending Email...';
+        const userEmail = resetUserEmail.textContent || '';
+        const emailSent = await sendCredentialsEmail('reset', userEmail, '', result.temporary_password);
+
         resetTempPassword.textContent = result.temporary_password;
         resetPasswordSuccess.classList.remove('hidden');
+
+        const statusMsg = resetPasswordSuccess.querySelector('p.text-sm') as HTMLElement;
+        if (statusMsg) {
+          statusMsg.textContent = emailSent
+            ? 'Password reset and email sent to user.'
+            : 'Password reset. Email failed — share the password below manually.';
+        }
+
         confirmResetBtn.classList.add('hidden');
-        
         loadUsers();
       } catch (error) {
         showAlert(error instanceof Error ? error.message : 'Failed to reset password', 'error');
@@ -544,19 +546,30 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       alertDiv.classList.add('hidden');
     }
 
-    function showSuccess(email: string, password: string, role: string) {
+    function showSuccess(email: string, password: string, role: string, emailSent: boolean) {
       successCard.classList.remove('hidden');
       document.getElementById('createdEmail')!.textContent = email;
       document.getElementById('tempPassword')!.textContent = password;
-      
+
       const roleSpan = document.getElementById('createdRole')!;
       roleSpan.textContent = role.charAt(0).toUpperCase() + role.slice(1);
-      roleSpan.className = role === 'admin' 
+      roleSpan.className = role === 'admin'
         ? 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800'
         : 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800';
 
-      // Scroll to success card
+      document.getElementById('emailSentStatus')!.classList.toggle('hidden', !emailSent);
+      document.getElementById('emailFailedStatus')!.classList.toggle('hidden', emailSent);
+
       successCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function sendCredentialsEmail(type: 'welcome' | 'reset', toEmail: string, name: string, tempPassword: string) {
+      const res = await fetch('/api/email/credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, toEmail, name, tempPassword, siteUrl: window.location.origin }),
+      });
+      return res.ok;
     }
 
     function hideSuccess() {
@@ -623,20 +636,17 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       submitBtn.textContent = 'Creating User...';
 
       try {
+        submitBtn.textContent = 'Creating User...';
         const result = await createUser({ email, name, role });
-        
-        // Show success card with temporary password
-        showSuccess(result.email, result.temporary_password, result.role);
-        
-        // Reset form
+
+        submitBtn.textContent = 'Sending Invitation...';
+        const emailSent = await sendCredentialsEmail('welcome', result.email, name, result.temporary_password);
+
+        showSuccess(result.email, result.temporary_password, result.role, emailSent);
         form.reset();
-        
-        // Reload users list in background
         loadUsers();
       } catch (error) {
         showAlert(error instanceof Error ? error.message : 'Failed to create user', 'error');
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Create User';
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Create User';

@@ -512,6 +512,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Delete button
         document.getElementById('deleteAccountBtn').addEventListener('click', async () => {
+          if (getUserRole() !== 'admin') {
+            showToast('Only administrators can delete accounts.', 'error');
+            return;
+          }
           if (!await showConfirm(`Delete account "${accountName}"? This cannot be undone.`, 'Delete')) return;
 
           const token = localStorage.getItem('jwt_token');

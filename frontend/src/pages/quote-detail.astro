@@ -100,6 +100,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
             </svg>
           </button>
+          <button id="whatsappShareBtn" class="inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-green-50 hover:border-green-300 hover:text-green-600 transition-colors" title="Share on WhatsApp">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+            </svg>
+          </button>
           <button id="previewPdfBtn" class="inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors" title="Preview PDF">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -114,7 +119,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-slate-200">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4 border-t border-slate-200">
         <div>
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">STATUS</p>
           <span id="quoteStatus" class="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-slate-100 text-slate-800">
@@ -128,6 +133,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <div>
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">VALID UNTIL</p>
           <p id="quoteValidUntil" class="text-sm font-medium text-slate-700">N/A</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">SHARED VIA</p>
+          <div id="shareBadges" class="flex flex-wrap gap-1.5 mt-0.5">
+            <span class="text-xs text-slate-400 italic">Not shared</span>
+          </div>
         </div>
       </div>
     </div>
@@ -352,6 +363,44 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     // Store quote data for PDF generation
     let currentQuoteData: any = null;
+
+    async function logShare(method: 'email' | 'whatsapp') {
+      try {
+        const current = currentQuoteFields?.['Shared Via'];
+        let shareData: Record<string, string> = {};
+        if (current) { try { shareData = JSON.parse(current); } catch {} }
+        shareData[method] = new Date().toISOString();
+        await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ Id: parseInt(quoteId!), 'Shared Via': JSON.stringify(shareData) }),
+        });
+        if (currentQuoteFields) currentQuoteFields['Shared Via'] = JSON.stringify(shareData);
+        updateShareBadges(shareData);
+      } catch (e) {
+        console.warn('[SHARE LOG] Failed to log share:', e);
+      }
+    }
+
+    function updateShareBadges(shareData: Record<string, string>) {
+      const container = document.getElementById('shareBadges');
+      if (!container) return;
+      const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      const parts: string[] = [];
+      if (shareData.email) {
+        parts.push(`<span title="Last emailed ${fmt(shareData.email)}" class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-medium">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          ${fmt(shareData.email)}
+        </span>`);
+      }
+      if (shareData.whatsapp) {
+        parts.push(`<span title="Last shared on WhatsApp ${fmt(shareData.whatsapp)}" class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded-full text-xs font-medium">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          ${fmt(shareData.whatsapp)}
+        </span>`);
+      }
+      container.innerHTML = parts.length ? parts.join('') : '<span class="text-xs text-slate-400 italic">Not shared</span>';
+    }
     
     // Edit mode state
     let isEditMode = false;
@@ -654,6 +703,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function displayQuoteDetails(fields: any, accountData: any, products: any[]) {
       // Store current quote fields
       currentQuoteFields = fields;
+      try {
+        updateShareBadges(fields['Shared Via'] ? JSON.parse(fields['Shared Via']) : {});
+      } catch { updateShareBadges({}); }
       
       // Header
       (document.getElementById('quoteSubject') as HTMLHeadingElement).textContent = fields['Subject'] || 'Untitled Quote';
@@ -1789,6 +1841,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     document.getElementById('downloadPdfBtn')?.addEventListener('click', () => openPdfTermsModal(false));
     document.getElementById('changeTermsBtn')?.addEventListener('click', () => openChangeTermsModal());
 
+    document.getElementById('whatsappShareBtn')?.addEventListener('click', () => {
+      if (!currentQuoteData) { showToast('Quote data not loaded yet', 'error'); return; }
+      const logoSelect = document.getElementById('logoSelect') as HTMLSelectElement;
+      const company = logoSelect?.value === 'grove' ? 'Grove Systems Pvt. Ltd.' : 'GreenOCare Solutions Pvt. Ltd.';
+      const total = Number(currentQuoteData.total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      const message = `Hi, please find the quotation from ${company}.\n\nQuote: ${currentQuoteData.subject}\nTotal: ₹${total}\n\nPlease review and let us know if you have any questions.`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+      logShare('whatsapp').catch(() => {});
+    });
+
     document.getElementById('sendEmailBtn')?.addEventListener('click', () => {
       if (!currentQuoteData) { showToast('Quote data not loaded yet', 'error'); return; }
       const subjectInput = document.getElementById('emailSubjectInput') as HTMLInputElement;
@@ -1842,6 +1904,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         document.getElementById('sendEmailModal')!.classList.add('hidden');
         showToast(`Email sent to ${toEmail}`, 'success');
+        logShare('email').catch(() => {});
       } catch (err) {
         showToast(err instanceof Error ? err.message : 'Failed to send email', 'error');
       } finally {
@@ -2503,6 +2566,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     // ── DELETE QUOTE ────────────────────────────────────────────────────────
     document.getElementById('deleteQuoteBtn')?.addEventListener('click', () => {
+      const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+      if (userInfo.role !== 'admin') {
+        showToast('Only administrators can delete quotes.', 'error');
+        return;
+      }
       document.getElementById('deleteQuoteModal')!.classList.remove('hidden');
     });
 
