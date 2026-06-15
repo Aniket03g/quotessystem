@@ -373,10 +373,19 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ Id: parseInt(quoteId!), 'Shared Via': JSON.stringify(shareData) }),
+          body: JSON.stringify({ id: parseInt(quoteId!), 'Shared Via': JSON.stringify(shareData), 'Quote Status': 'Sent' }),
         });
-        if (currentQuoteFields) currentQuoteFields['Shared Via'] = JSON.stringify(shareData);
+        if (currentQuoteFields) {
+          currentQuoteFields['Shared Via'] = JSON.stringify(shareData);
+          currentQuoteFields['Quote Status'] = 'Sent';
+        }
         updateShareBadges(shareData);
+        // Update status badge live
+        const statusEl = document.getElementById('quoteStatus');
+        if (statusEl) {
+          statusEl.textContent = 'Sent';
+          statusEl.className = 'inline-flex items-center px-3 py-1 rounded-md text-sm font-medium bg-blue-100 text-blue-800';
+        }
       } catch (e) {
         console.warn('[SHARE LOG] Failed to log share:', e);
       }

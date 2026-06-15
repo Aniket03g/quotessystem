@@ -109,25 +109,26 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
 
     <!-- Table -->
-    <div id="quotesTable" class="hidden overflow-x-auto">
+    <div id="quotesTable" class="hidden">
       <table class="w-full table-fixed">
         <colgroup>
-          <col class="w-12" />
-          <col class="w-[38%]" />
-          <col class="w-[14%]" />
-          <col class="w-[14%]" />
-          <col class="w-[16%]" />
-          <col class="w-[10%]" />
+          <col style="width:2.5rem" />
+          <col />
+          <col style="width:6rem" />
+          <col style="width:7rem" />
+          <col style="width:7.5rem" />
+          <col style="width:5rem" />
+          <col style="width:4rem" />
         </colgroup>
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">QUOTE NAME</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">DATE</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">TOTAL AMOUNT</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">SHARED</th>
-            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">ACTIONS</th>
+            <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
+            <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">QUOTE NAME</th>
+            <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">DATE</th>
+            <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
+            <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">TOTAL</th>
+            <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">SHARED</th>
+            <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">ACTIONS</th>
           </tr>
         </thead>
         <tbody id="quotesBody" class="divide-y divide-slate-200"></tbody>
@@ -274,7 +275,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       quotesBody.innerHTML = records.map((record: any, index: number) => {
         const fields = record.fields || {};
         const quoteName = fields['Subject'] || '<span class="text-slate-400 italic">Untitled Quote</span>';
-        const date = fields['Quote Date'] || fields['Date'] || '<span class="text-slate-400 italic">N/A</span>';
+        const rawDate = fields['Quote Date'] || fields['Date'] || '';
+        const date = (() => {
+          if (!rawDate) return '<span class="text-slate-400 italic">N/A</span>';
+          const p = rawDate.split('-');
+          return p.length === 3 ? `${parseInt(p[2])}/${parseInt(p[1])}/${p[0].slice(2)}` : rawDate;
+        })();
         const total = fields['Total Amount'] || fields['Total'] || 0;
         const status = fields['Quote Status'] || fields['Status'] || 'Draft';
         let shareIcons = '';
@@ -293,25 +299,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         return `
           <tr class="cursor-pointer transition-all hover:bg-blue-50/50 hover:shadow-sm" onclick="window.location.href='/quote-detail?id=${record.id}'">
-            <td class="px-6 py-4 text-sm font-medium text-slate-900">${index + 1}</td>
-            <td class="px-6 py-4 text-sm text-slate-900">${quoteName}</td>
-            <td class="px-6 py-4 text-sm text-slate-600">${date}</td>
-            <td class="px-6 py-4">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
+            <td class="px-3 py-3 text-sm font-medium text-slate-900">${index + 1}</td>
+            <td class="px-3 py-3 text-sm text-slate-900 truncate">${quoteName}</td>
+            <td class="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">${date}</td>
+            <td class="px-3 py-3">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
                 ${status}
               </span>
             </td>
-            <td class="px-6 py-4 text-sm font-semibold text-slate-900">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-            <td class="px-6 py-4"><div class="flex gap-1">${shareIcons || '<span class="text-slate-300">—</span>'}</div></td>
-            <td class="px-6 py-4" onclick="event.stopPropagation()">
-              <div class="flex gap-2">
-                <button class="preview-pdf-btn p-2 rounded-lg hover:bg-blue-100 transition-colors" data-quote-id="${record.id}" title="Preview PDF">
-                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                </button>
-              </div>
+            <td class="px-3 py-3 text-xs font-semibold text-slate-900 whitespace-nowrap">₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+            <td class="px-3 py-3"><div class="flex gap-1">${shareIcons || '<span class="text-slate-300">—</span>'}</div></td>
+            <td class="px-3 py-3" onclick="event.stopPropagation()">
+              <button class="preview-pdf-btn p-1.5 rounded-lg hover:bg-blue-100 transition-colors" data-quote-id="${record.id}" title="Preview PDF">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
             </td>
           </tr>
         `;
