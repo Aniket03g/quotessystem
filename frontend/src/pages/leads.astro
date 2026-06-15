@@ -626,11 +626,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         let url = `${API_BASE_URL}/proxy/leads/records`;
         
         if (userRole === 'admin') {
-          console.log('[LEADS] Admin user detected - loading all leads');
+          console.log('[LEADS] Admin user - loading all leads');
         } else {
           const rawWhere = `(Lead Created By,eq,${userEmail})~or(Assigned to,eq,${userEmail})`;
-          const encodedWhere = encodeURIComponent(rawWhere);
-          url = `${url}?where=${encodedWhere}`;
+          url = `${url}?where=${encodeURIComponent(rawWhere)}`;
           console.log('[LEADS] Loading leads for user:', userEmail);
         }
         

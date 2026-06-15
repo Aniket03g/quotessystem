@@ -373,7 +373,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: parseInt(quoteId!), 'Shared Via': JSON.stringify(shareData), 'Quote Status': 'Sent' }),
+          body: JSON.stringify({ id: parseInt(quoteId!), fields: { 'Shared Via': JSON.stringify(shareData), 'Quote Status': 'Sent' } }),
         });
         if (currentQuoteFields) {
           currentQuoteFields['Shared Via'] = JSON.stringify(shareData);
