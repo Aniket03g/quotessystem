@@ -1,0 +1,160 @@
+026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Features' (mnqusa6fzzcgfsx)...
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'remove' -> 'm3fdjuio3ey7f27'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f__remove' -> 'm3fdjuio3ey7f27'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'remove' (m3fdjuio3ey7f27)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'remove.Accounts' (ID: cjawynmk2v3ffga, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'remove.Accounts copy' (ID: cviivxfgka42vv4, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'remove.Accounts copy_1' (ID: c5m2valxcxu24nw, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'remove.Accounts copy_1 copy' (ID: c43mrooeeiorlxf, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 4 link field(s) for table 'remove'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Products' -> 'mk85gltwt79dab0'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___Products' -> 'mk85gltwt79dab0'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Products' (mk85gltwt79dab0)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Products.Quotes' (ID: cfa1re1b8nxdr1n, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Products.prods for quotes' (ID: cm2hprh350obx9b, Type: Links)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 2 link field(s) for table 'Products'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Quotes' -> 'mh64yxf3sgap383'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___Quotes' -> 'mh64yxf3sgap383'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Quotes' (mh64yxf3sgap383)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.Products' (ID: cwgg5y7nr285brn, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.Parent Quote' (ID: c4eaqg2fmy3i5fi, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.qtlegacy' (ID: cf7kqkulcza2y4d, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy' (ID: ci7i3xwzfjb1bbk, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.pdts for quotes' (ID: ccy3zcr0o2wpial, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy1' (ID: cq7w95q9r1lsqdw, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.Cases' (ID: ctck3sr7os80677, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy copy' (ID: czotip18ga599im, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Quotes.Accounts copy1 copy' (ID: cz5koxzn93fi1yg, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 9 link field(s) for table 'Quotes'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'ProductsForQuotes' -> 'mta7imxwcnyyss7'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___ProductsForQuotes' -> 'mta7imxwcnyyss7'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'ProductsForQuotes' (mta7imxwcnyyss7)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'ProductsForQuotes.Products' (ID: coh4xvl5pcxkfsh, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'ProductsForQuotes.Quotes' (ID: c99lwqm3a2ouykc, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 2 link field(s) for table 'ProductsForQuotes'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Accounts Quotes' -> 'menaa8xzz8xv0uk'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___Accounts Quotes' -> 'menaa8xzz8xv0uk'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Accounts Quotes' (menaa8xzz8xv0uk)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts Quotes.Quotes' (ID: chv3wiu2kv8gq9l, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts Quotes.Contacts' (ID: cautrnvajc1sr2b, Type: Links)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 2 link field(s) for table 'Accounts Quotes'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Accounts copy' -> 'mwej2xn1kdpyzbn'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___accounts_copy' -> 'mwej2xn1kdpyzbn'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Accounts copy' (mwej2xn1kdpyzbn)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts copy.Quotes' (ID: cfg4ukr77w9triv, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts copy.Contacts' (ID: cqefadafze25k4x, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts copy.account-quotes' (ID: c3qjr7ic15sdfcl, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts copy.Cases' (ID: cwo3pud3xij56th, Type: Links)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 4 link field(s) for table 'Accounts copy'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Cases' -> 'mui00xh53akmpv0'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___Cases' -> 'mui00xh53akmpv0'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Cases' (mui00xh53akmpv0)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Cases.old_linking_for_acc_copy' (ID: crujavj9yn16q05, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Cases.Quotes' (ID: c5y1ffgddm78m0b, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Cases.Accounts duplicate' (ID: cmw3rs1b02tvxp5, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 3 link field(s) for table 'Cases'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Accounts duplicate' -> 'm5oxh8myj8t9gpl'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f__Accounts duplicate' -> 'm5oxh8myj8t9gpl'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Accounts duplicate' (m5oxh8myj8t9gpl)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Quotes' (ID: cwpaoyeh19qfc32, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Contacts old' (ID: c7kai44vgx693v5, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.account-quotes' (ID: c3h3jk9x6z47k5k, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Cases' (ID: c056dnsart9qwhl, Type: Links)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Leads' (ID: c295jt6ayds5b7x, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Accounts duplicate.Contacts New' (ID: cey1x759waafbau, Type: Links)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 6 link field(s) for table 'Accounts duplicate'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Leads' -> 'mh7r0ox39o1w9dw'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___Leads' -> 'mh7r0ox39o1w9dw'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Leads' (mh7r0ox39o1w9dw)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Leads.Converted To Account' (ID: cfcusvn3o2xepos, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 1 link field(s) for table 'Leads'
+2026/06/16 07:12:34 metacache.go:170: [META] Mapped table 'Contacts' -> 'm09l0yw4klku4e9'
+2026/06/16 07:12:34 metacache.go:174: [META] Mapped table 'nc_i78f___Contacts' -> 'm09l0yw4klku4e9'
+2026/06/16 07:12:34 metacache.go:190: [META] Fetching field metadata for table 'Contacts' (m09l0yw4klku4e9)...
+2026/06/16 07:12:34 metacache.go:203: [META] ✓ Found link field 'Contacts.Accounts duplicate' (ID: cwv273e678bkoy0, Type: LinkToAnotherRecord)
+2026/06/16 07:12:34 metacache.go:210: [META] Cached 1 link field(s) for table 'Contacts'
+2026/06/16 07:12:34 metacache.go:228: [META] ✅ Successfully loaded 12 tables and 35 link field mappings
+[INFO] 2026/06/16 07:12:57 request_logger.go:49: [REQUEST] GET /health from [::1]:53792 | User-Agent: Wget
+[INFO] 2026/06/16 07:12:57 request_logger.go:65: [REQUEST] Authorization: No token
+2026/06/16 07:12:57 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/06/16 07:12:57 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 170.521µs | Bytes: 16 | IP: [::1]:53792
+2026/06/16 07:13:27 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/06/16 07:13:27 request_logger.go:49: [REQUEST] GET /health from [::1]:55390 | User-Agent: Wget
+[INFO] 2026/06/16 07:13:27 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/06/16 07:13:27 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 136.17µs | Bytes: 16 | IP: [::1]:55390
+2026/06/16 07:13:57 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/06/16 07:13:57 request_logger.go:49: [REQUEST] GET /health from [::1]:49788 | User-Agent: Wget
+[INFO] 2026/06/16 07:13:57 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/06/16 07:13:57 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 136.88µs | Bytes: 16 | IP: [::1]:49788
+[INFO] 2026/06/16 07:14:27 request_logger.go:49: [REQUEST] GET /health from [::1]:36254 | User-Agent: Wget
+[INFO] 2026/06/16 07:14:27 request_logger.go:65: [REQUEST] Authorization: No token
+2026/06/16 07:14:27 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/06/16 07:14:27 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 647.491µs | Bytes: 16 | IP: [::1]:36254
+[INFO] 2026/06/16 07:14:57 request_logger.go:49: [REQUEST] GET /health from [::1]:35374 | User-Agent: Wget
+[INFO] 2026/06/16 07:14:57 request_logger.go:65: [REQUEST] Authorization: No token
+[INFO] 2026/06/16 07:14:57 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 95.981µs | Bytes: 16 | IP: [::1]:35374
+2026/06/16 07:14:57 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/06/16 07:15:27 request_logger.go:49: [REQUEST] GET /health from [::1]:41480 | User-Agent: Wget
+[INFO] 2026/06/16 07:15:27 request_logger.go:65: [REQUEST] Authorization: No token
+2026/06/16 07:15:27 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/06/16 07:15:27 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 1.708481ms | Bytes: 16 | IP: [::1]:41480
+[INFO] 2026/06/16 07:15:46 request_logger.go:49: [REQUEST] GET /proxy/accounts_duplicate/records from 124.66.169.175 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36
+[INFO] 2026/06/16 07:15:46 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/06/16 07:15:46 cors.go:33: [CORS] Unknown origin 'https://crm.grovesystems.co' - allowing all
+2026/06/16 07:15:46 auth.go:24: [AUTH] Validating request: GET /proxy/accounts_duplicate/records
+2026/06/16 07:15:46 auth.go:32: [AUTH] Authorization header present
+2026/06/16 07:15:46 auth.go:43: [AUTH] Validating JWT token...
+[INFO] 2026/06/16 07:15:46 request_logger.go:49: [REQUEST] GET /proxy/contacts/records from 124.66.169.175 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36
+[INFO] 2026/06/16 07:15:46 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/06/16 07:15:46 cors.go:33: [CORS] Unknown origin 'https://crm.grovesystems.co' - allowing all
+2026/06/16 07:15:46 auth.go:24: [AUTH] Validating request: GET /proxy/contacts/records
+2026/06/16 07:15:46 auth.go:32: [AUTH] Authorization header present
+2026/06/16 07:15:46 auth.go:43: [AUTH] Validating JWT token...
+2026/06/16 07:15:46 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/06/16 07:15:46 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/06/16 07:15:46 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/06/16 07:15:46 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/accounts_duplicate/records
+2026/06/16 07:15:46 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/06/16 07:15:46 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/06/16 07:15:46 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/06/16 07:15:46 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/06/16 07:15:46 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/contacts/records
+2026/06/16 07:15:46 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/06/16 07:15:46 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/06/16 07:15:46 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/06/16 07:15:46 handler.go:40: [PROXY] Incoming request: GET /proxy/contacts/records
+2026/06/16 07:15:46 handler.go:44: [PROXY] Extracted path: contacts/records
+2026/06/16 07:15:46 handler.go:50: [PROXY] Using config-driven validation
+2026/06/16 07:15:46 validator.go:28: [VALIDATOR] Validating request: GET contacts/records
+2026/06/16 07:15:46 validator.go:37: [VALIDATOR] Table key: contacts
+2026/06/16 07:15:46 validator.go:58: [VALIDATOR] Operation: read
+2026/06/16 07:15:46 handler.go:40: [PROXY] Incoming request: GET /proxy/accounts_duplicate/records
+2026/06/16 07:15:46 handler.go:44: [PROXY] Extracted path: accounts_duplicate/records
+2026/06/16 07:15:46 handler.go:50: [PROXY] Using config-driven validation
+2026/06/16 07:15:46 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records
+2026/06/16 07:15:46 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/06/16 07:15:46 validator.go:58: [VALIDATOR] Operation: read
+2026/06/16 07:15:46 validator.go:80: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records}
+2026/06/16 07:15:46 handler.go:60: [PROXY] Validated and resolved: accounts_duplicate/records -> m5oxh8myj8t9gpl/records
+2026/06/16 07:15:46 validator.go:80: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m09l0yw4klku4e9 TableName:Contacts Operation:read Allowed:true ResolvedPath:m09l0yw4klku4e9/records}
+2026/06/16 07:15:46 handler.go:60: [PROXY] Validated and resolved: contacts/records -> m09l0yw4klku4e9/records
+2026/06/16 07:15:46 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records
+2026/06/16 07:15:46 handler.go:123: [PROXY] Created proxy request successfully
+2026/06/16 07:15:46 handler.go:114: [PROXY] Target URL: http://148.135.136.1:8080/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records
+2026/06/16 07:15:46 handler.go:136: [PROXY] Added xc-token header
+2026/06/16 07:15:46 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/06/16 07:15:46 handler.go:123: [PROXY] Created proxy request successfully
+2026/06/16 07:15:46 handler.go:136: [PROXY] Added xc-token header
+2026/06/16 07:15:46 handler.go:139: [PROXY] Executing request to NocoDB...
+2026/06/16 07:15:46 handler.go:148: [PROXY] NocoDB responded with status: 304 304 Not Modified
+2026/06/16 07:15:46 handler.go:162: [PROXY] Response body length: 0 bytes
+2026/06/16 07:15:46 handler.go:164: [PROXY] Response body:
+2026/06/16 07:15:46 handler.go:206: [PROXY] Request completed successfully
+2026/06/16 07:15:46 handler.go:148: [PROXY] NocoDB responded with status: 304 304 Not Modified
+2026/06/16 07:15:46 handler.go:162: [PROXY] Response body length: 0 bytes
+2026/06/16 07:15:46 handler.go:164: [PROXY] Response body:
+2026/06/16 07:15:46 handler.go:206: [PROXY] Request completed successfully
+[INFO] 2026/06/16 07:15:58 request_logger.go:49: [REQUEST] GET /health from [::1]:60942 | User-Agent: Wget
+[INFO] 2026/06/16 07:15:58 request_logger.go:65: [REQUEST] Authorization: No token
+2026/06/16 07:15:58 cors.go:29: [CORS] No origin header - allowing all
+[INFO] 2026/06/16 07:15:58 request_logger.go:76: [RESPONSE] GET /health | Status: 200 | Duration: 1.12703ms | Bytes: 16 | IP: [::1]:60942

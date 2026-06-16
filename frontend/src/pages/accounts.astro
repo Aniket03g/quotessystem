@@ -154,6 +154,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <tbody id="accountsBody" class="divide-y divide-slate-100"></tbody>
       </table>
     </div>
+    <div id="accountsMobileList" class="divide-y divide-slate-100"></div>
   </div>
 
   <!-- Empty State -->
@@ -188,6 +189,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const errorDiv = document.getElementById('error') as HTMLDivElement;
       const accountsTable = document.getElementById('accountsTable') as HTMLDivElement;
       const accountsBody = document.getElementById('accountsBody') as HTMLTableSectionElement;
+      const accountsMobileList = document.getElementById('accountsMobileList') as HTMLDivElement;
       const emptyState = document.getElementById('emptyState') as HTMLDivElement;
       const searchInput = document.getElementById('searchInput') as HTMLInputElement;
       const searchSpinner = document.getElementById('searchSpinner') as HTMLDivElement;
@@ -336,6 +338,31 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </tr>
           `;
         }).join('');
+
+        accountsMobileList.innerHTML = records.map((record) => {
+          const fields = record.fields || {};
+          const accountName = fields['Account Name'] || 'N/A';
+          const city = fields['Billing City'] || '';
+          const state = fields['Billing State'] || '';
+          const locationStr = [city, state].filter(Boolean).join(', ');
+          const accountType = fields['Account Type'] || '';
+          const groupIds = (record._groupIds || String(record.id)).split(',').map(Number);
+          const contactName = groupIds.map((gid: number) => contactsByAccount[gid]).find(Boolean) || '';
+          const phone = fields['Phone Number'] || '';
+          const groupIdsParam = record._groupIds || record.id;
+
+          return `
+            <a href="/account-detail?ids=${groupIdsParam}" class="block p-4 hover:bg-blue-50 transition-colors active:bg-blue-100">
+              <div class="flex items-start justify-between gap-2 mb-1">
+                <div class="text-sm font-semibold text-blue-700">${accountName}</div>
+                ${accountType ? `<span class="flex-shrink-0 text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full font-medium">${accountType}</span>` : ''}
+              </div>
+              ${locationStr ? `<div class="text-xs text-slate-500 mb-1">${locationStr}</div>` : ''}
+              ${phone ? `<div class="text-xs text-slate-600 mb-1">${phone}</div>` : ''}
+              ${contactName ? `<div class="text-xs text-slate-400">Contact: ${contactName}</div>` : ''}
+            </a>
+          `;
+        }).join('');
       }
 
       searchInput.addEventListener('input', debounce(() => applyFilters(), 300));
@@ -354,5 +381,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       loadAll();
     });
   </script>
+
+  <style>
+    @media (min-width: 1024px) { #accountsMobileList { display: none !important; } }
+    @media (max-width: 1023px) { #accountsTable { display: none !important; } }
+  </style>
 
 </AdminLayout>

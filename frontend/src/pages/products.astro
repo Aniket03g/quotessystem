@@ -106,7 +106,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       </div>
     </div>
 
-    <!-- Table -->
+    <!-- Mobile cards -->
+    <div id="productsMobileList" class="hidden divide-y divide-slate-100"></div>
+    <!-- Table (desktop) -->
     <div id="productsTable" class="hidden overflow-x-auto">
       <table class="w-full table-fixed">
         <colgroup>
@@ -161,6 +163,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const loadingDiv = document.getElementById('loading') as HTMLDivElement;
       const errorDiv = document.getElementById('error') as HTMLDivElement;
       const productsTable = document.getElementById('productsTable') as HTMLDivElement;
+      const productsMobileList = document.getElementById('productsMobileList') as HTMLDivElement;
       const productsBody = document.getElementById('productsBody') as HTMLTableSectionElement;
       const emptyState = document.getElementById('emptyState') as HTMLDivElement;
       const searchInput = document.getElementById('searchInput') as HTMLInputElement;
@@ -241,6 +244,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         if (records.length === 0) {
           productsTable.classList.add('hidden');
+          productsMobileList.classList.add('hidden');
           emptyState.classList.remove('hidden');
           return;
         }
@@ -287,12 +291,48 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             row.classList.add('bg-blue-50', 'hover:bg-blue-100');
           });
         });
+
+        productsMobileList.innerHTML = records.map((record, index) => {
+          const f = record.fields || {};
+          const productName = f['Product Name'] || 'N/A';
+          const modelNo = f['Model No'] || '';
+          const brand = f['Brand'] || '';
+          const unitPrice = f['Customer Unit Price'] ? parseFloat(String(f['Customer Unit Price'])) : 0;
+          const tax = f['Tax'] ? parseFloat(String(f['Tax'])) : 0;
+          const status = f['Product Status'] || 'Inactive';
+          const isActive = status === 'Active';
+          const isSelected = selectedProduct && selectedProduct.id === record.id;
+
+          return `
+            <div class="p-4 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-slate-50'}" data-mobile-product-index="${index}">
+              <div class="flex items-start justify-between gap-2 mb-1">
+                <div class="text-sm font-semibold text-slate-900 flex-1 min-w-0">${productName}</div>
+                <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${status}</span>
+              </div>
+              ${modelNo ? `<div class="text-xs text-slate-500 mb-0.5">${modelNo}${brand ? ' · ' + brand : ''}</div>` : (brand ? `<div class="text-xs text-slate-500 mb-0.5">${brand}</div>` : '')}
+              <div class="text-sm font-semibold text-slate-800">₹${unitPrice.toFixed(2)} <span class="text-xs font-normal text-slate-500">+ ${tax}% tax</span></div>
+            </div>
+          `;
+        }).join('');
+
+        productsMobileList.classList.remove('hidden');
+
+        productsMobileList.querySelectorAll<HTMLElement>('[data-mobile-product-index]').forEach((card) => {
+          card.addEventListener('click', () => {
+            const index = parseInt(card.dataset.mobileProductIndex || '0');
+            selectedProduct = records[index];
+            localStorage.setItem('selectedProduct', JSON.stringify(selectedProduct));
+            productsMobileList.querySelectorAll('[data-mobile-product-index]').forEach(c => c.classList.remove('bg-blue-50'));
+            card.classList.add('bg-blue-50');
+          });
+        });
       }
 
       async function loadAllProducts() {
         try {
           loadingDiv.classList.remove('hidden');
           productsTable.classList.add('hidden');
+          productsMobileList.classList.add('hidden');
           emptyState.classList.add('hidden');
           errorDiv.classList.add('hidden');
           searchStatus.textContent = '';
@@ -334,4 +374,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       loadAllProducts();
     });
   </script>
+
+  <style>
+    @media (min-width: 1024px) { #productsMobileList { display: none !important; } }
+    @media (max-width: 1023px) { #productsTable { display: none !important; } }
+  </style>
 </AdminLayout>

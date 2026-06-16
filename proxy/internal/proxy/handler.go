@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/grove/generic-proxy/internal/config"
@@ -122,9 +123,20 @@ func (p *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("[PROXY] Created proxy request successfully")
 
-	// Copy headers from original request (except Authorization)
+	// Copy headers from original request, stripping auth and cache-validation
+	// headers. Cache headers (If-None-Match, If-Modified-Since, etc.) must be
+	// stripped so NocoDB always returns 200 with a full body — otherwise it
+	// returns 304 Not Modified with an empty body, breaking pagination.
+	skipHeaders := map[string]bool{
+		"Authorization":       true,
+		"If-None-Match":       true,
+		"If-Modified-Since":   true,
+		"If-Unmodified-Since": true,
+		"If-Match":            true,
+		"If-Range":            true,
+	}
 	for key, values := range r.Header {
-		if key != "Authorization" {
+		if !skipHeaders[key] {
 			for _, value := range values {
 				proxyReq.Header.Add(key, value)
 			}
@@ -206,115 +218,187 @@ func (p *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[PROXY] Request completed successfully")
 }
 
-// handlePagination checks for 'next' key in response and fetches all pages
-// Combines all records from paginated responses into a single response
+// handlePagination fetches all pages from NocoDB and merges them into a single response.
+// Supports NocoDB v3 pageInfo format (isLastPage + offset) and legacy next-URL format.
 func (p *ProxyHandler) handlePagination(initialBody []byte, initialURL string) ([]byte, error) {
-	// Parse the initial response
 	var response map[string]interface{}
 	if err := json.Unmarshal(initialBody, &response); err != nil {
-		// Not JSON or parse error - return as-is
 		log.Printf("[PAGINATION] Response is not JSON, skipping pagination")
 		return initialBody, nil
 	}
 
-	// Check if response has 'records' array and 'next' key
 	records, hasRecords := response["records"].([]interface{})
-	nextURL, hasNext := response["next"].(string)
-
 	if !hasRecords {
 		log.Printf("[PAGINATION] No 'records' array found, skipping pagination")
 		return initialBody, nil
 	}
 
-	if !hasNext || nextURL == "" {
-		log.Printf("[PAGINATION] No 'next' key or empty, single page response")
+	// ── NocoDB v3: pageInfo-based pagination ──────────────────────────────
+	if pageInfo, ok := response["pageInfo"].(map[string]interface{}); ok {
+		isLastPage, _ := pageInfo["isLastPage"].(bool)
+		if isLastPage {
+			log.Printf("[PAGINATION] Single page response (pageInfo.isLastPage=true), records: %d", len(records))
+			return initialBody, nil
+		}
+
+		pageSize := 25
+		if ps, ok := pageInfo["pageSize"].(float64); ok && ps > 0 {
+			pageSize = int(ps)
+		}
+
+		log.Printf("[PAGINATION] NocoDB v3 multi-page response detected, pageSize=%d, initial records=%d", pageSize, len(records))
+		allRecords := make([]interface{}, len(records))
+		copy(allRecords, records)
+
+		client := &http.Client{}
+		offset := pageSize
+		pageCount := 1
+
+		for {
+			pageCount++
+			pageURL := addOrReplaceQueryParam(initialURL, "offset", fmt.Sprintf("%d", offset))
+			log.Printf("[PAGINATION] Fetching page %d, offset=%d: %s", pageCount, offset, pageURL)
+
+			req, err := http.NewRequest("GET", pageURL, nil)
+			if err != nil {
+				log.Printf("[PAGINATION ERROR] Failed to create request: %v", err)
+				break
+			}
+			req.Header.Set("xc-token", p.NocoDBToken)
+
+			resp, err := client.Do(req)
+			if err != nil {
+				log.Printf("[PAGINATION ERROR] Request failed: %v", err)
+				break
+			}
+			body, err := io.ReadAll(resp.Body)
+			resp.Body.Close()
+			if err != nil || resp.StatusCode != 200 {
+				log.Printf("[PAGINATION ERROR] Bad response (status=%d): %v", resp.StatusCode, err)
+				break
+			}
+
+			var nextResp map[string]interface{}
+			if err := json.Unmarshal(body, &nextResp); err != nil {
+				log.Printf("[PAGINATION ERROR] Failed to parse page %d JSON: %v", pageCount, err)
+				break
+			}
+
+			nextRecords, ok := nextResp["records"].([]interface{})
+			if !ok || len(nextRecords) == 0 {
+				log.Printf("[PAGINATION] Page %d returned no records, stopping", pageCount)
+				break
+			}
+
+			allRecords = append(allRecords, nextRecords...)
+			log.Printf("[PAGINATION] Page %d: %d records (total so far: %d)", pageCount, len(nextRecords), len(allRecords))
+
+			nextPageInfo, ok := nextResp["pageInfo"].(map[string]interface{})
+			if !ok {
+				break
+			}
+			done, _ := nextPageInfo["isLastPage"].(bool)
+			if done {
+				break
+			}
+			offset += pageSize
+		}
+
+		log.Printf("[PAGINATION] Complete: %d pages, %d total records", pageCount, len(allRecords))
+		response["records"] = allRecords
+		response["pageInfo"] = map[string]interface{}{"isLastPage": true, "totalRows": len(allRecords)}
+
+		combined, err := json.Marshal(response)
+		if err != nil {
+			log.Printf("[PAGINATION ERROR] Failed to marshal combined response: %v", err)
+			return initialBody, err
+		}
+		return combined, nil
+	}
+
+	// ── Legacy: next-URL pagination (?page=N format) ─────────────────────
+	// NocoDB returns "next" with its external IP, which is unreachable from
+	// inside Docker containers (hairpin NAT). We use initialURL (internal
+	// Docker hostname) and increment the page counter ourselves instead.
+	_, hasNext := response["next"].(string)
+	if !hasNext {
+		log.Printf("[PAGINATION] Single page response (no pageInfo, no next), records: %d", len(records))
 		return initialBody, nil
 	}
 
-	// We have pagination - collect all records
-	log.Printf("[PAGINATION] Detected paginated response, initial records: %d", len(records))
-	allRecords := records
-	pageCount := 1
-
-	// Fetch subsequent pages
+	log.Printf("[PAGINATION] Legacy page-based pagination, initial records: %d", len(records))
+	allRecords := make([]interface{}, len(records))
+	copy(allRecords, records)
 	client := &http.Client{}
-	currentNextURL := nextURL
 
-	for currentNextURL != "" {
-		pageCount++
-		log.Printf("[PAGINATION] Fetching page %d from: %s", pageCount, currentNextURL)
+	for page := 2; ; page++ {
+		pageURL := addOrReplaceQueryParam(initialURL, "page", fmt.Sprintf("%d", page))
+		log.Printf("[PAGINATION] Fetching page %d: %s", page, pageURL)
 
-		// Create request for next page
-		nextReq, err := http.NewRequest("GET", currentNextURL, nil)
+		nextReq, err := http.NewRequest("GET", pageURL, nil)
 		if err != nil {
-			log.Printf("[PAGINATION ERROR] Failed to create request for page %d: %v", pageCount, err)
+			log.Printf("[PAGINATION ERROR] Failed to create request for page %d: %v", page, err)
 			break
 		}
-
-		// Add NocoDB authentication token
 		nextReq.Header.Set("xc-token", p.NocoDBToken)
 
-		// Execute request
 		nextResp, err := client.Do(nextReq)
 		if err != nil {
-			log.Printf("[PAGINATION ERROR] Failed to fetch page %d: %v", pageCount, err)
+			log.Printf("[PAGINATION ERROR] Failed to fetch page %d: %v", page, err)
 			break
 		}
-
-		// Read response body
 		nextBody, err := io.ReadAll(nextResp.Body)
 		nextResp.Body.Close()
-		if err != nil {
-			log.Printf("[PAGINATION ERROR] Failed to read page %d body: %v", pageCount, err)
+		if err != nil || nextResp.StatusCode != 200 {
+			log.Printf("[PAGINATION ERROR] Page %d bad response (status=%d): %v", page, nextResp.StatusCode, err)
 			break
 		}
 
-		if nextResp.StatusCode != 200 {
-			log.Printf("[PAGINATION ERROR] Page %d returned status %d", pageCount, nextResp.StatusCode)
-			break
-		}
-
-		// Parse next page response
 		var nextResponse map[string]interface{}
 		if err := json.Unmarshal(nextBody, &nextResponse); err != nil {
-			log.Printf("[PAGINATION ERROR] Failed to parse page %d JSON: %v", pageCount, err)
+			log.Printf("[PAGINATION ERROR] Failed to parse page %d JSON: %v", page, err)
 			break
 		}
 
-		// Extract records from next page
 		nextRecords, ok := nextResponse["records"].([]interface{})
-		if !ok {
-			log.Printf("[PAGINATION ERROR] Page %d has no 'records' array", pageCount)
+		if !ok || len(nextRecords) == 0 {
+			log.Printf("[PAGINATION] Page %d returned no records, stopping", page)
 			break
 		}
 
-		log.Printf("[PAGINATION] Page %d fetched: %d records", pageCount, len(nextRecords))
+		log.Printf("[PAGINATION] Page %d: %d records (total so far: %d)", page, len(nextRecords), len(allRecords)+len(nextRecords))
 		allRecords = append(allRecords, nextRecords...)
 
-		// Check for next page
-		nextURL, hasNext := nextResponse["next"].(string)
-		if !hasNext || nextURL == "" {
-			log.Printf("[PAGINATION] No more pages after page %d", pageCount)
-			currentNextURL = ""
-		} else {
-			currentNextURL = nextURL
+		// Stop if NocoDB signals no more pages
+		nxt, hasNxt := nextResponse["next"].(string)
+		if !hasNxt || nxt == "" {
+			log.Printf("[PAGINATION] No more pages after page %d", page)
+			break
 		}
 	}
 
-	log.Printf("[PAGINATION] Complete: fetched %d pages with %d total records", pageCount, len(allRecords))
-
-	// Reconstruct response with all records
+	log.Printf("[PAGINATION] Complete: %d total records", len(allRecords))
 	response["records"] = allRecords
-	response["next"] = nil // Clear next since we've fetched all pages
+	response["next"] = nil
 
-	// Marshal back to JSON
-	combinedBody, err := json.Marshal(response)
+	combined, err := json.Marshal(response)
 	if err != nil {
 		log.Printf("[PAGINATION ERROR] Failed to marshal combined response: %v", err)
 		return initialBody, err
 	}
+	return combined, nil
+}
 
-	return combinedBody, nil
+// addOrReplaceQueryParam adds or replaces a query parameter in a URL string.
+func addOrReplaceQueryParam(rawURL, key, value string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL + "&" + key + "=" + value
+	}
+	q := u.Query()
+	q.Set(key, value)
+	u.RawQuery = q.Encode()
+	return u.String()
 }
 
 // resolveLinkFieldInPath detects link requests and resolves link field aliases to field IDs

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Grove CRM — User Creation Guide</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; padding: 40px 24px; max-width: 760px; margin: 0 auto; }
+
+    h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: #64748b; font-size: 0.875rem; margin-bottom: 36px; }
+
+    .section { margin-bottom: 32px; }
+    .section-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 12px; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 0; }
+    .step { display: flex; gap: 16px; position: relative; }
+    .step:not(:last-child) .step-line { position: absolute; left: 15px; top: 32px; bottom: 0; width: 2px; background: #e2e8f0; }
+    .step-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: #1e293b; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; position: relative; z-index: 1; }
+    .step-body { padding-bottom: 28px; flex: 1; }
+    .step-title { font-size: 0.95rem; font-weight: 600; color: #1e293b; margin-bottom: 4px; padding-top: 5px; }
+    .step-desc { font-size: 0.85rem; color: #475569; line-height: 1.6; }
+
+    /* Info boxes */
+    .info-box { border-radius: 10px; padding: 16px 18px; margin-top: 12px; font-size: 0.83rem; line-height: 1.6; }
+    .info-blue { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .info-green { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+    .info-amber { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .info-box strong { font-weight: 600; }
+
+    /* Email preview */
+    .email-preview { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 12px; }
+    .email-header-bar { background: #f1f5f9; padding: 10px 16px; display: flex; gap: 16px; font-size: 0.75rem; color: #64748b; border-bottom: 1px solid #e2e8f0; }
+    .email-header-bar span { display: flex; gap: 4px; }
+    .email-header-bar strong { color: #374151; }
+    .email-body { padding: 24px; }
+    .email-dark-header { background: #1e293b; color: #fff; padding: 16px 20px; border-radius: 6px 6px 0 0; font-size: 0.9rem; font-weight: 700; margin-bottom: 0; }
+    .email-content { border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 6px 6px; padding: 20px; }
+    .email-content p { font-size: 0.83rem; color: #475569; margin-bottom: 12px; line-height: 1.6; }
+    .creds-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 14px 16px; margin-bottom: 14px; }
+    .cred-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8; margin-bottom: 3px; }
+    .cred-value { font-size: 0.85rem; color: #1e293b; font-weight: 500; margin-bottom: 10px; }
+    .cred-value:last-child { margin-bottom: 0; }
+    .cred-password { display: inline-block; background: #1e293b; color: #e2e8f0; padding: 5px 12px; border-radius: 5px; font-family: monospace; font-size: 0.9rem; letter-spacing: 0.04em; }
+    .login-btn { display: inline-block; background: #4f46e5; color: #fff; padding: 10px 22px; border-radius: 7px; font-size: 0.83rem; font-weight: 600; text-decoration: none; margin-bottom: 14px; }
+    .warning-strip { background: #fefce8; border: 1px solid #fde047; border-radius: 6px; padding: 10px 14px; font-size: 0.78rem; color: #854d0e; }
+
+    /* Roles table */
+    table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    thead { background: #1e293b; color: #fff; }
+    th { padding: 10px 14px; text-align: left; font-size: 0.73rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    td { padding: 10px 14px; font-size: 0.83rem; border-bottom: 1px solid #f1f5f9; color: #374151; }
+    tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+    .badge-admin { background: #ede9fe; color: #7c3aed; }
+    .badge-user  { background: #dbeafe; color: #1d4ed8; }
+
+    /* Reset password section */
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px 20px; margin-top: 12px; }
+    .card p { font-size: 0.85rem; color: #475569; line-height: 1.6; }
+
+    hr { border: none; border-top: 1px solid #e2e8f0; margin: 32px 0; }
+
+    .tag { display: inline-block; background: #f1f5f9; color: #475569; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; border: 1px solid #e2e8f0; }
+  </style>
+</head>
+<body>
+
+  <h1>User Creation Guide</h1>
+  <p class="subtitle">Grove CRM &nbsp;·&nbsp; Admin Reference &nbsp;·&nbsp; Updated June 2026</p>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <p class="section-title">Overview</p>
+    <div class="info-box info-blue">
+      <strong>Fully automated.</strong> When you create a user, the system generates a secure temporary password and emails it directly to the user. No manual password sharing needed.
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="section">
+    <p class="section-title">Steps to Create a User</p>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Go to Admin Panel</p>
+          <p class="step-desc">Log in as an admin and navigate to <span class="tag">/admin/users</span> from the sidebar. Only admins can access this page.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Click "Create User"</p>
+          <p class="step-desc">Click the <strong>Create User</strong> button in the top right. The user creation form will open.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Fill in the details</p>
+          <p class="step-desc">Enter the user's <strong>Full Name</strong>, <strong>Email Address</strong>, and select their <strong>Role</strong> (User or Admin). The password is auto-generated — you don't set it.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Click "Create User"</p>
+          <p class="step-desc">The system will create the account and automatically send an invitation email to the user. The button shows <em>"Creating User…"</em> then <em>"Sending Invitation…"</em> while it works.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Done — user receives email</p>
+          <p class="step-desc">A success card confirms <strong>"Invitation email sent"</strong>. The user gets an email (see preview below) with their login credentials and a direct link to the CRM.</p>
+          <div class="info-box info-amber" style="margin-top:10px;">
+            <strong>If email delivery fails</strong> — the success card will show an amber warning with the temporary password visible so you can share it manually.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- EMAIL PREVIEW -->
+  <div class="section">
+    <p class="section-title">What the User Receives</p>
+    <div class="email-preview">
+      <div class="email-header-bar">
+        <span><strong>From:</strong> admin@grovesystems.co</span>
+        <span><strong>Subject:</strong> You've been invited to Grove CRM</span>
+      </div>
+      <div class="email-body">
+        <div class="email-dark-header">Welcome to Grove CRM</div>
+        <div class="email-content">
+          <p>Hi Ravi,</p>
+          <p>An account has been created for you on Grove CRM. Use the credentials below to log in.</p>
+          <div class="creds-box">
+            <div class="cred-label">Email</div>
+            <div class="cred-value">ravi@grovesystems.co</div>
+            <div class="cred-label">Temporary Password</div>
+            <div class="cred-value"><span class="cred-password">Xk9#mP2qLr7!wZ4n</span></div>
+          </div>
+          <a class="login-btn" href="#">Log In to Grove CRM →</a>
+          <div class="warning-strip">
+            <strong>Important:</strong> You will be required to change this password on first login. Do not share it with anyone.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIRST LOGIN -->
+  <div class="section">
+    <p class="section-title">User's First Login</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Click the login link in the email</p>
+          <p class="step-desc">Or go to the CRM URL directly and enter their email and temporary password.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Forced password change</p>
+          <p class="step-desc">On first login, the system immediately redirects to a <strong>Change Password</strong> screen. The user must set a new password before they can access anything.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-line"></div>
+        <div class="step-body">
+          <p class="step-title">Access granted</p>
+          <p class="step-desc">Once the password is changed, the user is logged in and can use the CRM normally.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- ROLES -->
+  <div class="section">
+    <p class="section-title">Roles</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Who it's for</th>
+          <th>Key difference</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="badge badge-user">User</span></td>
+          <td>Sales team, field staff</td>
+          <td>Sees only their own quotes &amp; leads (assigned to them or created by them)</td>
+        </tr>
+        <tr>
+          <td><span class="badge badge-admin">Admin</span></td>
+          <td>Managers, owners</td>
+          <td>Sees everything, can delete records, manage users, assign leads</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr />
+
+  <!-- RESET PASSWORD -->
+  <div class="section">
+    <p class="section-title">Resetting a User's Password</p>
+    <div class="card">
+      <p>If a user forgets their password, go to <span class="tag">/admin/users</span>, find the user in the table, and click <strong>Reset Password</strong>. The system will generate a new temporary password and email it to the user automatically — same flow as creation. The user must change it on next login.</p>
+    </div>
+    <div class="info-box info-green" style="margin-top: 12px;">
+      <strong>Reset email comes from:</strong> admin@grovesystems.co &nbsp;·&nbsp; <strong>Quote emails come from:</strong> a separate quotes address — the two are kept distinct.
+    </div>
+  </div>
+
+</body>
+</html>

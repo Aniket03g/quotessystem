@@ -161,7 +161,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       </div>
     </div>
 
-    <!-- Table -->
+    <!-- Table (desktop) / Cards (mobile) -->
+    <div id="contactsMobileList" class="hidden divide-y divide-slate-100"></div>
     <div id="contactsTable" class="hidden overflow-x-auto">
       <table class="w-full table-fixed">
         <colgroup>
@@ -258,6 +259,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const errorDiv = document.getElementById('error') as HTMLDivElement;
       const errorText = document.getElementById('errorText') as HTMLParagraphElement;
       const contactsTable = document.getElementById('contactsTable') as HTMLDivElement;
+      const contactsMobileList = document.getElementById('contactsMobileList') as HTMLDivElement;
       const contactsBody = document.getElementById('contactsBody') as HTMLTableSectionElement;
       const emptyState = document.getElementById('emptyState') as HTMLDivElement;
       const searchInput = document.getElementById('searchInput') as HTMLInputElement;
@@ -278,6 +280,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       try {
         loadingDiv.classList.remove('hidden');
         contactsTable.classList.add('hidden');
+        contactsMobileList.classList.add('hidden');
         emptyState.classList.add('hidden');
         errorDiv.classList.add('hidden');
 
@@ -356,11 +359,64 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         searchStatus.classList.remove('text-blue-600');
         emptyState.classList.remove('hidden');
         contactsTable.classList.add('hidden');
+        contactsMobileList.classList.add('hidden');
         return;
       }
 
       searchStatus.textContent = `Showing ${contacts.length} contact${contacts.length !== 1 ? 's' : ''}`;
       searchStatus.classList.remove('text-blue-600');
+
+      contactsMobileList.innerHTML = contacts.map((record: any) => {
+        const fields = record.fields || {};
+        const contactName = fields['Name'] || 'N/A';
+        const accountObj = fields['Accounts duplicate'];
+        const account = accountObj?.fields?.['Account Name'] || '';
+        const email = fields['Email'] || '';
+        const phone = fields['Phone Number'] || '';
+
+        return `
+          <div class="p-4 flex items-start gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold text-slate-900 mb-0.5">${contactName}</div>
+              ${account ? `<div class="text-xs text-slate-500 mb-0.5">${account}</div>` : ''}
+              ${email ? `<div class="text-xs text-slate-600">${email}</div>` : ''}
+              ${phone ? `<div class="text-xs text-slate-600">${phone}</div>` : ''}
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button
+                class="edit-btn p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                title="Edit"
+                data-id="${record.id}"
+                data-name="${contactName !== 'N/A' ? contactName : ''}"
+                data-email="${email}"
+                data-phone="${phone}"
+                data-other-phone="${fields['Other Phone'] || ''}"
+                data-birth-date="${fields['Birth date'] || ''}"
+                data-department="${fields['Department'] || ''}"
+                data-account-id="${accountObj?.id || ''}"
+                data-account-name="${account}"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+              </button>
+              <button
+                class="delete-btn p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                title="Delete"
+                data-id="${record.id}"
+                data-name="${contactName !== 'N/A' ? contactName : 'this contact'}"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      contactsTable.classList.remove('hidden');
+      contactsMobileList.classList.remove('hidden');
 
       contactsBody.innerHTML = contacts.map((record: any, index: number) => {
         const fields = record.fields || {};
@@ -412,7 +468,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         `;
       }).join('');
 
-      contactsTable.classList.remove('hidden');
       emptyState.classList.add('hidden');
     }
 
@@ -619,13 +674,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
-    contactsBody.addEventListener('click', (e) => {
+    function handleContactClick(e: MouseEvent) {
       const editBtn = (e.target as Element).closest('.edit-btn') as HTMLElement | null;
       const deleteBtn = (e.target as Element).closest('.delete-btn') as HTMLElement | null;
-
       if (editBtn) openEditModal(editBtn);
       if (deleteBtn) deleteContact(deleteBtn.dataset.id || '', deleteBtn.dataset.name || 'this contact');
-    });
+    }
+
+    contactsBody.addEventListener('click', handleContactClick);
+    contactsMobileList.addEventListener('click', handleContactClick);
 
     }); // Close DOMContentLoaded event listener
   </script>
@@ -643,4 +700,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       </div>
     </div>
   </div>
+
+  <style>
+    @media (min-width: 1024px) { #contactsMobileList { display: none !important; } }
+    @media (max-width: 1023px) { #contactsTable { display: none !important; } }
+  </style>
 </AdminLayout>

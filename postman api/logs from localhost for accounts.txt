@@ -1,0 +1,170 @@
+2026/06/16 12:53:44 main.go:298: [STARTUP] ✅ Server ready!
+2026/06/16 12:53:44 main.go:299: [STARTUP] ========================================
+[INFO] 2026/06/16 12:54:34 request_logger.go:49: [REQUEST] GET /proxy/accounts_duplicate/records from [::1]:60529 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36
+[INFO] 2026/06/16 12:54:34 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+[INFO] 2026/06/16 12:54:34 request_logger.go:49: [REQUEST] GET /proxy/contacts/records from [::1]:57213 | User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36
+2026/06/16 12:54:34 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+[INFO] 2026/06/16 12:54:34 request_logger.go:63: [REQUEST] Authorization: Bearer token present
+2026/06/16 12:54:34 auth.go:24: [AUTH] Validating request: GET /proxy/accounts_duplicate/records
+2026/06/16 12:54:34 auth.go:32: [AUTH] Authorization header present
+2026/06/16 12:54:34 cors.go:25: [CORS] Allowed Origin: http://localhost:4321
+2026/06/16 12:54:34 auth.go:43: [AUTH] Validating JWT token...
+2026/06/16 12:54:34 auth.go:24: [AUTH] Validating request: GET /proxy/contacts/records
+2026/06/16 12:54:34 auth.go:32: [AUTH] Authorization header present
+2026/06/16 12:54:34 auth.go:43: [AUTH] Validating JWT token...
+2026/06/16 12:54:34 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/06/16 12:54:34 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/06/16 12:54:34 auth.go:52: [AUTH] JWT validated successfully - User: admin-001, Role: admin
+2026/06/16 12:54:34 auth.go:57: [AUTH] Authentication successful, proceeding to next handler
+2026/06/16 12:54:34 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/accounts_duplicate/records
+2026/06/16 12:54:34 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/06/16 12:54:34 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/06/16 12:54:34 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/06/16 12:54:34 handler.go:41: [PROXY] Incoming request: GET /proxy/accounts_duplicate/records
+2026/06/16 12:54:34 handler.go:45: [PROXY] Extracted path: accounts_duplicate/records
+2026/06/16 12:54:34 handler.go:51: [PROXY] Using config-driven validation
+2026/06/16 12:54:34 authorize.go:11: [AUTHORIZE] Processing authorization for: GET /proxy/contacts/records
+2026/06/16 12:54:34 authorize.go:19: [AUTHORIZE] User ID: admin-001
+2026/06/16 12:54:34 authorize.go:27: [AUTHORIZE] User Role: admin
+2026/06/16 12:54:34 validator.go:28: [VALIDATOR] Validating request: GET accounts_duplicate/records
+2026/06/16 12:54:34 validator.go:37: [VALIDATOR] Table key: accounts_duplicate
+2026/06/16 12:54:34 authorize.go:31: [AUTHORIZE] Admin user detected - bypassing row-level filtering
+2026/06/16 12:54:34 handler.go:41: [PROXY] Incoming request: GET /proxy/contacts/records
+2026/06/16 12:54:34 validator.go:58: [VALIDATOR] Operation: read
+2026/06/16 12:54:34 handler.go:45: [PROXY] Extracted path: contacts/records
+2026/06/16 12:54:34 handler.go:51: [PROXY] Using config-driven validation
+2026/06/16 12:54:34 validator.go:28: [VALIDATOR] Validating request: GET contacts/records
+2026/06/16 12:54:34 validator.go:37: [VALIDATOR] Table key: contacts
+2026/06/16 12:54:34 validator.go:58: [VALIDATOR] Operation: read
+2026/06/16 12:54:34 validator.go:80: [VALIDATOR] Validation successful: &{TableKey:accounts_duplicate TableID:m5oxh8myj8t9gpl TableName:Accounts Duplicate Operation:read Allowed:true ResolvedPath:m5oxh8myj8t9gpl/records}
+2026/06/16 12:54:34 handler.go:61: [PROXY] Validated and resolved: accounts_duplicate/records -> m5oxh8myj8t9gpl/records
+2026/06/16 12:54:34 handler.go:115: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records
+2026/06/16 12:54:34 validator.go:80: [VALIDATOR] Validation successful: &{TableKey:contacts TableID:m09l0yw4klku4e9 TableName:Contacts Operation:read Allowed:true ResolvedPath:m09l0yw4klku4e9/records}
+2026/06/16 12:54:34 handler.go:61: [PROXY] Validated and resolved: contacts/records -> m09l0yw4klku4e9/records
+2026/06/16 12:54:34 handler.go:115: [PROXY] Target URL: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records
+2026/06/16 12:54:34 handler.go:124: [PROXY] Created proxy request successfully
+2026/06/16 12:54:34 handler.go:148: [PROXY] Added xc-token header
+2026/06/16 12:54:34 handler.go:151: [PROXY] Executing request to NocoDB...
+2026/06/16 12:54:34 handler.go:124: [PROXY] Created proxy request successfully
+2026/06/16 12:54:34 handler.go:148: [PROXY] Added xc-token header
+2026/06/16 12:54:34 handler.go:151: [PROXY] Executing request to NocoDB...
+2026/06/16 12:54:34 handler.go:160: [PROXY] NocoDB responded with status: 200 200 OK
+2026/06/16 12:54:34 handler.go:160: [PROXY] NocoDB responded with status: 200 200 OK
+2026/06/16 12:54:34 handler.go:174: [PROXY] Response body length: 8992 bytes
+2026/06/16 12:54:34 handler.go:329: [PAGINATION] Legacy page-based pagination, initial records: 25
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 2: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=2
+2026/06/16 12:54:34 handler.go:174: [PROXY] Response body length: 33708 bytes
+2026/06/16 12:54:34 handler.go:329: [PAGINATION] Legacy page-based pagination, initial records: 25
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 2: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=2
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 2: 25 records (total so far: 50)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 3: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=3
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 2: 25 records (total so far: 50)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 3: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=3
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 3: 25 records (total so far: 75)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 4: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=4
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 3: 25 records (total so far: 75)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 4: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=4
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 4: 25 records (total so far: 100)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 5: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=5
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 4: 25 records (total so far: 100)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 5: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=5
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 5: 25 records (total so far: 125)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 6: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=6
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 5: 25 records (total so far: 125)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 6: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=6
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 6: 25 records (total so far: 150)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 7: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=7
+2026/06/16 12:54:34 handler.go:369: [PAGINATION] Page 6: 25 records (total so far: 150)
+2026/06/16 12:54:34 handler.go:336: [PAGINATION] Fetching page 7: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=7
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 7: 25 records (total so far: 175)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 8: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=8
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 7: 25 records (total so far: 175)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 8: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=8
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 8: 25 records (total so far: 200)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 9: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=9
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 8: 25 records (total so far: 200)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 9: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=9
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 9: 25 records (total so far: 225)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 10: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=10
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 9: 25 records (total so far: 225)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 10: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=10
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 10: 25 records (total so far: 250)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 11: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=11
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 10: 25 records (total so far: 250)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 11: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=11
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 11: 25 records (total so far: 275)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 12: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=12
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 11: 25 records (total so far: 275)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 12: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=12
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 12: 25 records (total so far: 300)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 13: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=13
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 12: 25 records (total so far: 300)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 13: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=13
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 13: 25 records (total so far: 325)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 14: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=14
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 13: 25 records (total so far: 325)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 14: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=14
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 14: 25 records (total so far: 350)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 15: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=15
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 14: 25 records (total so far: 350)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 15: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=15
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 15: 25 records (total so far: 375)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 16: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=16
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 15: 25 records (total so far: 375)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 16: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=16
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 16: 25 records (total so far: 400)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 17: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=17
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 16: 25 records (total so far: 400)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 17: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=17
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 17: 25 records (total so far: 425)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 18: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=18
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 17: 25 records (total so far: 425)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 18: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=18
+2026/06/16 12:54:35 handler.go:369: [PAGINATION] Page 18: 25 records (total so far: 450)
+2026/06/16 12:54:35 handler.go:336: [PAGINATION] Fetching page 19: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=19
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 18: 25 records (total so far: 450)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 19: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=19
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 19: 25 records (total so far: 475)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 20: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=20
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 19: 25 records (total so far: 475)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 20: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=20
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 20: 25 records (total so far: 500)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 21: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m09l0yw4klku4e9/records?page=21
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 20: 25 records (total so far: 500)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 21: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=21
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 21: 19 records (total so far: 519)
+2026/06/16 12:54:36 handler.go:375: [PAGINATION] No more pages after page 21
+2026/06/16 12:54:36 handler.go:380: [PAGINATION] Complete: 519 total records
+2026/06/16 12:54:36 handler.go:218: [PROXY] Request completed successfully
+[INFO] 2026/06/16 12:54:36 request_logger.go:76: [RESPONSE] GET /proxy/contacts/records | Status: 200 | Duration: 1.9786602s | Bytes: 190701 | IP: [::1]:57213
+[ERROR] 2026/06/16 12:54:36 request_logger.go:104: [SLOW REQUEST] GET /proxy/contacts/records took 1.9786602s | IP: [::1]:57213
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 21: 25 records (total so far: 525)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 22: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=22
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 22: 25 records (total so far: 550)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 23: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=23
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 23: 25 records (total so far: 575)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 24: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=24
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 24: 25 records (total so far: 600)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 25: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=25
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 25: 25 records (total so far: 625)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 26: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=26
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 26: 25 records (total so far: 650)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 27: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=27
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 27: 25 records (total so far: 675)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 28: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=28
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 28: 25 records (total so far: 700)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 29: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=29
+2026/06/16 12:54:36 handler.go:369: [PAGINATION] Page 29: 25 records (total so far: 725)
+2026/06/16 12:54:36 handler.go:336: [PAGINATION] Fetching page 30: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=30
+2026/06/16 12:54:37 handler.go:369: [PAGINATION] Page 30: 25 records (total so far: 750)
+2026/06/16 12:54:37 handler.go:336: [PAGINATION] Fetching page 31: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=31
+2026/06/16 12:54:37 handler.go:369: [PAGINATION] Page 31: 25 records (total so far: 775)
+2026/06/16 12:54:37 handler.go:336: [PAGINATION] Fetching page 32: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=32
+2026/06/16 12:54:37 handler.go:369: [PAGINATION] Page 32: 25 records (total so far: 800)
+2026/06/16 12:54:37 handler.go:336: [PAGINATION] Fetching page 33: http://100.103.198.65:8090/api/v3/data/pd0tf8xobxcryk6/m5oxh8myj8t9gpl/records?page=33
+2026/06/16 12:54:37 handler.go:369: [PAGINATION] Page 33: 12 records (total so far: 812)
+2026/06/16 12:54:37 handler.go:375: [PAGINATION] No more pages after page 33
+2026/06/16 12:54:37 handler.go:380: [PAGINATION] Complete: 812 total records
+2026/06/16 12:54:37 handler.go:218: [PROXY] Request completed successfully
+[INFO] 2026/06/16 12:54:37 request_logger.go:76: [RESPONSE] GET /proxy/accounts_duplicate/records | Status: 200 | Duration: 3.0330721s | Bytes: 1086557 | IP: [::1]:60529
+[ERROR] 2026/06/16 12:54:37 request_logger.go:104: [SLOW REQUEST] GET /proxy/accounts_duplicate/records took 3.0330721s | IP: [::1]:60529
