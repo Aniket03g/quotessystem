@@ -2385,7 +2385,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               // Create new Case for this version
               const casePayload = {
                 fields: {
-                  'Title': currentFields['Subject'] || `Quote for ${accountName}`,
+                  'Title': currentFields['Subject'] || accountName,
                   'Status': 'Open',
                   'Created': new Date().toISOString().split('T')[0]
                 }

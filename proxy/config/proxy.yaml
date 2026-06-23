@@ -10,7 +10,7 @@ tables:
 
   products:
     name: "Products"
-    operations: [read, create]
+    operations: [read, create, update]
 
   accounts:
     name: "Accounts"

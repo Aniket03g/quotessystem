@@ -13,7 +13,15 @@
       "Bash(python.exe *)",
       "Bash(grep -v \"//\\\\|parse\\\\|style\")",
       "Bash(grep -v \"//\\\\|parse\\\\|style\\\\|min\\\\|max\\\\|merge\")",
-      "Bash(grep -v \"//\\\\|minCellHeight\\\\|remainingSpace\\\\|oneRowHeight\")"
+      "Bash(grep -v \"//\\\\|minCellHeight\\\\|remainingSpace\\\\|oneRowHeight\")",
+      "Bash(npx astro *)",
+      "Bash(ls -la .env*)",
+      "Bash(cat .env)",
+      "Bash(cat .env.local)",
+      "Bash(docker version *)",
+      "Bash(node -e ' *)",
+      "Bash(node cleanup-product-status.mjs)",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\('count returned \\(no limit param\\):', j.records.length, 'has next:', !!j.next\\);}\\);\")"
     ]
   }
 }

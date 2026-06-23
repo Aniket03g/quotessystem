@@ -148,7 +148,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   </div>
 
   <script>
-    import { getToken, logout, safeJsonParse } from '../lib/api';
+    import { getToken, getUserInfo, logout, safeJsonParse } from '../lib/api';
 
     document.addEventListener('DOMContentLoaded', () => {
       const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
@@ -159,6 +159,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         window.location.href = '/login';
         return;
       }
+
+      const isAdmin = getUserInfo()?.role === 'admin';
 
       const loadingDiv = document.getElementById('loading') as HTMLDivElement;
       const errorDiv = document.getElementById('error') as HTMLDivElement;
@@ -259,8 +261,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const hsnCode = f['HSN/SAC Code'] || '<span class="text-slate-400 italic">—</span>';
           const unitPrice = f['Customer Unit Price'] ? parseFloat(String(f['Customer Unit Price'])) : 0;
           const tax = f['Tax'] ? parseFloat(String(f['Tax'])) : 0;
-          const status = f['Product Status'] || 'Inactive';
-          const isActive = status === 'Active';
+          const isActive = (f['Product Status'] || '').toLowerCase() !== 'inactive';
+          const status = isActive ? 'Active' : 'Inactive';
           const isSelected = selectedProduct && selectedProduct.id === record.id;
 
           return `
@@ -273,9 +275,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <td class="px-4 py-4 text-sm text-slate-600">₹${unitPrice.toFixed(2)}</td>
               <td class="px-4 py-4 text-sm text-slate-600">${tax}%</td>
               <td class="px-4 py-4">
+                ${isAdmin ? `
+                <button class="status-toggle-btn inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${isActive ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-red-100 text-red-800 hover:bg-red-200'}" data-product-id="${record.id}" title="Click to mark as ${isActive ? 'Inactive' : 'Active'}">
+                  ${status}
+                </button>` : `
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
                   ${status}
-                </span>
+                </span>`}
               </td>
             </tr>
           `;
@@ -292,6 +298,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           });
         });
 
+        productsBody.querySelectorAll<HTMLButtonElement>('.status-toggle-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const productId = btn.dataset.productId || '';
+            const record = records.find(r => String(r.id) === productId);
+            if (record) toggleProductStatus(record, btn);
+          });
+        });
+
         productsMobileList.innerHTML = records.map((record, index) => {
           const f = record.fields || {};
           const productName = f['Product Name'] || 'N/A';
@@ -299,15 +314,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const brand = f['Brand'] || '';
           const unitPrice = f['Customer Unit Price'] ? parseFloat(String(f['Customer Unit Price'])) : 0;
           const tax = f['Tax'] ? parseFloat(String(f['Tax'])) : 0;
-          const status = f['Product Status'] || 'Inactive';
-          const isActive = status === 'Active';
+          const isActive = (f['Product Status'] || '').toLowerCase() !== 'inactive';
+          const status = isActive ? 'Active' : 'Inactive';
           const isSelected = selectedProduct && selectedProduct.id === record.id;
 
           return `
             <div class="p-4 cursor-pointer transition-colors ${isSelected ? 'bg-blue-50' : 'hover:bg-slate-50'}" data-mobile-product-index="${index}">
               <div class="flex items-start justify-between gap-2 mb-1">
                 <div class="text-sm font-semibold text-slate-900 flex-1 min-w-0">${productName}</div>
-                <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${status}</span>
+                ${isAdmin
+                  ? `<button class="status-toggle-btn flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium transition-colors cursor-pointer ${isActive ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-red-100 text-red-800 hover:bg-red-200'}" data-product-id="${record.id}" title="Click to mark as ${isActive ? 'Inactive' : 'Active'}">${status}</button>`
+                  : `<span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${status}</span>`}
               </div>
               ${modelNo ? `<div class="text-xs text-slate-500 mb-0.5">${modelNo}${brand ? ' · ' + brand : ''}</div>` : (brand ? `<div class="text-xs text-slate-500 mb-0.5">${brand}</div>` : '')}
               <div class="text-sm font-semibold text-slate-800">₹${unitPrice.toFixed(2)} <span class="text-xs font-normal text-slate-500">+ ${tax}% tax</span></div>
@@ -326,6 +343,49 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             card.classList.add('bg-blue-50');
           });
         });
+
+        productsMobileList.querySelectorAll<HTMLButtonElement>('.status-toggle-btn').forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const productId = btn.dataset.productId || '';
+            const record = records.find(r => String(r.id) === productId);
+            if (record) toggleProductStatus(record, btn);
+          });
+        });
+      }
+
+      const STATUS_ACTIVE_CLASSES = ['bg-emerald-100', 'text-emerald-800', 'hover:bg-emerald-200'];
+      const STATUS_INACTIVE_CLASSES = ['bg-red-100', 'text-red-800', 'hover:bg-red-200'];
+
+      function setStatusButtonVisual(btn: HTMLButtonElement, isActive: boolean) {
+        btn.classList.remove(...STATUS_ACTIVE_CLASSES, ...STATUS_INACTIVE_CLASSES);
+        btn.classList.add(...(isActive ? STATUS_ACTIVE_CLASSES : STATUS_INACTIVE_CLASSES));
+        btn.textContent = isActive ? 'Active' : 'Inactive';
+        btn.title = `Click to mark as ${isActive ? 'Inactive' : 'Active'}`;
+      }
+
+      async function toggleProductStatus(record: any, btn: HTMLButtonElement) {
+        const wasActive = (record.fields['Product Status'] || '').toLowerCase() !== 'inactive';
+        const oldStatus = record.fields['Product Status'];
+        const newStatus = wasActive ? 'Inactive' : 'Active';
+
+        record.fields['Product Status'] = newStatus;
+        setStatusButtonVisual(btn, !wasActive);
+
+        try {
+          const res = await fetch(`${API_BASE_URL}/proxy/products/records`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: record.id, fields: { 'Product Status': newStatus } })
+          });
+          if (!res.ok) throw new Error('Failed to update product status');
+        } catch {
+          record.fields['Product Status'] = oldStatus;
+          setStatusButtonVisual(btn, wasActive);
+          (document.getElementById('errorText') as HTMLElement).textContent = 'Failed to update product status. Please try again.';
+          errorDiv.classList.remove('hidden');
+          setTimeout(() => errorDiv.classList.add('hidden'), 3000);
+        }
       }
 
       async function loadAllProducts() {

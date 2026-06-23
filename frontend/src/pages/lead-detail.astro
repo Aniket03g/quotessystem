@@ -128,6 +128,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Next Follow-up</p>
               <p id="detailNextFollowUp" class="text-sm font-medium">—</p>
             </div>
+
+            <div id="detailPushLogRow" class="hidden">
+              <p class="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Push History</p>
+              <div id="detailPushLogList" class="space-y-2 max-h-48 overflow-y-auto"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -565,6 +570,30 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const isOverdue = new Date(fuDate) < new Date();
         fuEl.textContent = fmt(fuDate);
         fuEl.className = `text-sm font-medium ${isOverdue ? 'text-red-600' : 'text-slate-800'}`;
+      }
+
+      // Push Log: array of { by, at } recorded each time +1 Day is used on the leads list
+      const rawPushLog = f['Push Log'];
+      const pushLog = Array.isArray(rawPushLog)
+        ? rawPushLog
+        : (typeof rawPushLog === 'string' ? (() => { try { const p = JSON.parse(rawPushLog); return Array.isArray(p) ? p : []; } catch { return []; } })() : []);
+      if (pushLog.length > 0) {
+        const sorted = [...pushLog].sort((a: any, b: any) => new Date(b.at).getTime() - new Date(a.at).getTime());
+        document.getElementById('detailPushLogList')!.innerHTML = sorted.map((e: any) => {
+          const initials = (e.by || '?').slice(0, 2).toUpperCase();
+          const when = e.at
+            ? new Date(e.at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })
+            : 'Unknown time';
+          return `
+            <div class="flex items-start gap-2.5">
+              <div class="w-7 h-7 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0">${initials}</div>
+              <div class="min-w-0">
+                <p class="text-xs font-semibold text-slate-700 truncate">${e.by}</p>
+                <p class="text-xs text-slate-400">${when}</p>
+              </div>
+            </div>`;
+        }).join('');
+        document.getElementById('detailPushLogRow')!.classList.remove('hidden');
       }
 
       // Notes

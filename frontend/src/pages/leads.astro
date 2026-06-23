@@ -675,6 +675,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
+    // Push Log: array of { by: string, at: ISO string }. NocoDB JSON field may
+    // come back already parsed (array/object) or as a JSON string — handle both.
+    function getPushLog(fields: any): Array<{ by: string; at: string }> {
+      const raw = fields?.['Push Log'];
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      if (typeof raw === 'string') {
+        try {
+          const parsed = JSON.parse(raw);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
+      }
+      return [];
+    }
+
     function getFollowUpCategory(dateStr: string): string {
       if (!dateStr) return 'no-date';
       const d = new Date(dateStr);
@@ -829,7 +846,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                   <button class="contacted-btn px-2 py-0.5 text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200 rounded-full hover:bg-cyan-100 transition-colors whitespace-nowrap" title="Mark as Contacted + set Last Contacted to today" data-lead-id="${record.id}">
                     ✓ Contacted
                   </button>` : ''}
-                  ${nextFollowUp ? `
+                  ${nextFollowUp && status !== 'Converted' && status !== 'Lost' ? `
                   <button class="snooze-btn px-2 py-0.5 text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-200 rounded-full hover:bg-violet-100 transition-colors whitespace-nowrap" title="Push follow-up forward by 1 day" data-lead-id="${record.id}">
                     +1 Day
                   </button>` : ''}
@@ -896,7 +913,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <button class="edit-lead-btn px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors" data-lead-id="${record.id}">Edit</button>
               ${canConvert ? `<button class="convert-lead-btn px-3 py-1.5 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors" data-lead-id="${record.id}">Convert</button>` : ''}
               ${status !== 'Converted' && status !== 'Lost' ? `<button class="contacted-btn px-3 py-1.5 text-xs font-semibold bg-cyan-50 text-cyan-700 rounded-lg hover:bg-cyan-100 transition-colors" data-lead-id="${record.id}">✓ Contacted</button>` : ''}
-              ${nextFollowUp ? `<button class="snooze-btn px-3 py-1.5 text-xs font-semibold bg-violet-50 text-violet-700 rounded-lg hover:bg-violet-100 transition-colors" data-lead-id="${record.id}">+1 Day</button>` : ''}
+              ${nextFollowUp && status !== 'Converted' && status !== 'Lost' ? `<button class="snooze-btn px-3 py-1.5 text-xs font-semibold bg-violet-50 text-violet-700 rounded-lg hover:bg-violet-100 transition-colors" data-lead-id="${record.id}">+1 Day</button>` : ''}
               <button class="delete-lead-btn px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors ml-auto" data-lead-id="${record.id}">Delete</button>
             </div>
           </div>
@@ -1282,8 +1299,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       d.setDate(d.getDate() + 1);
       const newDate = d.toISOString().split('T')[0];
 
+      const updatedPushLog = [...getPushLog(lead.fields), { by: userEmail || 'unknown', at: new Date().toISOString() }];
+
       // Optimistic update
       lead.fields['Next Follow-up'] = newDate;
+      lead.fields['Push Log'] = updatedPushLog;
       updateStats(allLeads);
       applyFilters();
 
@@ -1291,7 +1311,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const res = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
           method: 'PATCH',
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: leadId, fields: { 'Next Follow-up': newDate } })
+          body: JSON.stringify({ id: leadId, fields: { 'Next Follow-up': newDate, 'Push Log': updatedPushLog } })
         });
         if (!res.ok) throw new Error('PATCH failed');
       } catch {

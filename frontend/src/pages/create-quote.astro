@@ -779,7 +779,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Create quote
         const quotePayload = {
           fields: {
-            'Subject': `Quote for ${accountName}`,
+            'Subject': accountName,
             'Quote Status': quoteStatus,
             'Quote Type': quoteType,
             'Quote Version': '1.0',
@@ -825,7 +825,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         console.log('\n=== AUTO-CREATING CASE ===');
         const casePayload = {
           fields: {
-            'Title': `Quote for ${accountName}`,  // Same as quote subject
+            'Title': accountName,  // Same as quote subject
             'Status': 'Open',
             'Created': new Date().toISOString().split('T')[0],
             'Case Created By': getUserEmail() || 'Unknown User'
