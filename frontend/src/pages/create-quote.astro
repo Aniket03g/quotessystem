@@ -123,6 +123,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <h2 class="text-base font-semibold text-slate-800 mb-4">Quote Details</h2>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Issuing Company -->
+        <div>
+          <label for="issuingCompany" class="block text-sm font-medium text-slate-700 mb-2">Company *</label>
+          <select
+            id="issuingCompany"
+            required
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          >
+            <option value="">Select company...</option>
+            <option value="GreenOCare">GreenOCare</option>
+            <option value="Grove">Grove</option>
+          </select>
+        </div>
+
         <!-- Quote Date -->
         <div>
           <label for="quoteDate" class="block text-sm font-medium text-slate-700 mb-2">Quote Date *</label>
@@ -711,6 +725,36 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       setupProductSearch(newItem);
     });
 
+    // Quote numbering: GR/2026-27/0001 or GOC/2026-27/0001, sequential per company per financial year (Apr-Mar)
+    function getFinancialYear(): string {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1; // 1-12
+      const startYear = month >= 4 ? year : year - 1;
+      const endYear = (startYear + 1) % 100;
+      return `${startYear}-${endYear.toString().padStart(2, '0')}`;
+    }
+
+    async function getNextQuoteNumber(company: string): Promise<string> {
+      const prefix = company === 'Grove' ? 'GR' : 'GOC';
+      const fy = getFinancialYear();
+      const numberPrefix = `${prefix}/${fy}/`;
+
+      const rawWhere = `(Quote Number,like,${numberPrefix}%)`;
+      const encodedWhere = encodeURIComponent(rawWhere);
+      const response = await fetch(`${API_BASE_URL}/proxy/quotes/records?where=${encodedWhere}&limit=1000&fields=Quote Number`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch existing quote numbers');
+
+      const data = await safeJsonParse(response);
+      const existing = data.records || data.list || [];
+      const nextSeq = existing.length + 1;
+
+      return `${numberPrefix}${nextSeq.toString().padStart(4, '0')}`;
+    }
+
     // Form submission (same logic as modal)
     createQuoteForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -718,6 +762,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       const accountId = parseInt(selectedAccountId.value);
       const accountName = accountSearch.value;
+      const issuingCompany = (document.getElementById('issuingCompany') as HTMLSelectElement).value;
       const quoteDate = (document.getElementById('quoteDate') as HTMLInputElement).value;
       const validUntilDate = (document.getElementById('validUntil') as HTMLInputElement).value;
       const quoteStatus = (document.getElementById('quoteStatus') as HTMLSelectElement).value;
@@ -726,6 +771,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       if (!accountId || !accountName) {
         showAlert('Please select an account', 'error');
+        return;
+      }
+
+      if (!issuingCompany) {
+        showAlert('Please select a company', 'error');
         return;
       }
 
@@ -776,10 +826,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       submitBtn.textContent = 'Creating Quote...';
 
       try {
+        const quoteNumber = await getNextQuoteNumber(issuingCompany);
+
         // Create quote
         const quotePayload = {
           fields: {
             'Subject': accountName,
+            'Company': issuingCompany,
+            'Quote Number': quoteNumber,
             'Quote Status': quoteStatus,
             'Quote Type': quoteType,
             'Quote Version': '1.0',

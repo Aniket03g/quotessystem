@@ -24,6 +24,7 @@ export interface QuoteData {
   version?: string;
   total: number;
   logo?: string;
+  quoteNumber?: string;
   deliveryTerms?: string;
   paymentTerms?: string;
   account: {
@@ -154,6 +155,9 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.text(addressLine1, margin, currentY);
   currentY += 5;
   doc.text('New Delhi - 110020', margin, currentY);
+  currentY += 5;
+  const gstNumber = selectedLogo === 'grove' ? '07AAHCG5253F1ZO' : '07AAECG5147M1ZB';
+  doc.text(`GST No- ${gstNumber}`, margin, currentY);
   currentY += 8;
 
   doc.setDrawColor(0, 0, 0);
@@ -175,6 +179,11 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.text(`Version: ${quoteData.version || '1.0'}`, rightX, currentY, { align: 'right' });
   currentY += 5;
   doc.text(`Date: ${quoteData.date}`, rightX, currentY, { align: 'right' });
+
+  if (quoteData.quoteNumber) {
+    currentY += 5;
+    doc.text(`Quote No: ${quoteData.quoteNumber}`, rightX, currentY, { align: 'right' });
+  }
 
   doc.setFontSize(9);
   doc.setTextColor(90, 90, 90);
@@ -391,14 +400,14 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
           '4. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651',
-          '5. GST No- 07AAHCG5253F1ZO',
+          '5. Quote valid for 20 days',
         ]
       : [
           '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
           '4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651',
-          '5. GST No- 07AAECG5147M1ZB',
+          '5. Quote valid for 20 days',
         ];
 
   terms.forEach((term) => {

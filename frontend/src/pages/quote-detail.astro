@@ -40,6 +40,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <div class="flex-1">
           <h1 id="quoteSubject" class="text-2xl font-bold text-slate-900 mb-3">Loading...</h1>
           <div class="flex items-center gap-4 text-sm text-slate-600">
+            <span id="quoteNumberBadge" class="hidden font-medium text-slate-700"></span>
+            <span id="quoteNumberSep" class="hidden text-slate-300">•</span>
             <span id="quoteDate" class="font-medium">Date: --</span>
             <span class="text-slate-300">•</span>
             <div class="relative">
@@ -67,13 +69,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </div>
         </div>
         <div class="flex gap-2 items-center">
-          <div class="flex items-center gap-2">
-            <label for="logoSelect" class="text-sm font-medium text-slate-700">Generate with:</label>
-            <select id="logoSelect" class="px-3 py-2 bg-white border border-slate-300 text-slate-700 text-sm rounded-md hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="greenocare">GreenOCare</option>
-              <option value="grove">Grove Systems</option>
-            </select>
-          </div>
           <button id="createNewVersionBtn" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path>
@@ -685,6 +680,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           date: fields['Quote Date'] || new Date().toISOString().split('T')[0],
           version: fields['Quote Version'] || '1.0',
           total: fields['Total Amount'] || 0,
+          logo: fields['Company'] === 'Grove' ? 'grove' : 'greenocare',
+          quoteNumber: fields['Quote Number'] || '',
           account: {
             name: accountName,
             street: accountData?.['Billing Street'] || '',
@@ -718,6 +715,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       
       // Header
       (document.getElementById('quoteSubject') as HTMLHeadingElement).textContent = fields['Subject'] || 'Untitled Quote';
+      const quoteNumberBadge = document.getElementById('quoteNumberBadge') as HTMLSpanElement;
+      const quoteNumberSep = document.getElementById('quoteNumberSep') as HTMLSpanElement;
+      if (fields['Quote Number']) {
+        quoteNumberBadge.textContent = fields['Quote Number'];
+        quoteNumberBadge.classList.remove('hidden');
+        quoteNumberSep.classList.remove('hidden');
+      } else {
+        quoteNumberBadge.classList.add('hidden');
+        quoteNumberSep.classList.add('hidden');
+      }
       (document.getElementById('quoteDate') as HTMLSpanElement).textContent = `Date: ${fields['Quote Date'] || 'N/A'}`;
       (document.getElementById('versionText') as HTMLSpanElement).textContent = `Version ${fields['Quote Version'] || '1.0'}`;
       
@@ -792,13 +799,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       console.log('Quote data:', currentQuoteData);
 
       try {
-        const logoSelect = document.getElementById('logoSelect') as HTMLSelectElement;
-        const selectedLogo = logoSelect?.value || 'greenocare';
-        console.log('Selected logo:', selectedLogo);
-
         const requestBody = {
           ...currentQuoteData,
-          logo: selectedLogo,
           deliveryTerms,
           paymentTerms
         };
@@ -1852,8 +1854,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     document.getElementById('whatsappShareBtn')?.addEventListener('click', () => {
       if (!currentQuoteData) { showToast('Quote data not loaded yet', 'error'); return; }
-      const logoSelect = document.getElementById('logoSelect') as HTMLSelectElement;
-      const company = logoSelect?.value === 'grove' ? 'Grove Systems Pvt. Ltd.' : 'GreenOCare Solutions Pvt. Ltd.';
+      const company = currentQuoteData.logo === 'grove' ? 'Grove Systems Pvt. Ltd.' : 'GreenOCare Solutions Pvt. Ltd.';
       const total = Number(currentQuoteData.total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
       const message = `Hi, please find the quotation from ${company}.\n\nQuote: ${currentQuoteData.subject}\nTotal: ₹${total}\n\nPlease review and let us know if you have any questions.`;
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
@@ -1888,10 +1889,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       confirmBtn.textContent = 'Sending...';
 
       try {
-        const logoSelect = document.getElementById('logoSelect') as HTMLSelectElement;
         const payload = {
           ...currentQuoteData,
-          logo: logoSelect?.value || 'greenocare',
           deliveryTerms: savedDeliveryTerms || '',
           paymentTerms: savedPaymentTerms || '',
           toEmail,
@@ -2285,6 +2284,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const newQuotePayload = {
           fields: {
             'Subject': currentFields['Subject'] || 'Quote',
+            'Company': currentFields['Company'] || '',
+            'Quote Number': currentFields['Quote Number'] || '',
             'Quote Status': 'Draft',
             'Quote Type': currentFields['Quote Type'] || 'Customer',
             'Quote Version': newVersion,
