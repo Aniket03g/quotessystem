@@ -188,10 +188,14 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.setFontSize(9);
   doc.setTextColor(90, 90, 90);
   const { street, city, state, pinCode, country } = quoteData.account;
-  if (street) { doc.text(street, margin, currentY); currentY += 4.5; }
+  const maxAddressWidth = rightX - margin - 70; // keep clear of the Version/Date/Quote No column on the right
   const cityLine = [city, state, pinCode].filter(Boolean).join(', ');
-  if (cityLine) { doc.text(cityLine, margin, currentY); currentY += 4.5; }
-  if (country) { doc.text(country, margin, currentY); currentY += 4.5; }
+  const addressLines = [street, cityLine, country].filter(Boolean) as string[];
+  addressLines.forEach((line) => {
+    const wrapped = doc.splitTextToSize(line, maxAddressWidth);
+    doc.text(wrapped, margin, currentY);
+    currentY += 4.5 * wrapped.length;
+  });
   doc.setFontSize(11);
   doc.setTextColor(0, 0, 0);
 
