@@ -182,7 +182,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
 
   if (quoteData.quoteNumber) {
     currentY += 5;
-    doc.text(`Quote No: ${quoteData.quoteNumber}`, rightX, currentY, { align: 'right' });
+    doc.text(quoteData.quoteNumber, rightX, currentY, { align: 'right' });
   }
 
   doc.setFontSize(9);
