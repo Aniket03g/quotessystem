@@ -133,7 +133,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           >
             <option value="">Select company...</option>
             <option value="GreenOCare">GreenOCare</option>
-            <option value="Grove">Grove</option>
+            <option value="Grove Systems">Grove Systems</option>
           </select>
         </div>
 
@@ -736,7 +736,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     }
 
     async function getNextQuoteNumber(company: string): Promise<string> {
-      const prefix = company === 'Grove' ? 'GR' : 'GOC';
+      const prefix = company === 'Grove Systems' ? 'GR' : 'GOC';
       const fy = getFinancialYear();
       const numberPrefix = `${prefix}/${fy}/`;
 
