@@ -337,6 +337,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       return localStorage.getItem('user_email');
     }
 
+    function getUserRole(): string | null {
+      try { return JSON.parse(localStorage.getItem('user_info') || '{}').role || null; } catch { return null; }
+    }
+
     const createQuoteForm = document.getElementById('createQuoteForm') as HTMLFormElement;
     const accountSearch = document.getElementById('accountSearch') as HTMLInputElement;
     const selectedAccountId = document.getElementById('selectedAccountId') as HTMLInputElement;
@@ -416,7 +420,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       accountDropdown.classList.remove('hidden');
 
       try {
-        const response = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?where=(Company Name,like,${encodeURIComponent(query)})&limit=10`, {
+        const isAdmin = getUserRole() === 'admin';
+        const userEmail = getUserEmail();
+        const whereBase = `(Company Name,like,${encodeURIComponent(query)})`;
+        const whereClause = (!isAdmin && userEmail)
+          ? `${whereBase}~and(Handled By,eq,${encodeURIComponent(userEmail)})`
+          : whereBase;
+        const response = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?where=${whereClause}&limit=10`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           }
