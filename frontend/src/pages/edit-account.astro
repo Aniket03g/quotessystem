@@ -138,6 +138,19 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <option value="Partner">Partner</option>
             </select>
           </div>
+
+          <div id="handledByField" class="hidden">
+            <label for="handledBy" class="block text-sm font-medium text-slate-700 mb-1">
+              Handled By
+            </label>
+            <select
+              id="handledBy"
+              name="handledBy"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Unassigned</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -275,6 +288,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       setTimeout(() => { toast.classList.add('opacity-0', 'translate-x-4'); setTimeout(() => toast.remove(), 200); }, 3500);
     }
 
+    function getUserRole(): string | null {
+      try { return JSON.parse(localStorage.getItem('user_info') || '{}').role || null; } catch { return null; }
+    }
+
     const form = document.getElementById('accountForm') as HTMLFormElement;
     const loadingState = document.getElementById('loadingState') as HTMLDivElement;
     const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
@@ -304,7 +321,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       if (!token) { window.location.href = '/login'; return; }
 
       try {
-        const fields = 'Account Name,Company Name,Phone Number,GST No,Email 1,Website,Industry,Account Type,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Shipping Street,Shipping City,Shipping State,Shipping Code,Shipping Country,Employees,Annual Revenue,Description';
+        const fields = 'Account Name,Company Name,Phone Number,GST No,Email 1,Website,Industry,Account Type,Handled By,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Shipping Street,Shipping City,Shipping State,Shipping Code,Shipping Country,Employees,Annual Revenue,Description';
         const response = await fetch(
           `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=${encodeURIComponent(fields)}`,
           { headers: { 'Authorization': `Bearer ${token}` } }
@@ -344,6 +361,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const matchingOption = Array.from(typeSelect.options).find(o => o.value === typeValue);
         if (matchingOption) typeSelect.value = typeValue;
 
+        // Handled By — admin only
+        if (getUserRole() === 'admin') {
+          document.getElementById('handledByField').classList.remove('hidden');
+          const handledBySelect = document.getElementById('handledBy') as HTMLSelectElement;
+          try {
+            const usersResp = await fetch(`${API_BASE_URL}/api/admin/users`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (usersResp.ok) {
+              const usersData = await usersResp.json();
+              const users = usersData.users || usersData || [];
+              users.forEach((u: any) => {
+                const opt = document.createElement('option');
+                opt.value = u.email;
+                opt.textContent = u.name ? `${u.name} (${u.email})` : u.email;
+                handledBySelect.appendChild(opt);
+              });
+            }
+          } catch {}
+          handledBySelect.value = f['Handled By'] || '';
+        }
+
         loadingState.classList.add('hidden');
         form.classList.remove('hidden');
       } catch (error) {
@@ -372,6 +411,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           'Website':         formData.get('website') || '',
           'Industry':        formData.get('industry') || '',
           'Account Type':    formData.get('accountType') || '',
+          'Handled By':     getUserRole() === 'admin' ? (formData.get('handledBy') || '') : undefined,
           'Billing Street':  formData.get('billingStreet') || '',
           'Billing City':    formData.get('billingCity') || '',
           'Billing State':   formData.get('billingState') || '',
@@ -392,23 +432,22 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       submitBtn.textContent = 'Saving...';
 
       try {
-        // Check for duplicate GST No — exclude the account being edited
-        const gstNo = payload.fields['GST No'];
-        if (gstNo) {
-          const dupCheck = await fetch(
-            `${API_BASE_URL}/proxy/accounts_duplicate/records?where=${encodeURIComponent(`(GST No,eq,${gstNo})`)}`,
-            { headers: { 'Authorization': `Bearer ${token}` } }
-          );
-          if (dupCheck.ok) {
-            const dupData = await dupCheck.json();
-            const conflict = dupData.records?.find((r: any) => r.id !== parseInt(accountId));
-            if (conflict) {
-              const conflictName = conflict.fields?.['Account Name'] || 'Unknown';
-              throw new Error(`An account with this GST number already exists: "${conflictName}"`);
-            }
-          }
-        }
-
+        // GST duplicate check — disabled for now (multi-branch companies share GST numbers)
+        // const gstNo = payload.fields['GST No'];
+        // if (gstNo) {
+        //   const dupCheck = await fetch(
+        //     `${API_BASE_URL}/proxy/accounts_duplicate/records?where=${encodeURIComponent(`(GST No,eq,${gstNo})`)}`,
+        //     { headers: { 'Authorization': `Bearer ${token}` } }
+        //   );
+        //   if (dupCheck.ok) {
+        //     const dupData = await dupCheck.json();
+        //     const conflict = dupData.records?.find((r: any) => r.id !== parseInt(accountId));
+        //     if (conflict) {
+        //       const conflictName = conflict.fields?.['Account Name'] || 'Unknown';
+        //       throw new Error(`An account with this GST number already exists: "${conflictName}"`);
+        //     }
+        //   }
+        // }
         const response = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records`, {
           method: 'PATCH',
           headers: {

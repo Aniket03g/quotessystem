@@ -45,3 +45,8 @@ temp/
 # Backups
 backups/
 *.backup
+
+# Local context and working files
+contextss/
+csv/users to accounts 1.xlsx
+csv/users to accounts 2.xlsx
