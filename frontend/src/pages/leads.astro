@@ -629,8 +629,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         
         let url = `${API_BASE_URL}/proxy/leads/records`;
         
-        if (userRole === 'admin') {
-          console.log('[LEADS] Admin user - loading all leads');
+        if (userRole === 'admin' || userRole === 'super_admin') {
+          console.log('[LEADS] Admin/super_admin user - loading all leads');
         } else {
           const rawWhere = `(Lead Created By,eq,${userEmail})~or(Assigned to,eq,${userEmail})`;
           url = `${url}?where=${encodeURIComponent(rawWhere)}`;
@@ -749,7 +749,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const lastContacted = fields['Last Contacted'] || '';
         const nextFollowUp = fields['Next Follow-up'] || '';
         const leadCreatedBy = fields['Lead Created By'] || '';
-        const canConvert = userRole === 'admin' || userEmail === leadCreatedBy;
+        const canConvert = userRole === 'admin' || userRole === 'super_admin' || userEmail === leadCreatedBy;
 
         const lastContactedTime = getRelativeTime(lastContacted);
         const followUpTime = getRelativeTime(nextFollowUp);
@@ -868,7 +868,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const assignedToDisplay = assignedToEmail ? (usersMap.get(assignedToEmail) || assignedToEmail) : '';
         const nextFollowUp = fields['Next Follow-up'] || '';
         const leadCreatedBy = fields['Lead Created By'] || '';
-        const canConvert = userRole === 'admin' || userEmail === leadCreatedBy;
+        const canConvert = userRole === 'admin' || userRole === 'super_admin' || userEmail === leadCreatedBy;
         const followUpTime = getRelativeTime(nextFollowUp);
         const isOverdue = nextFollowUp && new Date(nextFollowUp) < new Date();
 
@@ -1087,7 +1087,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       // Role-based field restrictions
       const userRole = getUserRole();
-      if (userRole !== 'admin') {
+      if (userRole !== 'admin' && userRole !== 'super_admin') {
         // Non-admin users cannot change "Assigned To"
         editAssignedToSelect.disabled = true;
         editAssignedToSelect.classList.add('bg-slate-200', 'cursor-not-allowed');
@@ -1216,7 +1216,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const userRole = getUserRole();
       
       // Check if user is admin
-      if (userRole !== 'admin') {
+      if (userRole !== 'admin' && userRole !== 'super_admin') {
         showToast('Only administrators can delete leads.', 'error');
         return;
       }

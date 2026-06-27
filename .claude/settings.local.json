@@ -21,7 +21,9 @@
       "Bash(docker version *)",
       "Bash(node -e ' *)",
       "Bash(node cleanup-product-status.mjs)",
-      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\('count returned \\(no limit param\\):', j.records.length, 'has next:', !!j.next\\);}\\);\")"
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\);process.stdin.on\\('end',\\(\\)=>{const j=JSON.parse\\(d\\);console.log\\('count returned \\(no limit param\\):', j.records.length, 'has next:', !!j.next\\);}\\);\")",
+      "Bash(sqlite3 proxy/users.db \".schema users\")",
+      "Bash(sqlite3 proxy/users.db \"SELECT id, name, email, role FROM users LIMIT 20;\")"
     ]
   }
 }

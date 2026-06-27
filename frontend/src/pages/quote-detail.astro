@@ -138,6 +138,27 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       </div>
     </div>
 
+    <!-- Approval Banner (shown for pending discount approval) -->
+    <div id="approvalBanner" class="hidden"></div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+      <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" id="confirmModalBackdrop"></div>
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="px-6 py-5 flex items-start gap-4">
+          <div id="confirmModalIcon" class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+          <div>
+            <h3 id="confirmModalTitle" class="text-base font-bold text-slate-900 mb-1"></h3>
+            <p id="confirmModalBody" class="text-sm text-slate-600 leading-relaxed"></p>
+          </div>
+        </div>
+        <div class="px-6 pb-6 flex gap-3 justify-end">
+          <button id="confirmModalCancel" class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+          <button id="confirmModalConfirm" class="px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors"></button>
+        </div>
+      </div>
+    </div>
+
     <!-- Account Information Card -->
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
       <h2 class="text-base font-semibold text-slate-800 mb-4">Account Information</h2>
@@ -209,6 +230,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <option value="Approved">✅ Approved</option>
             <option value="Rejected">❌ Rejected</option>
             <option value="Final">🎯 Final</option>
+            <option value="Pending Approval">⏳ Pending Approval</option>
+            <option value="Pending Super Admin Approval">🔒 Pending Super Admin Approval</option>
           </select>
         </div>
 
@@ -292,6 +315,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
   <script>
     import { getToken, logout, safeJsonParse } from '../lib/api';
     import { debounce } from '../utils/debounce';
+    import { isAdmin, isSuperAdmin } from '../utils/jwt';
 
     const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
       `${window.location.protocol}//${window.location.hostname}:8082`;
@@ -383,6 +407,153 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
       } catch (e) {
         console.warn('[SHARE LOG] Failed to log share:', e);
+      }
+    }
+
+    function renderApprovalBanner(status: string) {
+      const banner = document.getElementById('approvalBanner');
+      if (!banner) return;
+
+      const userIsAdmin = isAdmin();
+      const userIsSuperAdmin = isSuperAdmin();
+
+      if (status === 'Pending Approval' && userIsAdmin) {
+        banner.innerHTML = `
+          <div class="bg-amber-50 border border-amber-300 rounded-lg px-5 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-amber-800">Discount Approval Required</p>
+                <p class="text-xs text-amber-600">A product in this quote has a discount between 5–10%. Your approval is needed.</p>
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button id="approveQuoteBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors">Approve</button>
+              <button id="rejectQuoteBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">Reject</button>
+            </div>
+          </div>`;
+        banner.classList.remove('hidden');
+        setupApprovalButtons();
+      } else if (status === 'Pending Super Admin Approval' && userIsSuperAdmin) {
+        banner.innerHTML = `
+          <div class="bg-orange-50 border border-orange-300 rounded-lg px-5 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-orange-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-orange-800">Super Admin Approval Required</p>
+                <p class="text-xs text-orange-600">A product in this quote has a discount above 10%. Super Admin approval is needed.</p>
+              </div>
+            </div>
+            <div class="flex gap-2 shrink-0">
+              <button id="approveQuoteBtn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg transition-colors">Approve</button>
+              <button id="rejectQuoteBtn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">Reject</button>
+            </div>
+          </div>`;
+        banner.classList.remove('hidden');
+        setupApprovalButtons();
+      } else if ((status === 'Pending Approval' || status === 'Pending Super Admin Approval') && !userIsAdmin) {
+        banner.innerHTML = `
+          <div class="bg-amber-50 border border-amber-300 rounded-lg px-5 py-4 flex items-center gap-3">
+            <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>
+            <p class="text-sm text-amber-800">This quote is pending approval due to the discount applied. You will be notified once it is reviewed.</p>
+          </div>`;
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function showConfirmModal(opts: { title: string; body: string; confirmLabel: string; confirmClass: string; iconBg: string; iconSvg: string }): Promise<boolean> {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal')!;
+        const icon = document.getElementById('confirmModalIcon')!;
+        const title = document.getElementById('confirmModalTitle')!;
+        const body = document.getElementById('confirmModalBody')!;
+        const confirmBtn = document.getElementById('confirmModalConfirm')!;
+        const cancelBtn = document.getElementById('confirmModalCancel')!;
+        const backdrop = document.getElementById('confirmModalBackdrop')!;
+
+        icon.className = `w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${opts.iconBg}`;
+        icon.innerHTML = opts.iconSvg;
+        title.textContent = opts.title;
+        body.textContent = opts.body;
+        confirmBtn.className = `px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors ${opts.confirmClass}`;
+        confirmBtn.textContent = opts.confirmLabel;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const close = (result: boolean) => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          confirmBtn.removeEventListener('click', onConfirm);
+          cancelBtn.removeEventListener('click', onCancel);
+          backdrop.removeEventListener('click', onCancel);
+          resolve(result);
+        };
+        const onConfirm = () => close(true);
+        const onCancel = () => close(false);
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        backdrop.addEventListener('click', onCancel);
+      });
+    }
+
+    function setupApprovalButtons() {
+      const quoteId = new URLSearchParams(window.location.search).get('id');
+      document.getElementById('approveQuoteBtn')?.addEventListener('click', async () => {
+        const confirmed = await showConfirmModal({
+          title: 'Approve this quote?',
+          body: 'The quote will move to Draft status and can be processed normally.',
+          confirmLabel: 'Approve',
+          confirmClass: 'bg-emerald-600 hover:bg-emerald-700',
+          iconBg: 'bg-emerald-100',
+          iconSvg: `<svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>`,
+        });
+        if (!confirmed) return;
+        await updateApprovalStatus(quoteId!, 'Draft');
+      });
+      document.getElementById('rejectQuoteBtn')?.addEventListener('click', async () => {
+        const confirmed = await showConfirmModal({
+          title: 'Reject this quote?',
+          body: 'The quote will be marked as Rejected. This action cannot be undone.',
+          confirmLabel: 'Reject',
+          confirmClass: 'bg-red-600 hover:bg-red-700',
+          iconBg: 'bg-red-100',
+          iconSvg: `<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`,
+        });
+        if (!confirmed) return;
+        await updateApprovalStatus(quoteId!, 'Rejected');
+      });
+    }
+
+    async function updateApprovalStatus(quoteId: string, newStatus: string) {
+      const token = getToken();
+      try {
+        const response = await fetch(`${API_BASE_URL}/proxy/quotes/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: parseInt(quoteId), fields: { 'Quote Status': newStatus } }),
+        });
+        if (!response.ok) throw new Error('Failed to update status');
+        const statusEl = document.getElementById('quoteStatus') as HTMLSpanElement;
+        if (statusEl) {
+          statusEl.textContent = newStatus;
+          let cls = 'bg-slate-100 text-slate-800';
+          if (newStatus === 'Rejected') cls = 'bg-red-100 text-red-800';
+          statusEl.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cls}`;
+        }
+        originalQuoteStatus = newStatus;
+        renderApprovalBanner(newStatus);
+      } catch (e) {
+        await showConfirmModal({
+          title: 'Something went wrong',
+          body: 'Failed to update the quote status. Please try again.',
+          confirmLabel: 'OK',
+          confirmClass: 'bg-slate-700 hover:bg-slate-800',
+          iconBg: 'bg-red-100',
+          iconSvg: `<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
+        });
       }
     }
 
@@ -745,7 +916,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       if (status === 'Accepted' || status === 'Approved') statusClasses = 'bg-emerald-100 text-emerald-800';
       if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
       if (status === 'Final') statusClasses = 'bg-purple-100 text-purple-800';
+      if (status === 'Pending Approval') statusClasses = 'bg-amber-100 text-amber-800';
+      if (status === 'Pending Super Admin Approval') statusClasses = 'bg-orange-100 text-orange-800';
       statusEl.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}`;
+
+      // Show/hide approval banner
+      renderApprovalBanner(status);
 
       // Total
       const total = fields['Total Amount'] || 0;
@@ -1762,19 +1938,44 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     });
     document.getElementById('saveEditBtn')?.addEventListener('click', async () => {
       try {
-        // Check if status changed
         const editQuoteStatus = document.getElementById('editQuoteStatus') as HTMLSelectElement;
-        const newStatus = editQuoteStatus?.value;
-        
+        let newStatus = editQuoteStatus?.value;
+
+        // Check max discount across all product rows in edit mode
+        const discountInputs = Array.from(document.querySelectorAll('.discount-input')) as HTMLInputElement[];
+        const maxDiscount = discountInputs.reduce((max, el) => Math.max(max, parseFloat(el.value) || 0), 0);
+
+        if (maxDiscount > 10) {
+          const confirmed = await showConfirmModal({
+            title: 'Super Admin Approval Required',
+            body: `The maximum discount on this quote is ${maxDiscount}%, which exceeds 10%. Saving will place this quote on hold until a Super Admin approves it.`,
+            confirmLabel: 'Save & Submit for Super Admin Approval',
+            confirmClass: 'bg-orange-600 hover:bg-orange-700',
+            iconBg: 'bg-orange-100',
+            iconSvg: `<svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
+          });
+          if (!confirmed) return;
+          newStatus = 'Pending Super Admin Approval';
+        } else if (maxDiscount > 5) {
+          const confirmed = await showConfirmModal({
+            title: 'Admin Approval Required',
+            body: `The maximum discount on this quote is ${maxDiscount}%, which exceeds 5%. Saving will place this quote on hold until an Admin approves it.`,
+            confirmLabel: 'Save & Submit for Approval',
+            confirmClass: 'bg-amber-600 hover:bg-amber-700',
+            iconBg: 'bg-amber-100',
+            iconSvg: `<svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
+          });
+          if (!confirmed) return;
+          newStatus = 'Pending Approval';
+        }
+
         if (newStatus && newStatus !== originalQuoteStatus) {
           await updateQuote({ "Quote Status": newStatus });
         }
-        
+
         toggleEditMode(false);
-        // Reload to show updated data
         await loadQuoteDetails();
-        
-        // Show success message
+
         const statusEl = document.getElementById('quoteStatus') as HTMLSpanElement;
         const originalText = statusEl.textContent;
         statusEl.textContent = '✓ Saved';

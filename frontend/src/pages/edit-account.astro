@@ -362,7 +362,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (matchingOption) typeSelect.value = typeValue;
 
         // Handled By — admin only
-        if (getUserRole() === 'admin') {
+        if (getUserRole() === 'admin' || getUserRole() === 'super_admin') {
           document.getElementById('handledByField').classList.remove('hidden');
           const handledBySelect = document.getElementById('handledBy') as HTMLSelectElement;
           try {
@@ -411,7 +411,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           'Website':         formData.get('website') || '',
           'Industry':        formData.get('industry') || '',
           'Account Type':    formData.get('accountType') || '',
-          'Handled By':     getUserRole() === 'admin' ? (formData.get('handledBy') || '') : undefined,
+          'Handled By':     (getUserRole() === 'admin' || getUserRole() === 'super_admin') ? (formData.get('handledBy') || '') : undefined,
           'Billing Street':  formData.get('billingStreet') || '',
           'Billing City':    formData.get('billingCity') || '',
           'Billing State':   formData.get('billingState') || '',

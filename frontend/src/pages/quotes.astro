@@ -395,7 +395,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         let url = `${API_BASE_URL}/proxy/quotes/records`;
 
-        if (userRole !== 'admin') {
+        if (userRole !== 'admin' && userRole !== 'super_admin') {
           const encodedWhere = encodeURIComponent(`(Quote Created By,eq,${userEmail})`);
           url = `${url}?where=${encodedWhere}`;
         }

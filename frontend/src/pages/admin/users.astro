@@ -76,6 +76,24 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
     </div>
 
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+      <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" id="confirmModalBackdrop"></div>
+      <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="px-6 py-5 flex items-start gap-4">
+          <div id="confirmModalIcon" class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5"></div>
+          <div>
+            <h3 id="confirmModalTitle" class="text-base font-bold text-slate-900 mb-1"></h3>
+            <p id="confirmModalBody" class="text-sm text-slate-600 leading-relaxed"></p>
+          </div>
+        </div>
+        <div class="px-6 pb-6 flex gap-3 justify-end">
+          <button id="confirmModalCancel" class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+          <button id="confirmModalConfirm" class="px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors"></button>
+        </div>
+      </div>
+    </div>
+
     <!-- Reset Password Modal -->
     <div id="resetPasswordModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
@@ -206,6 +224,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
                 <option value="">Select Department</option>
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
+                <option value="super_admin">Super Admin</option>
               </select>
             </div>
           </div>
@@ -325,11 +344,52 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   </div>
 
   <script>
-    import { createUser, listUsers, resetUserPassword, type CreateUserRequest, type UserListItem } from '../../lib/api';
-    import { requireAdmin } from '../../utils/jwt';
+    import { createUser, listUsers, resetUserPassword, getToken, type CreateUserRequest, type UserListItem } from '../../lib/api';
+    import { requireAdmin, isSuperAdmin } from '../../utils/jwt';
+
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+      `${window.location.protocol}//${window.location.hostname}:8082`;
+
+    function showConfirmModal(opts: { title: string; body: string; confirmLabel: string; confirmClass: string; iconBg: string; iconSvg: string }): Promise<boolean> {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirmModal')!;
+        const icon = document.getElementById('confirmModalIcon')!;
+        const title = document.getElementById('confirmModalTitle')!;
+        const body = document.getElementById('confirmModalBody')!;
+        const confirmBtn = document.getElementById('confirmModalConfirm')!;
+        const cancelBtn = document.getElementById('confirmModalCancel')!;
+        const backdrop = document.getElementById('confirmModalBackdrop')!;
+
+        icon.className = `w-11 h-11 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${opts.iconBg}`;
+        icon.innerHTML = opts.iconSvg;
+        title.textContent = opts.title;
+        body.textContent = opts.body;
+        confirmBtn.className = `px-5 py-2.5 text-sm font-semibold text-white rounded-xl transition-colors ${opts.confirmClass}`;
+        confirmBtn.textContent = opts.confirmLabel;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        const close = (result: boolean) => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex');
+          confirmBtn.removeEventListener('click', onConfirm);
+          cancelBtn.removeEventListener('click', onCancel);
+          backdrop.removeEventListener('click', onCancel);
+          resolve(result);
+        };
+        const onConfirm = () => close(true);
+        const onCancel = () => close(false);
+        confirmBtn.addEventListener('click', onConfirm);
+        cancelBtn.addEventListener('click', onCancel);
+        backdrop.addEventListener('click', onCancel);
+      });
+    }
 
     // Require admin access for user management
     requireAdmin();
+
+    const currentUserIsSuperAdmin = isSuperAdmin();
 
     // Reset password modal elements
     const resetPasswordModal = document.getElementById('resetPasswordModal') as HTMLDivElement;
@@ -391,17 +451,31 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           const row = document.createElement('tr');
           row.className = 'hover:bg-slate-50';
           
-          const roleClass = user.role === 'admin' 
-            ? 'bg-purple-100 text-purple-800' 
+          const roleClass = user.role === 'super_admin'
+            ? 'bg-orange-100 text-orange-800'
+            : user.role === 'admin'
+            ? 'bg-purple-100 text-purple-800'
             : 'bg-blue-100 text-blue-800';
-          
+
+          const roleLabel = user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'User';
+
           const statusClass = user.must_change_password
             ? 'bg-yellow-100 text-yellow-800'
             : 'bg-green-100 text-green-800';
-          
+
           const statusText = user.must_change_password
             ? 'Password Reset Required'
             : 'Active';
+
+          // Role options for the change-role dropdown (super_admin can assign any role; admin can only assign user/admin)
+          const roleOptions = currentUserIsSuperAdmin
+            ? ['user', 'admin', 'super_admin'].filter(r => r !== user.role)
+            : ['user', 'admin'].filter(r => r !== user.role);
+
+          const roleOptionHtml = roleOptions.map(r => {
+            const label = r === 'super_admin' ? 'Super Admin' : r === 'admin' ? 'Admin' : 'User';
+            return `<button class="change-role-btn block w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 rounded" data-user-id="${user.id}" data-new-role="${r}">${label}</button>`;
+          }).join('');
 
           row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">
@@ -418,9 +492,16 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               <div class="text-sm text-slate-900">${user.email}</div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleClass}">
-                ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-              </span>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleClass}">${roleLabel}</span>
+                ${roleOptions.length > 0 ? `
+                <div class="relative inline-block">
+                  <button class="role-dropdown-btn text-xs text-slate-400 hover:text-slate-700 px-1" data-user-id="${user.id}" title="Change role">▾</button>
+                  <div class="role-dropdown hidden absolute z-10 left-0 mt-1 w-32 bg-white border border-slate-200 rounded-lg shadow-lg p-1" data-dropdown-id="${user.id}">
+                    ${roleOptionHtml}
+                  </div>
+                </div>` : ''}
+              </div>
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
@@ -431,9 +512,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               ${new Date(user.created_at).toLocaleDateString()}
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm">
-              <button class="reset-password-btn text-indigo-600 hover:text-indigo-900 font-medium" data-user-id="${user.id}" data-user-email="${user.email}">
-                Reset Password
-              </button>
+              <div class="flex items-center gap-3">
+                <button class="reset-password-btn text-indigo-600 hover:text-indigo-900 font-medium" data-user-id="${user.id}" data-user-email="${user.email}">Reset Password</button>
+                <button class="delete-user-btn text-red-500 hover:text-red-700 font-medium" data-user-id="${user.id}" data-user-email="${user.email}">Delete</button>
+              </div>
             </td>
           `;
           
@@ -448,6 +530,87 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             resetUserEmail.textContent = target.dataset.userEmail || '';
             resetPasswordSuccess.classList.add('hidden');
             resetPasswordModal.classList.remove('hidden');
+          });
+        });
+
+        // Role dropdown toggle
+        document.querySelectorAll('.role-dropdown-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const userId = (btn as HTMLButtonElement).dataset.userId;
+            document.querySelectorAll('.role-dropdown').forEach(d => {
+              if ((d as HTMLElement).dataset.dropdownId !== userId) d.classList.add('hidden');
+            });
+            const dropdown = document.querySelector(`.role-dropdown[data-dropdown-id="${userId}"]`);
+            dropdown?.classList.toggle('hidden');
+          });
+        });
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', () => document.querySelectorAll('.role-dropdown').forEach(d => d.classList.add('hidden')));
+
+        // Change role buttons
+        document.querySelectorAll('.change-role-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const target = e.target as HTMLButtonElement;
+            const userId = parseInt(target.dataset.userId || '0');
+            const newRole = target.dataset.newRole || '';
+            const roleLabel = newRole === 'super_admin' ? 'Super Admin' : newRole === 'admin' ? 'Admin' : 'User';
+            const iconBg = newRole === 'super_admin' ? 'bg-orange-100' : newRole === 'admin' ? 'bg-purple-100' : 'bg-blue-100';
+            const iconColor = newRole === 'super_admin' ? 'text-orange-600' : newRole === 'admin' ? 'text-purple-600' : 'text-blue-600';
+            const btnClass = newRole === 'super_admin' ? 'bg-orange-600 hover:bg-orange-700' : newRole === 'admin' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700';
+            const confirmed = await showConfirmModal({
+              title: `Change role to ${roleLabel}?`,
+              body: `This user will be updated to ${roleLabel}. They will need to log out and back in for the change to take effect.`,
+              confirmLabel: `Set as ${roleLabel}`,
+              confirmClass: btnClass,
+              iconBg,
+              iconSvg: `<svg class="w-6 h-6 ${iconColor}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>`,
+            });
+            if (!confirmed) return;
+            try {
+              const token = getToken();
+              const resp = await fetch(`${API_BASE_URL}/api/admin/users/role`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId, new_role: newRole }),
+              });
+              if (!resp.ok) { const e = await resp.json(); throw new Error(e.error || 'Failed'); }
+              loadUsers();
+            } catch (err) {
+              showAlert(err instanceof Error ? err.message : 'Failed to update role', 'error');
+            }
+          });
+        });
+
+        // Delete user buttons
+        document.querySelectorAll('.delete-user-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const target = e.target as HTMLButtonElement;
+            const userId = parseInt(target.dataset.userId || '0');
+            const email = target.dataset.userEmail || '';
+            const confirmed = await showConfirmModal({
+              title: 'Delete this user?',
+              body: `"${email}" will be permanently removed. This cannot be undone.`,
+              confirmLabel: 'Delete User',
+              confirmClass: 'bg-red-600 hover:bg-red-700',
+              iconBg: 'bg-red-100',
+              iconSvg: `<svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>`,
+            });
+            if (!confirmed) return;
+            try {
+              const token = getToken();
+              const resp = await fetch(`${API_BASE_URL}/api/admin/users/delete`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: userId }),
+              });
+              if (!resp.ok) { const e = await resp.json(); throw new Error(e.error || 'Failed'); }
+              loadUsers();
+            } catch (err) {
+              showAlert(err instanceof Error ? err.message : 'Failed to delete user', 'error');
+            }
           });
         });
 
@@ -623,7 +786,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       const email = emailInput.value.trim();
       const name = nameInput.value.trim();
-      const role = roleSelect.value as 'user' | 'admin';
+      const role = roleSelect.value as 'user' | 'admin' | 'super_admin';
 
       // Validation
       if (!email) {

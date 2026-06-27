@@ -48,6 +48,16 @@ var demoUsers = map[string]struct {
 		UserID:   "user-001",
 		Role:     "user",
 	},
+	"superadmin@grove.com": {
+		Password: "superadmin123",
+		UserID:   "superadmin-001",
+		Role:     "super_admin",
+	},
+	"testuser@grove.com": {
+		Password: "testuser123",
+		UserID:   "testuser-001",
+		Role:     "user",
+	},
 }
 
 func main() {
@@ -232,6 +242,16 @@ func main() {
 		http.HandlerFunc(adminHandler.ResetPassword),
 	)
 	mux.Handle("/api/admin/users/reset-password", protectedAdminResetPasswordHandler)
+
+	// Protected admin delete user endpoint
+	mux.Handle("/api/admin/users/delete", middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(adminHandler.DeleteUser),
+	))
+
+	// Protected admin update role endpoint
+	mux.Handle("/api/admin/users/role", middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(adminHandler.UpdateUserRole),
+	))
 
 	// Protected secure ping endpoint (example)
 	protectedPingHandler := auth.AuthMiddleware(cfg.JWTSecret)(

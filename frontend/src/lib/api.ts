@@ -280,7 +280,7 @@ export function logout(): void {
 export interface CreateUserRequest {
   email: string;
   name: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'super_admin';
 }
 
 export interface CreateUserResponse {

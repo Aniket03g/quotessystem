@@ -62,7 +62,7 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if role != "admin" {
+	if role != "admin" && role != "super_admin" {
 		log.Printf("[ADMIN ERROR] Non-admin user attempted to create user: role=%s", role)
 		respondWithError(w, http.StatusForbidden, "admin access required")
 		return
@@ -87,9 +87,15 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if req.Role == "" {
 		req.Role = "user"
 	}
-	if req.Role != "user" && req.Role != "admin" {
+	// Only super_admin can create another super_admin
+	if req.Role == "super_admin" && role != "super_admin" {
+		log.Printf("[ADMIN ERROR] Non-super-admin attempted to create super_admin: role=%s", role)
+		respondWithError(w, http.StatusForbidden, "only super admin can create super admin accounts")
+		return
+	}
+	if req.Role != "user" && req.Role != "admin" && req.Role != "super_admin" {
 		log.Printf("[ADMIN ERROR] Invalid role: %s", req.Role)
-		respondWithError(w, http.StatusBadRequest, "role must be 'user' or 'admin'")
+		respondWithError(w, http.StatusBadRequest, "role must be 'user', 'admin', or 'super_admin'")
 		return
 	}
 
@@ -139,7 +145,7 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if role != "admin" {
+	if role != "admin" && role != "super_admin" {
 		log.Printf("[ADMIN ERROR] Non-admin user attempted to list users: role=%s", role)
 		respondWithError(w, http.StatusForbidden, "admin access required")
 		return
@@ -202,7 +208,7 @@ func (h *AdminHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if role != "admin" {
+	if role != "admin" && role != "super_admin" {
 		log.Printf("[ADMIN ERROR] Non-admin user attempted to reset password: role=%s", role)
 		respondWithError(w, http.StatusForbidden, "admin access required")
 		return
@@ -259,6 +265,77 @@ func (h *AdminHandler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		TemporaryPassword: tempPassword,
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+// DeleteUser handles admin-only user deletion
+// DELETE /api/admin/users/{id}
+func (h *AdminHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[ADMIN] Delete user request from %s", r.RemoteAddr)
+
+	role, ok := r.Context().Value(middleware.RoleKey).(string)
+	if !ok || (role != "admin" && role != "super_admin") {
+		respondWithError(w, http.StatusForbidden, "admin access required")
+		return
+	}
+
+	var req struct {
+		UserID int64 `json:"user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.UserID == 0 {
+		respondWithError(w, http.StatusBadRequest, "user_id is required")
+		return
+	}
+
+	if err := h.database.DeleteUser(req.UserID); err != nil {
+		log.Printf("[ADMIN ERROR] Failed to delete user %d: %v", req.UserID, err)
+		respondWithError(w, http.StatusInternalServerError, "failed to delete user")
+		return
+	}
+
+	log.Printf("[ADMIN] User %d deleted successfully", req.UserID)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "user deleted successfully"})
+}
+
+// UpdateUserRole handles role changes (admin → user, user → admin, etc.)
+// PATCH /api/admin/users/role
+func (h *AdminHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
+	log.Printf("[ADMIN] Update role request from %s", r.RemoteAddr)
+
+	callerRole, ok := r.Context().Value(middleware.RoleKey).(string)
+	if !ok || (callerRole != "admin" && callerRole != "super_admin") {
+		respondWithError(w, http.StatusForbidden, "admin access required")
+		return
+	}
+
+	var req struct {
+		UserID  int64  `json:"user_id"`
+		NewRole string `json:"new_role"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.UserID == 0 {
+		respondWithError(w, http.StatusBadRequest, "user_id and new_role are required")
+		return
+	}
+
+	if req.NewRole != "user" && req.NewRole != "admin" && req.NewRole != "super_admin" {
+		respondWithError(w, http.StatusBadRequest, "new_role must be 'user', 'admin', or 'super_admin'")
+		return
+	}
+	// Only super_admin can assign super_admin role
+	if req.NewRole == "super_admin" && callerRole != "super_admin" {
+		respondWithError(w, http.StatusForbidden, "only super admin can assign super admin role")
+		return
+	}
+
+	if err := h.database.UpdateUserRole(req.UserID, req.NewRole); err != nil {
+		log.Printf("[ADMIN ERROR] Failed to update role for user %d: %v", req.UserID, err)
+		respondWithError(w, http.StatusInternalServerError, "failed to update role")
+		return
+	}
+
+	log.Printf("[ADMIN] Role updated for user %d to %s", req.UserID, req.NewRole)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("role updated to %s", req.NewRole)})
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {

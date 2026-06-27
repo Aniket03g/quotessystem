@@ -648,7 +648,7 @@ const { title, currentPage } = Astro.props;
 
       // If user is admin, show admin-only elements and update labels
 
-      if (userRole === 'admin') {
+      if (userRole === 'admin' || userRole === 'super_admin') {
 
         // Show admin-only navigation links
 

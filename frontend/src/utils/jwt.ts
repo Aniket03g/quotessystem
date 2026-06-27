@@ -68,11 +68,19 @@ export function isAuthenticated(): boolean {
 }
 
 /**
- * Check if user is admin
+ * Check if user is admin (includes super_admin)
  */
 export function isAdmin(): boolean {
   const claims = getTokenClaims();
-  return claims?.role === 'admin';
+  return claims?.role === 'admin' || claims?.role === 'super_admin';
+}
+
+/**
+ * Check if user is super admin
+ */
+export function isSuperAdmin(): boolean {
+  const claims = getTokenClaims();
+  return claims?.role === 'super_admin';
 }
 
 /**

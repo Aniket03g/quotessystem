@@ -15,8 +15,8 @@ func (d *Database) CreateUserByAdmin(email, name, role string) (*User, string, e
 	log.Printf("[DB] Admin creating user: email=%s, role=%s", email, role)
 
 	// Validate role
-	if role != "user" && role != "admin" {
-		return nil, "", fmt.Errorf("invalid role: must be 'user' or 'admin'")
+	if role != "user" && role != "admin" && role != "super_admin" {
+		return nil, "", fmt.Errorf("invalid role: must be 'user', 'admin', or 'super_admin'")
 	}
 
 	// Check if user already exists
@@ -143,6 +143,18 @@ func GenerateSecurePassword(length int) (string, error) {
 	}
 
 	return string(password), nil
+}
+
+// UpdateUserRole updates a user's role
+func (d *Database) UpdateUserRole(userID int64, newRole string) error {
+	log.Printf("[DB] Updating role for user ID: %d to %s", userID, newRole)
+	_, err := d.db.Exec("UPDATE users SET role = ? WHERE id = ?", newRole, userID)
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to update role: %v", err)
+		return fmt.Errorf("failed to update role: %w", err)
+	}
+	log.Printf("[DB] Role updated successfully for user ID: %d", userID)
+	return nil
 }
 
 // ResetUserPassword resets a user's password to a new secure random password (admin-only operation)

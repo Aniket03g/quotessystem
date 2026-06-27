@@ -220,7 +220,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const userEmail = getUserEmail();
           const userRole = getUserRole();
           let accountsUrl = `${API_BASE_URL}/proxy/accounts_duplicate/records`;
-          if (userRole !== 'admin') {
+          if (userRole !== 'admin' && userRole !== 'super_admin') {
             accountsUrl += `?where=${encodeURIComponent(`(Handled By,eq,${userEmail})`)}`;
           }
 
