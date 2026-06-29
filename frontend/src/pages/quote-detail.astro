@@ -1945,28 +1945,46 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const discountInputs = Array.from(document.querySelectorAll('.discount-input')) as HTMLInputElement[];
         const maxDiscount = discountInputs.reduce((max, el) => Math.max(max, parseFloat(el.value) || 0), 0);
 
-        if (maxDiscount > 10) {
-          const confirmed = await showConfirmModal({
-            title: 'Super Admin Approval Required',
-            body: `The maximum discount on this quote is ${maxDiscount}%, which exceeds 10%. Saving will place this quote on hold until a Super Admin approves it.`,
-            confirmLabel: 'Save & Submit for Super Admin Approval',
-            confirmClass: 'bg-orange-600 hover:bg-orange-700',
-            iconBg: 'bg-orange-100',
-            iconSvg: `<svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
-          });
-          if (!confirmed) return;
-          newStatus = 'Pending Super Admin Approval';
-        } else if (maxDiscount > 5) {
-          const confirmed = await showConfirmModal({
-            title: 'Admin Approval Required',
-            body: `The maximum discount on this quote is ${maxDiscount}%, which exceeds 5%. Saving will place this quote on hold until an Admin approves it.`,
-            confirmLabel: 'Save & Submit for Approval',
-            confirmClass: 'bg-amber-600 hover:bg-amber-700',
-            iconBg: 'bg-amber-100',
-            iconSvg: `<svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
-          });
-          if (!confirmed) return;
-          newStatus = 'Pending Approval';
+        if (isSuperAdmin()) {
+          // super_admin can save any discount without approval
+        } else if (isAdmin()) {
+          // admin self-approves up to 10%, but >10% still needs super_admin
+          if (maxDiscount > 10) {
+            const confirmed = await showConfirmModal({
+              title: 'Super Admin Approval Required',
+              body: `The maximum discount on this quote is ${maxDiscount}%, which exceeds 10%. Saving will place this quote on hold until a Super Admin approves it.`,
+              confirmLabel: 'Save & Submit for Super Admin Approval',
+              confirmClass: 'bg-orange-600 hover:bg-orange-700',
+              iconBg: 'bg-orange-100',
+              iconSvg: `<svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
+            });
+            if (!confirmed) return;
+            newStatus = 'Pending Super Admin Approval';
+          }
+        } else {
+          if (maxDiscount > 10) {
+            const confirmed = await showConfirmModal({
+              title: 'Super Admin Approval Required',
+              body: `The maximum discount on this quote is ${maxDiscount}%, which exceeds 10%. Saving will place this quote on hold until a Super Admin approves it.`,
+              confirmLabel: 'Save & Submit for Super Admin Approval',
+              confirmClass: 'bg-orange-600 hover:bg-orange-700',
+              iconBg: 'bg-orange-100',
+              iconSvg: `<svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
+            });
+            if (!confirmed) return;
+            newStatus = 'Pending Super Admin Approval';
+          } else if (maxDiscount > 5) {
+            const confirmed = await showConfirmModal({
+              title: 'Admin Approval Required',
+              body: `The maximum discount on this quote is ${maxDiscount}%, which exceeds 5%. Saving will place this quote on hold until an Admin approves it.`,
+              confirmLabel: 'Save & Submit for Approval',
+              confirmClass: 'bg-amber-600 hover:bg-amber-700',
+              iconBg: 'bg-amber-100',
+              iconSvg: `<svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z"/></svg>`,
+            });
+            if (!confirmed) return;
+            newStatus = 'Pending Approval';
+          }
         }
 
         if (newStatus && newStatus !== originalQuoteStatus) {

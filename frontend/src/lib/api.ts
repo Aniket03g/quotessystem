@@ -69,18 +69,18 @@ export async function safeJsonParse<T = any>(response: Response): Promise<T> {
   
   if (!response.ok) {
     const text = await response.text();
-    
-    // Try to parse as JSON for error messages
+    let message: string;
     try {
       const errorData = JSON.parse(text);
-      throw new Error(errorData.error || errorData.message || `Request failed with status ${response.status}`);
-    } catch (e) {
-      // If not JSON, throw with status and text
+      message = errorData.error || errorData.message || `Request failed with status ${response.status}`;
+    } catch {
       if (response.status === 404) {
-        throw new Error('API endpoint not found — backend proxy route mismatch');
+        message = 'API endpoint not found — backend proxy route mismatch';
+      } else {
+        message = `Request failed (${response.status}): ${text.substring(0, 200)}`;
       }
-      throw new Error(`Request failed (${response.status}): ${text.substring(0, 200)}`);
     }
+    throw new Error(message);
   }
   
   // Read response as text first

@@ -200,6 +200,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
   <script>
     import { getToken, safeJsonParse } from '../lib/api';
+    import { decodeJWT } from '../utils/jwt';
     import { debounce } from '../utils/debounce';
 
     // Wait for DOM to be ready
@@ -284,6 +285,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         emptyState.classList.add('hidden');
         errorDiv.classList.add('hidden');
 
+        const claims = decodeJWT(token!);
+        const userRole = claims?.role || (JSON.parse(localStorage.getItem('user_info') || '{}').role) || 'user';
+        const userEmail = localStorage.getItem('user_email') || '';
+
+        // For regular users, first get their assigned account IDs so we can filter contacts
+        let assignedAccountIds: Set<number> | null = null;
+        if (userRole !== 'admin' && userRole !== 'super_admin') {
+          const accRes = await fetch(
+            `${API_BASE_URL}/proxy/accounts_duplicate/records?where=${encodeURIComponent(`(Handled By,eq,${userEmail})`)}&fields=Id`,
+            { headers: { 'Authorization': `Bearer ${token}` } }
+          );
+          if (accRes.ok) {
+            const accData = await safeJsonParse(accRes);
+            assignedAccountIds = new Set((accData.records || []).map((r: any) => Number(r.id)));
+          }
+        }
+
         const response = await fetch(`${API_BASE_URL}/proxy/contacts/records`, {
           method: 'GET',
           headers: {
@@ -297,7 +315,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
 
         const data = await safeJsonParse(response);
-        allContacts = data.records || [];
+        let contacts = data.records || [];
+
+        if (assignedAccountIds !== null) {
+          contacts = contacts.filter((c: any) => {
+            const linkedId = c.fields?.['Accounts duplicate']?.id;
+            return linkedId != null && assignedAccountIds!.has(Number(linkedId));
+          });
+        }
+
+        allContacts = contacts;
         populateAccountFilter();
         applyFilters();
 

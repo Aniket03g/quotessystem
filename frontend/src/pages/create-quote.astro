@@ -489,7 +489,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const whereClause = (!isAdmin && userEmail)
           ? `${whereBase}~and(Handled By,eq,${encodeURIComponent(userEmail)})`
           : whereBase;
-        const response = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?where=${whereClause}&limit=10`, {
+        const response = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?where=${whereClause}&limit=50`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           }
@@ -498,7 +498,21 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (!response.ok) throw new Error('Failed to fetch accounts');
 
         const data = await safeJsonParse(response);
-        const accounts = data.records || data.list || [];
+        const rawAccounts = data.records || data.list || [];
+
+        // Deduplicate by GST + address (same logic as accounts list)
+        const groupMap = new Map<string, any>();
+        for (const acc of rawAccounts) {
+          const f = acc.fields || {};
+          const gst = (f['GST No'] || '').trim().toLowerCase();
+          const addr = [f['Billing Street'], f['Billing City'], f['Billing State'], f['Billing Code']]
+            .map((s: string) => (s || '').trim().toLowerCase()).join('|');
+          const key = gst
+            ? `${gst}|${addr}`
+            : `n:${(f['Company Name'] || '').trim().toLowerCase()}|${addr}` || `id:${acc.id}`;
+          if (!groupMap.has(key)) groupMap.set(key, acc);
+        }
+        const accounts = Array.from(groupMap.values()).slice(0, 10);
 
         accountLoading.classList.add('hidden');
 
@@ -898,14 +912,26 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       // Determine quote status based on discount slabs
       const maxDiscount = Math.max(...productData.map(p => p.discount));
       let effectiveQuoteStatus = quoteStatus;
-      if (maxDiscount > 10) {
-        effectiveQuoteStatus = 'Pending Super Admin Approval';
-        const confirmed = await showDiscountConfirm('superadmin', maxDiscount);
-        if (!confirmed) return;
-      } else if (maxDiscount > 5) {
-        effectiveQuoteStatus = 'Pending Approval';
-        const confirmed = await showDiscountConfirm('admin', maxDiscount);
-        if (!confirmed) return;
+      const creatorRole = getUserRole();
+      if (creatorRole === 'super_admin') {
+        // super_admin can approve any discount level themselves
+      } else if (creatorRole === 'admin') {
+        // admin can self-approve up to 10%, but >10% still needs super_admin
+        if (maxDiscount > 10) {
+          effectiveQuoteStatus = 'Pending Super Admin Approval';
+          const confirmed = await showDiscountConfirm('superadmin', maxDiscount);
+          if (!confirmed) return;
+        }
+      } else {
+        if (maxDiscount > 10) {
+          effectiveQuoteStatus = 'Pending Super Admin Approval';
+          const confirmed = await showDiscountConfirm('superadmin', maxDiscount);
+          if (!confirmed) return;
+        } else if (maxDiscount > 5) {
+          effectiveQuoteStatus = 'Pending Approval';
+          const confirmed = await showDiscountConfirm('admin', maxDiscount);
+          if (!confirmed) return;
+        }
       }
 
       submitBtn.disabled = true;

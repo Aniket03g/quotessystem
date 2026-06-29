@@ -164,7 +164,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 .qs-approved { background: #e8f5e9; color: #2e7d32; }
 .qs-final    { background: #e8f5e9; color: #1b5e20; }
 
-.quote-subject { font-size: 13px; font-weight: 500; color: #1a1d23; margin-bottom: 6px; }
+.quote-subject { font-size: 13px; font-weight: 500; color: #1a1d23; margin-bottom: 4px; }
+.quote-ref-number { font-family: 'DM Mono', monospace; font-size: 11px; color: #8a919e; margin-bottom: 6px; }
 
 .quote-card-bottom {
   display: flex; align-items: center;
@@ -864,7 +865,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           let quotes = data.records || [];
           
           // Filter quotes for non-admin users
-          if (userRole !== 'admin') {
+          if (userRole !== 'admin' && userRole !== 'super_admin') {
             quotes = quotes.filter(quote => {
               const createdBy = quote.fields?.['Quote Created By'];
               return createdBy === userEmail;
@@ -872,6 +873,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             console.log(`[ACCOUNT DETAIL] Filtered to ${quotes.length} quotes for user ${userEmail}`);
           }
           
+          // Fetch Quote Numbers via a separate call — the linked records endpoint
+          // silently returns empty records when Quote Number is in its fields param
+          if (quotes.length > 0) {
+            try {
+              const idFilter = quotes.map(q => `(Id,eq,${q.id})`).join('~or');
+              const numRes = await fetch(
+                `${API_BASE_URL}/proxy/quotes/records?where=${encodeURIComponent(idFilter)}&fields=Id,Quote%20Number`,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+              );
+              if (numRes.ok) {
+                const numData = await numRes.json();
+                const numMap = {};
+                (numData.records || []).forEach(r => { numMap[r.id] = r.fields?.['Quote Number'] || ''; });
+                quotes = quotes.map(q => ({ ...q, fields: { ...q.fields, 'Quote Number': numMap[q.id] || '' } }));
+              }
+            } catch (e) { /* non-critical */ }
+          }
+
           // Cache the quotes
           caseQuotesCache.set(caseId, quotes);
           
@@ -911,6 +930,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const fields = quote.fields || {};
         const quoteId = quote.id;
         const subject = fields['Subject'] || 'Untitled Quote';
+        const quoteNumber = fields['Quote Number'] || '';
         const version = fields['Quote Version'] || '1';
         const status = fields['Quote Status'] || 'Draft';
         const date = fields['Quote Date'] || '';
@@ -955,6 +975,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <span class="quote-status-tag ${statusTagClass}">${status}</span>
               </div>
               <div class="quote-subject">${subject}</div>
+              ${quoteNumber ? `<div class="quote-ref-number">${quoteNumber}</div>` : ''}
               <div class="quote-card-bottom">
                 <div class="quote-meta">
                   <span>Amount</span>
