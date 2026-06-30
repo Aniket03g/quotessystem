@@ -9,6 +9,7 @@ export interface QuoteProduct {
   description?: string;
   price?: number;
   discount?: number;
+  discountRs?: number | null;
   productCode?: string;
   tax?: string;
   hsnCode?: string;
@@ -27,6 +28,7 @@ export interface QuoteData {
   quoteNumber?: string;
   deliveryTerms?: string;
   paymentTerms?: string;
+  extraTerms?: string;
   account: {
     name: string;
     street?: string;
@@ -60,6 +62,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   const selectedLogo = quoteData.logo || 'greenocare';
   const deliveryTerms: string = quoteData.deliveryTerms || '';
   const paymentTerms: string = quoteData.paymentTerms || '';
+  const extraTerms: string = quoteData.extraTerms || '';
   const companyName =
     selectedLogo === 'grove'
       ? 'Grove Systems Pvt. Ltd.'
@@ -147,7 +150,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(80, 80, 80);
+  doc.setTextColor(0, 0, 0);
   const addressLine1 =
     selectedLogo === 'greenocare'
       ? 'F-85, Second Floor, Okhla Industrial Estate, Phase-III'
@@ -186,7 +189,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   }
 
   doc.setFontSize(9);
-  doc.setTextColor(90, 90, 90);
+  doc.setTextColor(0, 0, 0);
   const { street, city, state, pinCode, country } = quoteData.account;
   const maxAddressWidth = rightX - margin - 70; // keep clear of the Version/Date/Quote No column on the right
   const cityLine = [city, state, pinCode].filter(Boolean).join(', ');
@@ -216,7 +219,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
     const discount = product.discount || 0;
 
     const itemSubtotal = price * qty;
-    const discountAmount = (itemSubtotal * discount) / 100;
+    const discountAmount = product.discountRs != null ? product.discountRs : (itemSubtotal * discount) / 100;
     const afterDiscount = itemSubtotal - discountAmount;
 
     let taxRate = 0;
@@ -299,7 +302,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
       6: { halign: 'center', cellWidth: 14 },
       7: { halign: 'right',  cellWidth: 28 },
     },
-    styles: { lineColor: [200, 200, 200], lineWidth: 0.1 },
+    styles: { lineColor: [0, 0, 0], lineWidth: 0.3 },
     margin: { left: margin, right: margin },
     showHead: 'everyPage',
     rowPageBreak: 'avoid',
@@ -403,15 +406,13 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
           '1. Order to be placed on: Grove Systems Pvt. Ltd., F-85, Okhla Industrial Area, Phase III, New Delhi - 110020.',
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
-          '4. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651',
-          '5. Quote valid for 20 days',
+          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', '6. Quote valid for 20 days'] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', '5. Quote valid for 20 days']),
         ]
       : [
           '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
-          '4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651',
-          '5. Quote valid for 20 days',
+          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', '6. Quote valid for 20 days'] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', '5. Quote valid for 20 days']),
         ];
 
   terms.forEach((term) => {

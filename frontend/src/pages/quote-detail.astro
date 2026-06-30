@@ -80,6 +80,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
             </svg>
           </button>
+          <button id="requestRsDiscountBtn" class="hidden inline-flex items-center gap-1.5 px-3 py-2 bg-violet-600 text-white text-xs font-medium rounded-md hover:bg-violet-700 transition-colors" title="Request ₹ Discount from Admin">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Request ₹ Discount
+          </button>
           <button id="editQuoteBtn" class="inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors" title="Edit Products">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -232,6 +236,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <option value="Final">🎯 Final</option>
             <option value="Pending Approval">⏳ Pending Approval</option>
             <option value="Pending Super Admin Approval">🔒 Pending Super Admin Approval</option>
+            <option value="Pending Rs Discount">💜 Pending Rs Discount</option>
           </select>
         </div>
 
@@ -458,6 +463,27 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <p class="text-sm text-amber-800">This quote is pending approval due to the discount applied. You will be notified once it is reviewed.</p>
           </div>`;
         banner.classList.remove('hidden');
+      } else if (status === 'Pending Rs Discount' && userIsAdmin) {
+        banner.innerHTML = `
+          <div class="bg-violet-50 border border-violet-300 rounded-lg px-5 py-4 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <svg class="w-5 h-5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-violet-800">Rupee Discount Requested</p>
+                <p class="text-xs text-violet-600">A user has requested a rupee discount for this quote. Edit the line items to apply it, then change the status to Draft.</p>
+              </div>
+            </div>
+            <button id="openEditForRsBtn" class="shrink-0 px-4 py-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors">Edit Quote</button>
+          </div>`;
+        banner.classList.remove('hidden');
+        setupApprovalButtons();
+      } else if (status === 'Pending Rs Discount' && !userIsAdmin) {
+        banner.innerHTML = `
+          <div class="bg-violet-50 border border-violet-300 rounded-lg px-5 py-4 flex items-center gap-3">
+            <svg class="w-5 h-5 text-violet-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <p class="text-sm text-violet-800">This quote is pending a rupee discount from an admin. You will be notified once it is applied.</p>
+          </div>`;
+        banner.classList.remove('hidden');
       } else {
         banner.classList.add('hidden');
       }
@@ -524,6 +550,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         });
         if (!confirmed) return;
         await updateApprovalStatus(quoteId!, 'Rejected');
+      });
+      document.getElementById('openEditForRsBtn')?.addEventListener('click', () => {
+        toggleEditMode(true);
+        // Pre-set status to Draft so saving automatically resolves the pending state
+        const editQuoteStatus = document.getElementById('editQuoteStatus') as HTMLSelectElement;
+        if (editQuoteStatus) editQuoteStatus.value = 'Draft';
       });
     }
 
@@ -754,7 +786,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Step 2: Fetch junction table data for custom prices and quantities
         console.log('[QUOTE DETAIL] Step 2: Fetching custom prices from junction table...');
         const junctionResponse = await fetch(
-          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,Discount,nc_76_d__Products_id`,
+          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,Discount,Discount%20Rs,nc_76_d__Products_id`,
           {
             method: 'GET',
             headers: {
@@ -787,12 +819,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           if (junctionMatch) {
             console.log(`[QUOTE DETAIL] Found junction match for product ${productId}:`, junctionMatch);
             const discount = Number(junctionMatch.fields['Discount']) || 0;
+            const discountRs = junctionMatch.fields['Discount Rs'] != null ? Number(junctionMatch.fields['Discount Rs']) : null;
             return {
               junctionId: junctionMatch.id,
               productId: productId,
               quantity: junctionMatch.fields['Quantity'] || 1,
               customUnitPrice: junctionMatch.fields['Custom Unit Price'],
               discount: discount,
+              discountRs: discountRs,
               catalogUnitPrice: null, // Not fetched from catalog anymore
               productName: catalogProduct.fields['Product Name'],
               brand: catalogProduct.fields['Brand'],
@@ -812,6 +846,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               quantity: 1,
               customUnitPrice: null,
               discount: 0,
+              discountRs: null,
               catalogUnitPrice: null,
               productName: catalogProduct.fields['Product Name'],
               brand: catalogProduct.fields['Brand'],
@@ -835,6 +870,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           price: record.customUnitPrice || 0,
           quantity: record.quantity || 1,
           discount: record.discount || 0,
+          discountRs: record.discountRs ?? null,
           model: record.model,
           productCode: record.productCode,
           tax: record.tax,
@@ -918,6 +954,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       if (status === 'Final') statusClasses = 'bg-purple-100 text-purple-800';
       if (status === 'Pending Approval') statusClasses = 'bg-amber-100 text-amber-800';
       if (status === 'Pending Super Admin Approval') statusClasses = 'bg-orange-100 text-orange-800';
+      if (status === 'Pending Rs Discount') statusClasses = 'bg-violet-100 text-violet-800';
       statusEl.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClasses}`;
 
       // Show/hide approval banner
@@ -962,7 +999,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     /**
      * Generate PDF - reuses the same data already fetched
      */
-    async function generatePDF(preview: boolean = false, deliveryTerms: string = '', paymentTerms: string = '') {
+    async function generatePDF(preview: boolean = false, deliveryTerms: string = '', paymentTerms: string = '', extraTerms: string = '') {
       console.log('=== PDF GENERATION START ===');
       console.log('Preview mode:', preview);
       
@@ -978,7 +1015,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const requestBody = {
           ...currentQuoteData,
           deliveryTerms,
-          paymentTerms
+          paymentTerms,
+          extraTerms,
         };
         console.log('Request body:', requestBody);
 
@@ -1114,14 +1152,35 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                   </td>
                 ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-right">${customPrice !== null && customPrice !== undefined ? '₹' + Number(customPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '<span class="text-slate-400">No price set</span>'}</td>`;
                 
+                const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
+                const discountMode = discountRs !== null ? 'rupees' : 'percent';
+                const discountValue = discountRs !== null ? discountRs : discount;
+                const discountDisplay = discountRs !== null
+                  ? '₹' + Number(discountRs).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  : discount + '%';
                 const discountCell = isEditMode ? `
                   <td class="px-4 py-3.5 text-center">
-                    <input type="number" min="0" max="100" step="0.1" value="${discount}" 
-                      class="discount-input w-20 px-3 py-2 text-sm text-center border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all" 
-                      data-junction-id="${junctionId}" 
+                    ${isAdmin() || isSuperAdmin() ? `
+                    <div class="flex flex-col items-center gap-1">
+                      <div class="flex rounded-md overflow-hidden border border-slate-200">
+                        <button type="button" class="discount-mode-pct px-2 py-1 text-xs font-semibold ${discountMode === 'percent' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'} transition-colors" data-junction-id="${junctionId}">%</button>
+                        <button type="button" class="discount-mode-rs px-2 py-1 text-xs font-semibold ${discountMode === 'rupees' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'} transition-colors" data-junction-id="${junctionId}">₹</button>
+                      </div>
+                      <input type="number" min="0" ${discountMode === 'percent' ? 'max="100"' : ''} step="0.01" value="${discountValue}"
+                        class="discount-input w-20 px-3 py-2 text-sm text-center border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        data-junction-id="${junctionId}"
+                        data-mode="${discountMode}"
+                        ${!junctionId ? 'disabled title="No junction record"' : ''} />
+                    </div>
+                    ` : `
+                    <input type="number" min="0" max="100" step="0.1" value="${discount}"
+                      class="discount-input w-20 px-3 py-2 text-sm text-center border-2 border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                      data-junction-id="${junctionId}"
+                      data-mode="percent"
                       ${!junctionId ? 'disabled title="No junction record"' : ''} />
+                    `}
                   </td>
-                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-center">${discount}%</td>`;
+                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-center">${discountDisplay}</td>`;
                 
                 const actionCell = isEditMode ? `
                   <td class="px-4 py-3">
@@ -1213,18 +1272,57 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Discount input handlers with debounce
         document.querySelectorAll('.discount-input').forEach(input => {
           let timeout: number;
-          input.addEventListener('input', (e) => {
+          input.addEventListener('input', () => {
             clearTimeout(timeout);
-            // Immediate optimistic update
             const junctionId = (input as HTMLElement).getAttribute('data-junction-id');
             updateLineItemDisplay(junctionId);
-            
+
             timeout = window.setTimeout(async () => {
               const newDiscount = parseFloat((input as HTMLInputElement).value);
-              if (junctionId && newDiscount >= 0 && newDiscount <= 100) {
-                await updateLineItemDiscount(junctionId, newDiscount);
+              const mode = (input as HTMLElement).getAttribute('data-mode') || 'percent';
+              if (junctionId && newDiscount >= 0) {
+                if (mode === 'rupees' || newDiscount <= 100) {
+                  await updateLineItemDiscount(junctionId, newDiscount, mode);
+                }
               }
             }, 800);
+          });
+        });
+
+        // Discount mode toggle handlers (admin only)
+        document.querySelectorAll('.discount-mode-pct, .discount-mode-rs').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const target = btn as HTMLButtonElement;
+            const junctionId = target.getAttribute('data-junction-id');
+            if (!junctionId) return;
+
+            const row = document.querySelector(`tr[data-junction-id="${junctionId}"]`);
+            if (!row) return;
+
+            const discountInput = row.querySelector('.discount-input') as HTMLInputElement;
+            const pctBtn = row.querySelector('.discount-mode-pct') as HTMLButtonElement;
+            const rsBtn = row.querySelector('.discount-mode-rs') as HTMLButtonElement;
+
+            const isRs = target.classList.contains('discount-mode-rs');
+            const newMode = isRs ? 'rupees' : 'percent';
+            if (discountInput.getAttribute('data-mode') === newMode) return;
+
+            discountInput.setAttribute('data-mode', newMode);
+            discountInput.value = '0';
+
+            if (isRs) {
+              discountInput.removeAttribute('max');
+              rsBtn.className = 'discount-mode-rs px-2 py-1 text-xs font-semibold bg-indigo-600 text-white transition-colors';
+              pctBtn.className = 'discount-mode-pct px-2 py-1 text-xs font-semibold bg-white text-slate-600 hover:bg-slate-50 transition-colors';
+              await updateLineItemDiscount(junctionId, 0, 'rupees');
+            } else {
+              discountInput.setAttribute('max', '100');
+              pctBtn.className = 'discount-mode-pct px-2 py-1 text-xs font-semibold bg-indigo-600 text-white transition-colors';
+              rsBtn.className = 'discount-mode-rs px-2 py-1 text-xs font-semibold bg-white text-slate-600 hover:bg-slate-50 transition-colors';
+              await clearLineItemDiscountRs(junctionId);
+            }
+
+            updateLineItemDisplay(junctionId);
           });
         });
       }
@@ -1235,35 +1333,36 @@ import AdminLayout from '../layouts/AdminLayout.astro';
      */
     function updateLineItemDisplay(junctionId: string | null) {
       if (!junctionId) return;
-      
+
       const row = document.querySelector(`tr[data-junction-id="${junctionId}"]`);
       if (!row) return;
-      
+
       const qtyInput = row.querySelector('.quantity-input') as HTMLInputElement;
       const priceInput = row.querySelector('.price-input') as HTMLInputElement;
       const discountInput = row.querySelector('.discount-input') as HTMLInputElement;
       const lineTotalCell = row.querySelector('.line-total-cell');
-      
+
       if (!qtyInput || !priceInput || !discountInput || !lineTotalCell) return;
-      
+
       const quantity = parseFloat(qtyInput.value) || 1;
       const unitPrice = parseFloat(priceInput.value) || 0;
-      const discount = parseFloat(discountInput.value) || 0;
-      
+      const discountVal = parseFloat(discountInput.value) || 0;
+      const mode = discountInput.getAttribute('data-mode') || 'percent';
+
       // Find product to get tax rate
       const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
       const taxRate = product ? (Number(product.tax) || 0) : 0;
-      
+
       // Calculate line total
       const subtotal = unitPrice * quantity;
-      const discountAmount = subtotal * (discount / 100);
+      const discountAmount = mode === 'rupees' ? discountVal : subtotal * (discountVal / 100);
       const afterDiscount = subtotal - discountAmount;
       const taxAmount = afterDiscount * (taxRate / 100);
       const lineTotal = afterDiscount + taxAmount;
-      
+
       // Update display
       lineTotalCell.textContent = '₹' + lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      
+
       // Update grand total
       updateGrandTotal();
     }
@@ -1284,22 +1383,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const qtyInput = row.querySelector('.quantity-input') as HTMLInputElement;
           const priceInput = row.querySelector('.price-input') as HTMLInputElement;
           const discountInput = row.querySelector('.discount-input') as HTMLInputElement;
-          
+
           if (qtyInput && priceInput && discountInput) {
             const quantity = parseFloat(qtyInput.value) || 1;
             const unitPrice = parseFloat(priceInput.value) || 0;
-            const discount = parseFloat(discountInput.value) || 0;
-            
+            const discountVal = parseFloat(discountInput.value) || 0;
+            const mode = discountInput.getAttribute('data-mode') || 'percent';
+
             const junctionId = row.getAttribute('data-junction-id');
             const product = currentProducts.find(p => p.junctionId === parseInt(junctionId || '0'));
             const taxRate = product ? (Number(product.tax) || 0) : 0;
-            
+
             const subtotal = unitPrice * quantity;
-            const discountAmount = subtotal * (discount / 100);
+            const discountAmount = mode === 'rupees' ? discountVal : subtotal * (discountVal / 100);
             const afterDiscount = subtotal - discountAmount;
             const taxAmount = afterDiscount * (taxRate / 100);
             const lineTotal = afterDiscount + taxAmount;
-            
+
             total += lineTotal;
           }
         });
@@ -1307,23 +1407,19 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // In non-edit mode, calculate from currentProducts array
         total = currentProducts.reduce((sum, product) => {
           const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
-          
-          // Skip products without custom price
-          if (customPrice === null) {
-            return sum;
-          }
-          
+          if (customPrice === null) return sum;
+
           const quantity = Number(product.quantity) || 1;
+          const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
           const discount = Number(product.discount) || 0;
           const taxRate = Number(product.tax) || 0;
-          
-          // Calculate: (price * quantity - discount) * (1 + tax/100)
+
           const subtotal = customPrice * quantity;
-          const discountAmount = subtotal * (discount / 100);
+          const discountAmount = discountRs !== null ? discountRs : subtotal * (discount / 100);
           const afterDiscount = subtotal - discountAmount;
           const taxAmount = afterDiscount * (taxRate / 100);
           const lineTotal = afterDiscount + taxAmount;
-          
+
           return sum + lineTotal;
         }, 0);
       }
@@ -1371,23 +1467,19 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function calculateTotal(): number {
       return currentProducts.reduce((sum, product) => {
         const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
-        
-        // Skip products without custom price
-        if (customPrice === null) {
-          return sum;
-        }
-        
+        if (customPrice === null) return sum;
+
         const quantity = Number(product.quantity) || 1;
+        const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
         const discount = Number(product.discount) || 0;
         const taxRate = Number(product.tax) || 0;
-        
-        // Calculate: (price * quantity - discount) * (1 + tax/100)
+
         const subtotal = customPrice * quantity;
-        const discountAmount = subtotal * (discount / 100);
+        const discountAmount = discountRs !== null ? discountRs : subtotal * (discount / 100);
         const afterDiscount = subtotal - discountAmount;
         const taxAmount = afterDiscount * (taxRate / 100);
         const total = afterDiscount + taxAmount;
-        
+
         return sum + total;
       }, 0);
     }
@@ -1395,10 +1487,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     /**
      * Update line item discount in ProductsForQuotes junction table
      */
-    async function updateLineItemDiscount(junctionId: string, newDiscount: number) {
+    async function updateLineItemDiscount(junctionId: string, newDiscount: number, mode: string = 'percent') {
       try {
-        console.log(`[LINE ITEM] Updating discount for junction ${junctionId} to ${newDiscount}%`);
-        
+        console.log(`[LINE ITEM] Updating discount for junction ${junctionId} to ${newDiscount} (${mode})`);
+
+        const fields: Record<string, any> = mode === 'rupees'
+          ? { 'Discount Rs': newDiscount, 'Discount': 0 }
+          : { 'Discount': newDiscount };
+
         const response = await fetch(
           `${API_BASE_URL}/proxy/products_for_quotes/records`,
           {
@@ -1407,12 +1503,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-              id: junctionId,
-              fields: {
-                'Discount': newDiscount
-              }
-            })
+            body: JSON.stringify({ id: junctionId, fields })
           }
         );
 
@@ -1421,23 +1512,45 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           throw new Error(`Failed to update discount: ${errorText}`);
         }
 
-        const result = await safeJsonParse(response);
-        console.log('[LINE ITEM] Discount updated successfully:', result);
-        
         // Update local state
         const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
         if (product) {
-          product.discount = newDiscount;
+          if (mode === 'rupees') {
+            product.discountRs = newDiscount;
+            product.discount = 0;
+          } else {
+            product.discount = newDiscount;
+          }
         }
-        
-        // Recalculate and update quote total
+
         const newTotal = calculateTotal();
         await updateQuote({ "Total Amount": newTotal });
-        
+
       } catch (error) {
         console.error('[LINE ITEM] Error updating discount:', error);
         showToast('Failed to update discount. Please try again.', 'error');
-        // Reload to revert optimistic update
+        await loadQuoteDetails();
+      }
+    }
+
+    async function clearLineItemDiscountRs(junctionId: string) {
+      try {
+        await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: junctionId, fields: { 'Discount Rs': null, 'Discount': 0 } })
+        });
+
+        const product = currentProducts.find(p => p.junctionId === parseInt(junctionId));
+        if (product) {
+          product.discountRs = null;
+          product.discount = 0;
+        }
+
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+      } catch (error) {
+        showToast('Failed to clear rupee discount. Please try again.', 'error');
         await loadQuoteDetails();
       }
     }
@@ -1929,6 +2042,26 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       addBtn.disabled = false;
     }
 
+    // Show "Request ₹ Discount" button for non-admin users
+    if (!isAdmin() && !isSuperAdmin()) {
+      document.getElementById('requestRsDiscountBtn')?.classList.remove('hidden');
+    }
+
+    document.getElementById('requestRsDiscountBtn')?.addEventListener('click', async () => {
+      const quoteId = new URLSearchParams(window.location.search).get('id');
+      if (!quoteId) return;
+      const confirmed = await showConfirmModal({
+        title: 'Request ₹ Discount?',
+        body: 'This quote will be sent to an admin to apply a rupee discount. The quote status will change to Pending Rs Discount.',
+        confirmLabel: 'Request',
+        confirmClass: 'bg-violet-600 hover:bg-violet-700',
+        iconBg: 'bg-violet-100',
+        iconSvg: `<svg class="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
+      });
+      if (!confirmed) return;
+      await updateApprovalStatus(quoteId, 'Pending Rs Discount');
+    });
+
     // Event listeners
     document.getElementById('editQuoteBtn')?.addEventListener('click', () => toggleEditMode(true));
     document.getElementById('cancelEditBtn')?.addEventListener('click', () => {
@@ -1941,9 +2074,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const editQuoteStatus = document.getElementById('editQuoteStatus') as HTMLSelectElement;
         let newStatus = editQuoteStatus?.value;
 
-        // Check max discount across all product rows in edit mode
+        // Check max discount across all percent-mode product rows in edit mode
         const discountInputs = Array.from(document.querySelectorAll('.discount-input')) as HTMLInputElement[];
-        const maxDiscount = discountInputs.reduce((max, el) => Math.max(max, parseFloat(el.value) || 0), 0);
+        const maxDiscount = discountInputs.reduce((max, el) => {
+          if ((el.getAttribute('data-mode') || 'percent') === 'rupees') return max;
+          return Math.max(max, parseFloat(el.value) || 0);
+        }, 0);
 
         if (isSuperAdmin()) {
           // super_admin can save any discount without approval
@@ -2036,6 +2172,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     let _pdfPreviewMode = false;
     let savedDeliveryTerms: string | null = localStorage.getItem('pdfDeliveryTerms');
     let savedPaymentTerms: string | null = localStorage.getItem('pdfPaymentTerms');
+    let savedExtraTerms: string | null = localStorage.getItem('pdfExtraTerms');
     let _changeTermsOnly = false;
 
     function openPdfTermsModal(preview: boolean) {
@@ -2043,7 +2180,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       // If terms already saved, skip modal and generate directly
       if (savedDeliveryTerms !== null) {
-        generatePDF(preview, savedDeliveryTerms, savedPaymentTerms || '');
+        generatePDF(preview, savedDeliveryTerms, savedPaymentTerms || '', savedExtraTerms || '');
         return;
       }
 
@@ -2051,6 +2188,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       _changeTermsOnly = false;
       (document.getElementById('deliveryTermsInput') as HTMLInputElement).value = '';
       (document.getElementById('paymentTermsInput') as HTMLInputElement).value = '';
+      (document.getElementById('extraTermsInput') as HTMLTextAreaElement).value = '';
       (document.getElementById('pdfTermsModalTitle') as HTMLElement).textContent = 'PDF Terms';
       (document.getElementById('pdfTermsModalDesc') as HTMLElement).textContent = 'Leave blank to keep the fields empty on the PDF.';
       (document.getElementById('pdfTermsConfirm') as HTMLButtonElement).textContent = 'Generate PDF';
@@ -2061,6 +2199,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       _changeTermsOnly = true;
       (document.getElementById('deliveryTermsInput') as HTMLInputElement).value = savedDeliveryTerms || '';
       (document.getElementById('paymentTermsInput') as HTMLInputElement).value = savedPaymentTerms || '';
+      (document.getElementById('extraTermsInput') as HTMLTextAreaElement).value = savedExtraTerms || '';
       (document.getElementById('pdfTermsModalTitle') as HTMLElement).textContent = 'Change PDF Terms';
       (document.getElementById('pdfTermsModalDesc') as HTMLElement).textContent = 'Update the terms that will appear on generated PDFs.';
       (document.getElementById('pdfTermsConfirm') as HTMLButtonElement).textContent = 'Save Terms';
@@ -2112,9 +2251,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           ...currentQuoteData,
           deliveryTerms: savedDeliveryTerms || '',
           paymentTerms: savedPaymentTerms || '',
+          extraTerms: savedExtraTerms || '',
           toEmail,
           emailSubject: emailSubject || `Quotation: ${currentQuoteData.subject}`,
           note,
+          senderEmail: localStorage.getItem('user_email') || undefined,
         };
 
         const response = await fetch('/api/quotes/send-email', {
@@ -2148,14 +2289,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     document.getElementById('pdfTermsConfirm')?.addEventListener('click', () => {
       const deliveryTerms = (document.getElementById('deliveryTermsInput') as HTMLInputElement).value.trim();
       const paymentTerms = (document.getElementById('paymentTermsInput') as HTMLInputElement).value.trim();
+      const extraTerms = (document.getElementById('extraTermsInput') as HTMLTextAreaElement).value.trim();
       savedDeliveryTerms = deliveryTerms;
       savedPaymentTerms = paymentTerms;
+      savedExtraTerms = extraTerms;
       localStorage.setItem('pdfDeliveryTerms', deliveryTerms);
       localStorage.setItem('pdfPaymentTerms', paymentTerms);
+      localStorage.setItem('pdfExtraTerms', extraTerms);
       document.getElementById('pdfTermsModal')!.classList.add('hidden');
 
       if (!_changeTermsOnly) {
-        generatePDF(_pdfPreviewMode, deliveryTerms, paymentTerms);
+        generatePDF(_pdfPreviewMode, deliveryTerms, paymentTerms, extraTerms);
       }
       _changeTermsOnly = false;
     });
@@ -2918,6 +3062,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             placeholder="e.g. 50% advance, 50% on delivery"
             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Additional Condition <span class="text-slate-400 font-normal">(optional)</span></label>
+          <textarea
+            id="extraTermsInput"
+            rows="2"
+            placeholder="Any special condition for this quote..."
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+          ></textarea>
         </div>
       </div>
       <div class="flex justify-end gap-3 mt-6">

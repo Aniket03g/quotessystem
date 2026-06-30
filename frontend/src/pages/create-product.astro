@@ -211,6 +211,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       window.location.href = '/login';
     }
 
+    // Restrict to admin and super_admin only
+    try {
+      const role = JSON.parse(localStorage.getItem('user_info') || '{}').role;
+      if (role !== 'admin' && role !== 'super_admin') {
+        window.location.href = '/products';
+      }
+    } catch {
+      window.location.href = '/products';
+    }
+
     function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
       const container = document.getElementById('toastContainer')!;
       const toast = document.createElement('div');

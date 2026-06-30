@@ -8,12 +8,13 @@ interface SendEmailBody extends QuoteData {
   toEmail: string;
   emailSubject: string;
   note?: string;
+  senderEmail?: string;
 }
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body: SendEmailBody = await request.json();
-    const { toEmail, emailSubject, note, ...quoteData } = body;
+    const { toEmail, emailSubject, note, senderEmail, ...quoteData } = body;
 
     if (!toEmail) {
       return new Response(JSON.stringify({ error: 'toEmail is required' }), {
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
     `;
 
     const { error } = await resend.emails.send({
-      from: fromAddress,
+      from: senderEmail || fromAddress,
       to: [toEmail],
       subject: emailSubject || `Quotation: ${quoteData.subject}`,
       html: htmlBody,

@@ -9,7 +9,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <div>
         <h1 class="text-2xl font-semibold text-slate-800">Products</h1>
       </div>
-      <a href="/create-product" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
+      <a id="newProductBtn" href="/create-product" class="hidden items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
@@ -160,7 +160,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return;
       }
 
-      const isAdmin = getUserInfo()?.role === 'admin';
+      const role = getUserInfo()?.role;
+      const isAdmin = role === 'admin' || role === 'super_admin';
+
+      if (isAdmin) {
+        const newProductBtn = document.getElementById('newProductBtn');
+        if (newProductBtn) {
+          newProductBtn.classList.remove('hidden');
+          newProductBtn.classList.add('inline-flex');
+        }
+      }
 
       const loadingDiv = document.getElementById('loading') as HTMLDivElement;
       const errorDiv = document.getElementById('error') as HTMLDivElement;

@@ -301,6 +301,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (status === 'Accepted') statusClasses = 'bg-emerald-100 text-emerald-800';
         if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
         if (status === 'Approved') statusClasses = 'bg-green-100 text-green-800';
+        if (status === 'Pending Rs Discount') statusClasses = 'bg-violet-100 text-violet-800';
 
         return `
           <tr class="cursor-pointer transition-all hover:bg-blue-50/50 hover:shadow-sm" onclick="window.location.href='/quote-detail?id=${record.id}'">
@@ -354,6 +355,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (status === 'Accepted') statusClasses = 'bg-emerald-100 text-emerald-800';
         if (status === 'Rejected') statusClasses = 'bg-red-100 text-red-800';
         if (status === 'Approved') statusClasses = 'bg-green-100 text-green-800';
+        if (status === 'Pending Rs Discount') statusClasses = 'bg-violet-100 text-violet-800';
 
         return `
           <div class="p-4 cursor-pointer active:bg-blue-50 transition-colors" onclick="window.location.href='/quote-detail?id=${record.id}'">
