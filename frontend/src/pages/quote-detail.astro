@@ -1122,12 +1122,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 const unitPrice = customPrice !== null ? customPrice : 0;
                 const quantity = Number(product.quantity) || 1;
                 const discount = Number(product.discount) || 0;
+                const lineDRs = product.discountRs != null ? Number(product.discountRs) : null;
                 const taxRate = Number(product.tax) || 0;
                 const junctionId = product.junctionId;
-                
+
                 // Calculate line total with discount and tax
                 const subtotal = unitPrice * quantity;
-                const discountAmount = subtotal * (discount / 100);
+                const discountAmount = lineDRs !== null ? lineDRs : subtotal * (discount / 100);
                 const afterDiscount = subtotal - discountAmount;
                 const taxAmount = afterDiscount * (taxRate / 100);
                 const lineTotal = afterDiscount + taxAmount;

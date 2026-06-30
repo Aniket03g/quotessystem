@@ -233,9 +233,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       });
 
       if (sort === 'date-desc') {
-        result.sort((a: any, b: any) => (b.fields['Quote Date'] || '').localeCompare(a.fields['Quote Date'] || ''));
+        result.sort((a: any, b: any) => {
+          const d = (b.fields['Quote Date'] || '').localeCompare(a.fields['Quote Date'] || '');
+          return d !== 0 ? d : (b.id || 0) - (a.id || 0);
+        });
       } else if (sort === 'date-asc') {
-        result.sort((a: any, b: any) => (a.fields['Quote Date'] || '').localeCompare(b.fields['Quote Date'] || ''));
+        result.sort((a: any, b: any) => {
+          const d = (a.fields['Quote Date'] || '').localeCompare(b.fields['Quote Date'] || '');
+          return d !== 0 ? d : (a.id || 0) - (b.id || 0);
+        });
       } else if (sort === 'amount-desc') {
         result.sort((a: any, b: any) => (Number(b.fields['Total Amount']) || 0) - (Number(a.fields['Total Amount']) || 0));
       } else if (sort === 'amount-asc') {
