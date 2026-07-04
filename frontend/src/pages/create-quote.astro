@@ -213,14 +213,31 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       
       <div id="productsContainer" class="space-y-6">
         <div class="product-item border border-slate-200 rounded-lg p-4 space-y-4">
+          <div class="flex justify-end">
+            <button type="button" class="toggle-outsourced-btn text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-2">
+              + Add outsourced product
+            </button>
+          </div>
+          <!-- Outsourced Product Row (hidden unless toggled) -->
+          <div class="outsourced-product-row hidden grid grid-cols-1 md:grid-cols-2 gap-3">
+            <input type="text" class="outsourced-name px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all md:col-span-2" placeholder="Product name *" />
+            <input type="text" class="outsourced-brand px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Brand" />
+            <input type="text" class="outsourced-model px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Model No" />
+            <input type="text" class="outsourced-hsn px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="HSN Code" />
+            <input type="number" class="outsourced-tax px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Tax %" min="0" step="0.01" />
+            <input type="number" class="outsourced-warranty px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Warranty (months)" min="0" />
+            <input type="text" class="outsourced-uom px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Unit of Measurement (e.g. pcs, box)" />
+            <textarea class="outsourced-description px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all md:col-span-2" rows="2" placeholder="Description (optional)"></textarea>
+          </div>
+
           <!-- Product Search Row -->
           <div class="flex gap-3 items-start">
-            <div class="flex-1 relative">
+            <div class="catalog-product-row flex-1 relative">
               <label class="block text-xs font-medium text-slate-700 mb-1">Product *</label>
-              <input 
-                type="text" 
-                class="product-search w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
-                placeholder="Search for a product..." 
+              <input
+                type="text"
+                class="product-search w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                placeholder="Search for a product..."
                 autocomplete="off"
                 required
               />
@@ -236,6 +253,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <input type="hidden" class="product-customer-price" />
             <input type="hidden" class="product-dealer-price" />
             <input type="hidden" class="product-warranty" />
+            <input type="hidden" class="product-is-outsourced" value="false" />
             <div class="product-dropdown hidden absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
               <div class="product-results py-1"></div>
               <div class="product-loading hidden px-4 py-3 text-sm text-slate-500 text-center">
@@ -277,7 +295,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </div>
 
           <!-- Product Details Grid -->
-          <div class="space-y-3">
+          <div class="product-details-grid space-y-3">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
                 <label class="block text-xs font-medium text-slate-700 mb-1">Brand</label>
@@ -762,6 +780,46 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const productsContainer = document.getElementById('productsContainer') as HTMLDivElement;
     const addProductBtn = document.getElementById('addProductBtn') as HTMLButtonElement;
 
+    function setupOutsourcedToggle(productItem: HTMLElement) {
+      const toggleBtn = productItem.querySelector('.toggle-outsourced-btn') as HTMLButtonElement;
+      const outsourcedRow = productItem.querySelector('.outsourced-product-row') as HTMLElement;
+      const catalogRow = productItem.querySelector('.catalog-product-row') as HTMLElement;
+      const detailsGrid = productItem.querySelector('.product-details-grid') as HTMLElement;
+      const isOutsourcedInput = productItem.querySelector('.product-is-outsourced') as HTMLInputElement;
+      const searchInput = productItem.querySelector('.product-search') as HTMLInputElement;
+      const productIdInput = productItem.querySelector('.product-id') as HTMLInputElement;
+      const customPriceInput = productItem.querySelector('.product-custom-price') as HTMLInputElement;
+      const outsourcedNameInput = productItem.querySelector('.outsourced-name') as HTMLInputElement;
+
+      toggleBtn?.addEventListener('click', () => {
+        const switchingToOutsourced = isOutsourcedInput.value !== 'true';
+        isOutsourcedInput.value = switchingToOutsourced ? 'true' : 'false';
+
+        outsourcedRow.classList.toggle('hidden', !switchingToOutsourced);
+        catalogRow.classList.toggle('hidden', switchingToOutsourced);
+        detailsGrid.classList.toggle('hidden', switchingToOutsourced);
+        toggleBtn.textContent = switchingToOutsourced ? '← Search catalog instead' : '+ Add outsourced product';
+
+        if (switchingToOutsourced) {
+          searchInput.removeAttribute('required');
+          productIdInput.removeAttribute('required');
+          searchInput.value = '';
+          productIdInput.value = '';
+          customPriceInput.readOnly = false;
+          customPriceInput.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+          customPriceInput.classList.add('bg-slate-50');
+          customPriceInput.value = '';
+        } else {
+          searchInput.setAttribute('required', 'true');
+          productIdInput.setAttribute('required', 'true');
+          customPriceInput.readOnly = true;
+          customPriceInput.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+          customPriceInput.classList.remove('bg-slate-50');
+          outsourcedNameInput.value = '';
+        }
+      });
+    }
+
     function setupProductSearch(productItem: HTMLElement) {
       const searchInput = productItem.querySelector('.product-search') as HTMLInputElement;
       const productIdInput = productItem.querySelector('.product-id') as HTMLInputElement;
@@ -865,11 +923,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       });
     }
 
-    document.querySelectorAll('.product-item').forEach(item => setupProductSearch(item as HTMLElement));
+    document.querySelectorAll('.product-item').forEach(item => {
+      setupProductSearch(item as HTMLElement);
+      setupOutsourcedToggle(item as HTMLElement);
+    });
 
     addProductBtn.addEventListener('click', () => {
       const newItem = productsContainer.querySelector('.product-item')!.cloneNode(true) as HTMLElement;
       newItem.querySelectorAll('input, textarea').forEach(el => (el as HTMLInputElement | HTMLTextAreaElement).value = '');
+      // Reset outsourced toggle state to catalog mode on the fresh clone
+      (newItem.querySelector('.product-is-outsourced') as HTMLInputElement).value = 'false';
+      newItem.querySelector('.outsourced-product-row')?.classList.add('hidden');
+      newItem.querySelector('.catalog-product-row')?.classList.remove('hidden');
+      newItem.querySelector('.product-details-grid')?.classList.remove('hidden');
+      const toggleBtn = newItem.querySelector('.toggle-outsourced-btn') as HTMLButtonElement;
+      if (toggleBtn) toggleBtn.textContent = '+ Add outsourced product';
+      const clonedSearchInput = newItem.querySelector('.product-search') as HTMLInputElement;
+      const clonedProductIdInput = newItem.querySelector('.product-id') as HTMLInputElement;
+      clonedSearchInput.setAttribute('required', 'true');
+      clonedProductIdInput.setAttribute('required', 'true');
+      const clonedPriceInput = newItem.querySelector('.product-custom-price') as HTMLInputElement;
+      clonedPriceInput.readOnly = true;
+      clonedPriceInput.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
+      clonedPriceInput.classList.remove('bg-slate-50');
       const discountInput = newItem.querySelector('.product-discount') as HTMLInputElement;
       discountInput.value = '0';
       // Reset toggle to percent mode
@@ -891,6 +967,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
       productsContainer.appendChild(newItem);
       setupProductSearch(newItem);
+      setupOutsourcedToggle(newItem);
     });
 
     // Quote numbering: GR/2026-27/0001 or GOC/2026-27/0001, sequential per company per financial year (Apr-Mar)
@@ -948,7 +1025,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
 
       const productItems = Array.from(productsContainer.querySelectorAll('.product-item'));
-      const productData: Array<{ productId: number; quantity: number; unitPrice: number; productName: string; discount: number; discountRs: number | null }> = [];
+      const productData: Array<{
+        productId: number | null; quantity: number; unitPrice: number; productName: string;
+        discount: number; discountRs: number | null; isOutsourced: boolean;
+        outsourcedBrand?: string; outsourcedModel?: string; outsourcedHsn?: string; outsourcedTax?: number | null;
+        outsourcedWarranty?: number | null; outsourcedUom?: string; outsourcedDescription?: string;
+      }> = [];
       let totalAmount = 0;
 
       console.log('\n=== QUOTE CREATION - PRODUCT DATA COLLECTION ===');
@@ -958,31 +1040,61 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const item = productItems[i];
         console.log(`\n[PRODUCT ${i + 1}] Extracting data...`);
 
-        const productIdInput = item.querySelector('.product-id') as HTMLInputElement;
-        const productNameInput = item.querySelector('.product-name') as HTMLInputElement;
+        const isOutsourced = (item.querySelector('.product-is-outsourced') as HTMLInputElement)?.value === 'true';
         const quantityInput = item.querySelector('.product-quantity') as HTMLInputElement;
         const unitPriceInput = item.querySelector('.product-custom-price') as HTMLInputElement;
         const discountInput = item.querySelector('.product-discount') as HTMLInputElement;
         const discountModeInput = item.querySelector('.product-discount-mode') as HTMLInputElement;
 
-        const productId = parseInt(productIdInput?.value || '0');
-        const productName = productNameInput?.value || '';
         const quantity = parseInt(quantityInput?.value || '0');
         const unitPrice = parseFloat(unitPriceInput?.value || '0');
         const discountMode = discountModeInput?.value || 'percent';
         const discountRs = discountMode === 'rupees' ? parseFloat(discountInput?.value || '0') : null;
         const discount = discountMode === 'percent' ? parseFloat(discountInput?.value || '0') : 0;
 
-        if (!productId || !quantity || !unitPrice) {
-          showAlert('Please fill in all product details', 'error');
-          return;
+        let productId: number | null = null;
+        let productName = '';
+        let outsourcedBrand: string | undefined;
+        let outsourcedModel: string | undefined;
+        let outsourcedHsn: string | undefined;
+        let outsourcedTax: number | null | undefined;
+        let outsourcedWarranty: number | null | undefined;
+        let outsourcedUom: string | undefined;
+        let outsourcedDescription: string | undefined;
+
+        if (isOutsourced) {
+          productName = (item.querySelector('.outsourced-name') as HTMLInputElement)?.value.trim() || '';
+          outsourcedBrand = (item.querySelector('.outsourced-brand') as HTMLInputElement)?.value.trim() || undefined;
+          outsourcedModel = (item.querySelector('.outsourced-model') as HTMLInputElement)?.value.trim() || undefined;
+          outsourcedHsn = (item.querySelector('.outsourced-hsn') as HTMLInputElement)?.value.trim() || undefined;
+          const taxRaw = (item.querySelector('.outsourced-tax') as HTMLInputElement)?.value;
+          outsourcedTax = taxRaw ? parseFloat(taxRaw) : null;
+          const warrantyRaw = (item.querySelector('.outsourced-warranty') as HTMLInputElement)?.value;
+          outsourcedWarranty = warrantyRaw ? parseInt(warrantyRaw) : null;
+          outsourcedUom = (item.querySelector('.outsourced-uom') as HTMLInputElement)?.value.trim() || undefined;
+          outsourcedDescription = (item.querySelector('.outsourced-description') as HTMLTextAreaElement)?.value.trim() || undefined;
+
+          if (!productName || !quantity || !unitPrice) {
+            showAlert('Please fill in outsourced product name, unit price and quantity', 'error');
+            return;
+          }
+        } else {
+          const productIdInput = item.querySelector('.product-id') as HTMLInputElement;
+          const productNameInput = item.querySelector('.product-name') as HTMLInputElement;
+          productId = parseInt(productIdInput?.value || '0');
+          productName = productNameInput?.value || '';
+
+          if (!productId || !quantity || !unitPrice) {
+            showAlert('Please fill in all product details', 'error');
+            return;
+          }
         }
 
         const discountAmount = discountRs !== null ? discountRs : (unitPrice * quantity * discount) / 100;
         const lineTotal = quantity * unitPrice - discountAmount;
         console.log(`[PRODUCT ${i + 1}] Line total: ${quantity} × ${unitPrice} - ${discountRs !== null ? '₹' + discountRs : discount + '%'} = ${lineTotal}`);
 
-        productData.push({ productId, quantity, unitPrice, productName, discount, discountRs });
+        productData.push({ productId, quantity, unitPrice, productName, discount, discountRs, isOutsourced, outsourcedBrand, outsourcedModel, outsourcedHsn, outsourcedTax, outsourcedWarranty, outsourcedUom, outsourcedDescription });
         totalAmount += lineTotal;
 
         console.log(`[PRODUCT ${i + 1}] Running total: ${totalAmount}`);
@@ -1179,36 +1291,38 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         console.log('=== QUOTE LINK COMPLETE ===\n');
         console.log('=== CASE FLOW COMPLETE ===\n');
 
-        // Link products
+        // Link products (only catalog products — outsourced items have no Products link)
         console.log('\n=== LINKING PRODUCTS TO QUOTE ===');
+        const catalogProductData = productData.filter(p => !p.isOutsourced);
         const productLinkUrl = `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`;
-        const productLinkPayload = productData.map(p => ({ id: p.productId }));
-        
+        const productLinkPayload = catalogProductData.map(p => ({ id: p.productId }));
+
         console.log('[PRODUCT LINK] Quote ID:', quoteId);
         console.log('[PRODUCT LINK] URL:', productLinkUrl);
         console.log('[PRODUCT LINK] Payload:', JSON.stringify(productLinkPayload, null, 2));
         console.log('[PRODUCT LINK] Number of products:', productLinkPayload.length);
-        
-        const productLinkResponse = await fetch(productLinkUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(productLinkPayload)
-        });
-        
-        console.log('[PRODUCT LINK] Response status:', productLinkResponse.status);
-        console.log('[PRODUCT LINK] Response headers:', Object.fromEntries(productLinkResponse.headers.entries()));
-        
-        const productLinkResponseText = await productLinkResponse.text();
-        console.log('[PRODUCT LINK] Response body:', productLinkResponseText);
-        
-        if (!productLinkResponse.ok) {
-          console.error('[PRODUCT LINK] ❌ Failed to link products to quote');
-          console.error('[PRODUCT LINK] Error details:', productLinkResponseText);
-        } else {
-          console.log('[PRODUCT LINK] ✓ Products linked to quote successfully');
+
+        if (productLinkPayload.length > 0) {
+          const productLinkResponse = await fetch(productLinkUrl, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(productLinkPayload)
+          });
+
+          console.log('[PRODUCT LINK] Response status:', productLinkResponse.status);
+
+          const productLinkResponseText = await productLinkResponse.text();
+          console.log('[PRODUCT LINK] Response body:', productLinkResponseText);
+
+          if (!productLinkResponse.ok) {
+            console.error('[PRODUCT LINK] ❌ Failed to link products to quote');
+            console.error('[PRODUCT LINK] Error details:', productLinkResponseText);
+          } else {
+            console.log('[PRODUCT LINK] ✓ Products linked to quote successfully');
+          }
         }
         console.log('=== PRODUCT LINK COMPLETE ===\n');
 
@@ -1218,13 +1332,25 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const product = productData[i];
           const junctionFields: Record<string, any> = {
             'Quotes': quoteId,
-            'Products': product.productId,
             'Quantity': product.quantity,
             'Custom Unit Price': product.unitPrice,
             'Discount': product.discount,
           };
           if (product.discountRs !== null) {
             junctionFields['Discount Rs'] = product.discountRs;
+          }
+          if (product.isOutsourced) {
+            junctionFields['Is Outsourced'] = true;
+            junctionFields['Custom Product Name'] = product.productName;
+            junctionFields['Custom Brand'] = product.outsourcedBrand || null;
+            junctionFields['Custom Model No'] = product.outsourcedModel || null;
+            junctionFields['Custom HSN'] = product.outsourcedHsn || null;
+            junctionFields['Custom Tax'] = product.outsourcedTax ?? null;
+            junctionFields['Custom Warranty'] = product.outsourcedWarranty ?? null;
+            junctionFields['Custom UOM'] = product.outsourcedUom || null;
+            junctionFields['Custom Description'] = product.outsourcedDescription || null;
+          } else {
+            junctionFields['Products'] = product.productId;
           }
           const junctionPayload = { fields: junctionFields };
           

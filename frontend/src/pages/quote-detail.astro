@@ -250,20 +250,25 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div>
               <label class="block text-sm font-bold text-slate-800">Add Product</label>
-              <p class="text-xs text-slate-500">Search and add to quote</p>
+              <p class="text-xs text-slate-500">Search catalog or add an outsourced product</p>
             </div>
           </div>
-          <div class="flex gap-3">
+          <div class="mb-3">
+            <button type="button" id="toggleOutsourcedBtn" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
+              + Add outsourced product
+            </button>
+          </div>
+          <div id="catalogAddSection" class="flex gap-3">
             <div class="flex-1 relative">
               <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
               </div>
-              <input 
-                type="text" 
-                id="newProductSearch" 
-                placeholder="Search by name or code..." 
+              <input
+                type="text"
+                id="newProductSearch"
+                placeholder="Search by name or code..."
                 autocomplete="off"
                 class="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all hover:border-slate-300"
               />
@@ -284,6 +289,26 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
               </svg>
               Add
+            </button>
+          </div>
+          <div id="outsourcedAddSection" class="hidden space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <input type="text" id="outsourcedName" placeholder="Product name *" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="text" id="outsourcedBrand" placeholder="Brand" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="text" id="outsourcedModel" placeholder="Model No" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="text" id="outsourcedHsn" placeholder="HSN Code" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="number" id="outsourcedTax" placeholder="Tax %" min="0" step="0.01" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="number" id="outsourcedWarranty" placeholder="Warranty (months)" min="0" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="text" id="outsourcedUom" placeholder="UOM (e.g. pcs, box)" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="number" id="outsourcedPrice" placeholder="Unit Price *" min="0" step="0.01" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="number" id="outsourcedQty" placeholder="Quantity *" min="1" value="1" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+            </div>
+            <textarea id="outsourcedDescription" placeholder="Description (optional)" rows="2" class="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"></textarea>
+            <button id="addOutsourcedProductBtn" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Add Outsourced Product
             </button>
           </div>
         </div>
@@ -786,7 +811,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // Step 2: Fetch junction table data for custom prices and quantities
         console.log('[QUOTE DETAIL] Step 2: Fetching custom prices from junction table...');
         const junctionResponse = await fetch(
-          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,Discount,Discount%20Rs,nc_76_d__Products_id`,
+          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Quantity,Custom%20Unit%20Price,Discount,Discount%20Rs,nc_76_d__Products_id,Is%20Outsourced,Custom%20Product%20Name,Custom%20HSN,Custom%20Tax,Custom%20Description,Custom%20Brand,Custom%20Model%20No,Custom%20Warranty,Custom%20UOM`,
           {
             method: 'GET',
             headers: {
@@ -806,59 +831,83 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           console.warn('[QUOTE DETAIL] Failed to fetch junction records - products will show without custom pricing');
         }
 
-        // Step 3: Merge catalog products with junction data by product ID
+        // Step 3: Merge catalog products with junction data. Junction records are the
+        // source of truth for line items (some may have no catalog link — outsourced products).
         console.log('[QUOTE DETAIL] Step 3: Merging catalog and junction data...');
-        productRecords = catalogProducts.map((catalogProduct: any) => {
-          const productId = catalogProduct.id;
-          
-          // Find matching junction record by product ID
-          const junctionMatch = junctionRecords.find(
-            (jr: any) => jr.fields['nc_76_d__Products_id'] === productId
-          );
+        const catalogMap = new Map<number, any>(catalogProducts.map((cp: any) => [cp.id, cp]));
+        const matchedProductIds = new Set<number>();
 
-          if (junctionMatch) {
-            console.log(`[QUOTE DETAIL] Found junction match for product ${productId}:`, junctionMatch);
-            const discount = Number(junctionMatch.fields['Discount']) || 0;
-            const discountRs = junctionMatch.fields['Discount Rs'] != null ? Number(junctionMatch.fields['Discount Rs']) : null;
+        productRecords = junctionRecords.map((jr: any) => {
+          const productId = jr.fields['nc_76_d__Products_id'] ?? null;
+          if (productId) matchedProductIds.add(productId);
+          const isOutsourced = !!jr.fields['Is Outsourced'] || !productId;
+          const discount = Number(jr.fields['Discount']) || 0;
+          const discountRs = jr.fields['Discount Rs'] != null ? Number(jr.fields['Discount Rs']) : null;
+
+          const common = {
+            junctionId: jr.id,
+            productId,
+            quantity: jr.fields['Quantity'] || 1,
+            customUnitPrice: jr.fields['Custom Unit Price'],
+            discount,
+            discountRs,
+            catalogUnitPrice: null,
+            isOutsourced,
+          };
+
+          if (isOutsourced) {
             return {
-              junctionId: junctionMatch.id,
-              productId: productId,
-              quantity: junctionMatch.fields['Quantity'] || 1,
-              customUnitPrice: junctionMatch.fields['Custom Unit Price'],
-              discount: discount,
-              discountRs: discountRs,
-              catalogUnitPrice: null, // Not fetched from catalog anymore
-              productName: catalogProduct.fields['Product Name'],
-              brand: catalogProduct.fields['Brand'],
-              hsnCode: catalogProduct.fields['HSN/SAC Code'],
+              ...common,
+              productName: jr.fields['Custom Product Name'] || 'Outsourced Product',
+              brand: jr.fields['Custom Brand'] || '',
+              hsnCode: jr.fields['Custom HSN'] || '',
               model: '',
-              productCode: catalogProduct.fields['Model No'],
-              tax: catalogProduct.fields['Tax'],
-              description: catalogProduct.fields['Description'],
-              uom: catalogProduct.fields['Unit of Measurement UOM'] || '',
-              warranty: catalogProduct.fields['warranty'] ?? null
-            };
-          } else {
-            console.warn(`[QUOTE DETAIL] No junction record found for product ${productId} - using defaults`);
-            return {
-              junctionId: null,
-              productId: productId,
-              quantity: 1,
-              customUnitPrice: null,
-              discount: 0,
-              discountRs: null,
-              catalogUnitPrice: null,
-              productName: catalogProduct.fields['Product Name'],
-              brand: catalogProduct.fields['Brand'],
-              hsnCode: catalogProduct.fields['HSN/SAC Code'],
-              model: '',
-              productCode: catalogProduct.fields['Model No'],
-              tax: catalogProduct.fields['Tax'],
-              description: catalogProduct.fields['Description'],
-              uom: catalogProduct.fields['Unit of Measurement UOM'] || '',
-              warranty: catalogProduct.fields['warranty'] ?? null
+              productCode: jr.fields['Custom Model No'] || '',
+              tax: jr.fields['Custom Tax'] || 0,
+              description: jr.fields['Custom Description'] || '',
+              uom: jr.fields['Custom UOM'] || '',
+              warranty: jr.fields['Custom Warranty'] ?? null,
             };
           }
+
+          const catalogProduct = catalogMap.get(productId);
+          return {
+            ...common,
+            productName: catalogProduct?.fields?.['Product Name'] || 'Unnamed Product',
+            brand: catalogProduct?.fields?.['Brand'],
+            hsnCode: catalogProduct?.fields?.['HSN/SAC Code'],
+            model: '',
+            productCode: catalogProduct?.fields?.['Model No'],
+            tax: catalogProduct?.fields?.['Tax'],
+            description: catalogProduct?.fields?.['Description'],
+            uom: catalogProduct?.fields?.['Unit of Measurement UOM'] || '',
+            warranty: catalogProduct?.fields?.['warranty'] ?? null
+          };
+        });
+
+        // Legacy fallback: catalog products linked via the links table but missing a junction row
+        catalogProducts.forEach((catalogProduct: any) => {
+          if (matchedProductIds.has(catalogProduct.id)) return;
+          console.warn(`[QUOTE DETAIL] No junction record found for product ${catalogProduct.id} - using defaults`);
+          productRecords.push({
+            junctionId: null,
+            productId: catalogProduct.id,
+            quantity: 1,
+            customUnitPrice: null,
+            discount: 0,
+            discountRs: null,
+            catalogUnitPrice: null,
+            isOutsourced: false,
+            productName: catalogProduct.fields['Product Name'],
+            brand: catalogProduct.fields['Brand'],
+            hsnCode: catalogProduct.fields['HSN/SAC Code'],
+            model: '',
+            productCode: catalogProduct.fields['Model No'],
+            tax: catalogProduct.fields['Tax'],
+            description: catalogProduct.fields['Description'],
+            uom: catalogProduct.fields['Unit of Measurement UOM'] || '',
+            warranty: catalogProduct.fields['warranty'] ?? null
+          });
         });
 
         console.log('[QUOTE DETAIL] Merged product records:', productRecords.length);
@@ -1455,6 +1504,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         selectedNewProduct = null;
         const addBtn = document.getElementById('addProductToQuoteBtn') as HTMLButtonElement;
         if (addBtn) addBtn.disabled = true;
+        document.getElementById('outsourcedAddSection')?.classList.add('hidden');
+        document.getElementById('catalogAddSection')?.classList.remove('hidden');
+        const toggleBtn = document.getElementById('toggleOutsourcedBtn') as HTMLButtonElement;
+        if (toggleBtn) toggleBtn.textContent = '+ Add outsourced product';
       }
       
       renderProducts();
@@ -1942,6 +1995,104 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         showToast('Failed to add product. Please try again.', 'error');
       }
     }
+
+    /**
+     * Add an outsourced product (not in the Products catalog) directly to the
+     * ProductsForQuotes junction table. No catalog link is created — the
+     * "Products" field is left empty and custom fields carry the line item data.
+     */
+    async function addOutsourcedProduct() {
+      const nameInput = document.getElementById('outsourcedName') as HTMLInputElement;
+      const brandInput = document.getElementById('outsourcedBrand') as HTMLInputElement;
+      const modelInput = document.getElementById('outsourcedModel') as HTMLInputElement;
+      const hsnInput = document.getElementById('outsourcedHsn') as HTMLInputElement;
+      const taxInput = document.getElementById('outsourcedTax') as HTMLInputElement;
+      const warrantyInput = document.getElementById('outsourcedWarranty') as HTMLInputElement;
+      const uomInput = document.getElementById('outsourcedUom') as HTMLInputElement;
+      const priceInput = document.getElementById('outsourcedPrice') as HTMLInputElement;
+      const qtyInput = document.getElementById('outsourcedQty') as HTMLInputElement;
+      const descInput = document.getElementById('outsourcedDescription') as HTMLTextAreaElement;
+
+      const name = nameInput.value.trim();
+      const price = parseFloat(priceInput.value);
+      const qty = parseInt(qtyInput.value || '1');
+
+      if (!name || !price || !qty) {
+        showToast('Please fill in product name, unit price and quantity', 'error');
+        return;
+      }
+
+      try {
+        const junctionPayload = {
+          fields: {
+            'Quotes': parseInt(quoteId!),
+            'Quantity': qty,
+            'Custom Unit Price': price,
+            'Is Outsourced': true,
+            'Custom Product Name': name,
+            'Custom Brand': brandInput.value.trim() || null,
+            'Custom Model No': modelInput.value.trim() || null,
+            'Custom HSN': hsnInput.value.trim() || null,
+            'Custom Tax': taxInput.value ? parseFloat(taxInput.value) : null,
+            'Custom Warranty': warrantyInput.value ? parseInt(warrantyInput.value) : null,
+            'Custom UOM': uomInput.value.trim() || null,
+            'Custom Description': descInput.value.trim() || null,
+          }
+        };
+
+        const response = await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(junctionPayload)
+        });
+
+        if (response.status === 401) { logout(); return; }
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[ADD OUTSOURCED] Failed to create junction record:', errorText);
+          throw new Error('Failed to add outsourced product');
+        }
+
+        // Clear form
+        nameInput.value = '';
+        brandInput.value = '';
+        modelInput.value = '';
+        hsnInput.value = '';
+        taxInput.value = '';
+        warrantyInput.value = '';
+        uomInput.value = '';
+        priceInput.value = '';
+        qtyInput.value = '1';
+        descInput.value = '';
+
+        await loadQuoteDetails();
+        const newTotal = calculateTotal();
+        await updateQuote({ "Total Amount": newTotal });
+
+        showToast('Outsourced product added', 'success');
+      } catch (error) {
+        console.error('Error adding outsourced product:', error);
+        showToast('Failed to add outsourced product. Please try again.', 'error');
+      }
+    }
+
+    document.getElementById('toggleOutsourcedBtn')?.addEventListener('click', () => {
+      const catalogSection = document.getElementById('catalogAddSection') as HTMLDivElement;
+      const outsourcedSection = document.getElementById('outsourcedAddSection') as HTMLDivElement;
+      const toggleBtn = document.getElementById('toggleOutsourcedBtn') as HTMLButtonElement;
+      const showingOutsourced = !outsourcedSection.classList.contains('hidden');
+      if (showingOutsourced) {
+        outsourcedSection.classList.add('hidden');
+        catalogSection.classList.remove('hidden');
+        toggleBtn.textContent = '+ Add outsourced product';
+      } else {
+        outsourcedSection.classList.remove('hidden');
+        catalogSection.classList.add('hidden');
+        toggleBtn.textContent = '← Search catalog instead';
+      }
+    });
+
+    document.getElementById('addOutsourcedProductBtn')?.addEventListener('click', addOutsourcedProduct);
 
     /**
      * Search products with debounce
@@ -2831,7 +2982,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         // Step 4: Fetch current line items from ProductsForQuotes
         const lineItemsResponse = await fetch(
-          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Quantity,Custom%20Unit%20Price,Discount,nc_76_d__Products_id`,
+          `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Quantity,Custom%20Unit%20Price,Discount,Discount%20Rs,nc_76_d__Products_id,Is%20Outsourced,Custom%20Product%20Name,Custom%20HSN,Custom%20Tax,Custom%20Description,Custom%20Brand,Custom%20Model%20No,Custom%20Warranty,Custom%20UOM`,
           {
             method: 'GET',
             headers: {
@@ -2872,18 +3023,32 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const quantity = item.fields['Quantity'] || 1;
           const customPrice = item.fields['Custom Unit Price'];
           const discount = item.fields['Discount'] || 0;
+          const discountRs = item.fields['Discount Rs'];
+          const isOutsourced = !!item.fields['Is Outsourced'] || !productId;
 
-          if (!productId) continue;
-
-          const lineItemPayload = {
-            fields: {
-              'Quotes': newQuoteId,
-              'Products': productId,
-              'Quantity': quantity,
-              'Custom Unit Price': customPrice,
-              'Discount': discount
-            }
+          const lineItemFields: Record<string, any> = {
+            'Quotes': newQuoteId,
+            'Quantity': quantity,
+            'Custom Unit Price': customPrice,
+            'Discount': discount
           };
+          if (discountRs != null) lineItemFields['Discount Rs'] = discountRs;
+
+          if (isOutsourced) {
+            lineItemFields['Is Outsourced'] = true;
+            lineItemFields['Custom Product Name'] = item.fields['Custom Product Name'];
+            lineItemFields['Custom Brand'] = item.fields['Custom Brand'];
+            lineItemFields['Custom Model No'] = item.fields['Custom Model No'];
+            lineItemFields['Custom HSN'] = item.fields['Custom HSN'];
+            lineItemFields['Custom Tax'] = item.fields['Custom Tax'];
+            lineItemFields['Custom Warranty'] = item.fields['Custom Warranty'];
+            lineItemFields['Custom UOM'] = item.fields['Custom UOM'];
+            lineItemFields['Custom Description'] = item.fields['Custom Description'];
+          } else {
+            lineItemFields['Products'] = productId;
+          }
+
+          const lineItemPayload = { fields: lineItemFields };
 
           // Creating line item
           const lineItemResponse = await fetch(`${API_BASE_URL}/proxy/products_for_quotes/records`, {

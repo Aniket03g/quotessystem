@@ -25,7 +25,9 @@
       "Bash(sqlite3 proxy/users.db \".schema users\")",
       "Bash(sqlite3 proxy/users.db \"SELECT id, name, email, role FROM users LIMIT 20;\")",
       "Bash(sqlite3 proxy/users.db \".tables\")",
-      "Bash(sqlite3 proxy/users.db \"SELECT id, email, role FROM users LIMIT 30;\")"
+      "Bash(sqlite3 proxy/users.db \"SELECT id, email, role FROM users LIMIT 30;\")",
+      "PowerShell(cd \"D:\\\\GROVE SYSTEMS\\\\working proxy - Leads\\\\csv\"; $env:JWT_TOKEN = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWRtaW4tMDAxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzgyOTczNDA3LCJpYXQiOjE3ODI4ODcwMDd9.D-LWzId4GbUQrbKJeFHXWUMZucjnIaJv8AlY9zbbKss\"; $env:PROXY_URL = \"http://148.135.136.1:8082\"; node fix-account-types.mjs --audit)",
+      "PowerShell(cd \"D:\\\\GROVE SYSTEMS\\\\working proxy - Leads\\\\csv\"; $env:JWT_TOKEN = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiYWRtaW4tMDAxIiwicm9sZSI6ImFkbWluIiwiZXhwIjoxNzgyOTczNDA3LCJpYXQiOjE3ODI4ODcwMDd9.D-LWzId4GbUQrbKJeFHXWUMZucjnIaJv8AlY9zbbKss\"; $env:PROXY_URL = \"http://148.135.136.1:8082\"; node fix-account-types.mjs --fix)"
     ]
   }
 }
