@@ -58,6 +58,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <option value="Dealer">Dealer</option>
       </select>
 
+      <!-- Created By Filter (admin only) -->
+      <select
+        id="creatorFilter"
+        class="hidden px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[180px]"
+      >
+        <option value="">All Creators</option>
+      </select>
+
       <!-- Sort -->
       <select
         id="sortBy"
@@ -201,16 +209,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const searchInput = document.getElementById('searchInput') as HTMLInputElement;
     const statusFilter = document.getElementById('statusFilter') as HTMLSelectElement;
     const typeFilter = document.getElementById('typeFilter') as HTMLSelectElement;
+    const creatorFilter = document.getElementById('creatorFilter') as HTMLSelectElement;
     const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
     const resetFilters = document.getElementById('resetFilters') as HTMLButtonElement;
     const searchStatus = document.getElementById('searchStatus') as HTMLSpanElement;
 
+    const isAdminUser = getUserRole() === 'admin' || getUserRole() === 'super_admin';
     let latestQuotes: any[] = [];
+    let userNameByEmail: Record<string, string> = {};
 
     function applyFilters() {
       const term = searchInput.value.toLowerCase().trim();
       const status = statusFilter.value;
       const type = typeFilter.value;
+      const creator = creatorFilter.value;
       const sort = sortBy.value;
 
       let result = latestQuotes.filter((record: any) => {
@@ -227,6 +239,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (type) {
           const quoteType = (fields['Quote Type'] || '').trim();
           if (quoteType !== type) return false;
+        }
+
+        if (creator) {
+          const createdBy = (fields['Quote Created By'] || '').trim();
+          if (creator === '__unknown__') { if (createdBy) return false; }
+          else if (createdBy !== creator) return false;
         }
 
         return true;
@@ -264,11 +282,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     searchInput.addEventListener('input', applyFilters);
     statusFilter.addEventListener('change', applyFilters);
     typeFilter.addEventListener('change', applyFilters);
+    creatorFilter.addEventListener('change', applyFilters);
     sortBy.addEventListener('change', applyFilters);
     resetFilters.addEventListener('click', () => {
       searchInput.value = '';
       statusFilter.value = '';
       typeFilter.value = '';
+      creatorFilter.value = '';
       sortBy.value = 'date-desc';
       applyFilters();
     });
@@ -435,6 +455,31 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         });
 
         latestQuotes = allQuotes.filter((quote: any) => !parentQuoteIds.has(quote.id));
+
+        // Created By filter (admin only): resolve creator emails to names + populate dropdown
+        if (isAdminUser) {
+          try {
+            const usersRes = await fetch(`${API_BASE_URL}/api/admin/users`, {
+              headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            });
+            if (usersRes.ok) {
+              const usersData = await usersRes.json();
+              const users = usersData.users || usersData || [];
+              userNameByEmail = {};
+              for (const u of users) {
+                if (u.email) userNameByEmail[u.email] = u.name || u.email;
+              }
+            }
+          } catch { /* non-fatal: fall back to raw emails */ }
+
+          const creators = [...new Set(latestQuotes.map((q: any) => (q.fields?.['Quote Created By'] || '').trim()).filter(Boolean) as string[])]
+            .sort((a, b) => (userNameByEmail[a] || a).localeCompare(userNameByEmail[b] || b));
+          const hasUnknown = latestQuotes.some((q: any) => !(q.fields?.['Quote Created By'] || '').trim());
+          creatorFilter.innerHTML = '<option value="">All Creators</option>'
+            + creators.map(email => `<option value="${email}">${userNameByEmail[email] || email}</option>`).join('')
+            + (hasUnknown ? '<option value="__unknown__">Unknown</option>' : '');
+          creatorFilter.classList.remove('hidden');
+        }
 
         loadingDiv.classList.add('hidden');
         applyFilters();

@@ -62,3 +62,13 @@ csv/sheet3_unmatched_salespersons.json
 
 # Local Excel files
 csv/aniket dealer customer list with salesperson.xlsx
+
+csv/_makexlsx.mjs
+csv/assign-handledby-sheets12.mjs
+csv/sheets12_assign_combos.json
+csv/sheets12_assign_conflicts.json
+csv/sheets12_assign_nonname.json
+csv/sheets12_assign_plan.json
+csv/sheets12_assign_unmatched_user.json
+csv/sheets12_assignment_issues.xlsx
+csv/~$sheets12_assignment_issues.xlsx

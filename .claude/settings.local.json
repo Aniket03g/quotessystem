@@ -42,7 +42,12 @@
       "Bash(node import-sheet3.mjs --import --limit=10)",
       "Bash(node import-sheet3.mjs --import)",
       "Bash(taskkill //F //IM node.exe //FI \"WINDOWTITLE eq *astro*\")",
-      "Bash(pkill -f \"astro dev\")"
+      "Bash(pkill -f \"astro dev\")",
+      "Bash(grep -E \"pages[/\\\\\\\\\\\\\\\\]quotes\\\\.astro\")",
+      "Bash(node assign-handledby-sheets12.mjs --audit)",
+      "Bash(node assign-handledby-sheets12.mjs --fix --limit=10)",
+      "Bash(node assign-handledby-sheets12.mjs --fix)",
+      "Bash(node _makexlsx.mjs)"
     ]
   }
 }
