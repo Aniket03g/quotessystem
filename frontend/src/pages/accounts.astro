@@ -83,6 +83,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <option value="">All States</option>
       </select>
 
+      <!-- Assigned To filter (admin only) -->
+      <select id="assignedFilter" class="hidden px-3 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-w-[170px]">
+        <option value="">All Assignees</option>
+      </select>
+
       <!-- Sort -->
       <select id="sortBy" class="px-3 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-w-[170px]">
         <option value="">Sort: Default</option>
@@ -208,6 +213,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const tableView = document.getElementById('tableView') as HTMLDivElement;
       const typeFilter = document.getElementById('typeFilter') as HTMLSelectElement;
       const stateFilter = document.getElementById('stateFilter') as HTMLSelectElement;
+      const assignedFilter = document.getElementById('assignedFilter') as HTMLSelectElement;
       const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
       const resetFiltersBtn = document.getElementById('resetFilters') as HTMLButtonElement;
 
@@ -291,6 +297,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const states = [...new Set(allAccounts.map((a: any) => a.fields?.['Billing State']).filter(Boolean) as string[])].sort();
           stateFilter.innerHTML = '<option value="">All States</option>' + states.map(s => `<option value="${s}">${s}</option>`).join('');
 
+          // Populate Assigned To dropdown (admin only) from Handled By values in the data
+          if (isAdminUser) {
+            const assignees = [...new Set(allAccounts.map((a: any) => (a.fields?.['Handled By'] || '').trim()).filter(Boolean) as string[])]
+              .sort((a, b) => (userNameByEmail[a] || a).localeCompare(userNameByEmail[b] || b));
+            const hasUnassigned = allAccounts.some((a: any) => !(a.fields?.['Handled By'] || '').trim());
+            assignedFilter.innerHTML = '<option value="">All Assignees</option>'
+              + assignees.map(email => `<option value="${email}">${userNameByEmail[email] || email}</option>`).join('')
+              + (hasUnassigned ? '<option value="__unassigned__">Unassigned</option>' : '');
+            assignedFilter.classList.remove('hidden');
+          }
+
           applyFilters();
         } catch (error) {
           console.error('[ACCOUNT LOAD ERROR]', error);
@@ -305,6 +322,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const search = searchInput.value.trim().toLowerCase();
         const type = typeFilter.value;
         const state = stateFilter.value;
+        const assignee = assignedFilter.value;
         const sort = sortBy.value;
 
         let result = allAccounts.filter((r: any) => {
@@ -312,6 +330,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           if (search && !(f['Account Name'] || '').toLowerCase().includes(search)) return false;
           if (type && f['Account Type'] !== type) return false;
           if (state && f['Billing State'] !== state) return false;
+          if (assignee) {
+            const handledBy = (f['Handled By'] || '').trim();
+            if (assignee === '__unassigned__') { if (handledBy) return false; }
+            else if (handledBy !== assignee) return false;
+          }
           return true;
         });
 
@@ -400,11 +423,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyFilters(); });
       typeFilter.addEventListener('change', () => applyFilters());
       stateFilter.addEventListener('change', () => applyFilters());
+      assignedFilter.addEventListener('change', () => applyFilters());
       sortBy.addEventListener('change', () => applyFilters());
       resetFiltersBtn.addEventListener('click', () => {
         searchInput.value = '';
         typeFilter.value = '';
         stateFilter.value = '';
+        assignedFilter.value = '';
         sortBy.value = '';
         applyFilters();
       });

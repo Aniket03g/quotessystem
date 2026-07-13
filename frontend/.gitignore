@@ -24,3 +24,15 @@ pnpm-debug.log*
 *.swp
 *.swo
 *~
+
+# CSV import scripts
+csv/_compare.mjs
+csv/_users.mjs
+csv/import-sheet3.mjs
+
+# Generated JSON files
+csv/sheet3_two_name_salespersons.json
+csv/sheet3_unmatched_salespersons.json
+
+# Local Excel files
+csv/aniket dealer customer list with salesperson.xlsx

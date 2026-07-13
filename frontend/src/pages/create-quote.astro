@@ -627,7 +627,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       // Fetch full account details with the specified fields
       try {
         const response = await fetch(
-          `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=Company Name,Phone Number,Billing Street,Billing City,Shipping City`,
+          `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=Company Name,Phone Number,Billing Street,Billing City,Shipping City,Account Type`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -646,6 +646,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         billingStreetInput.value = fields['Billing Street'] || '';
         billingCityInput.value = fields['Billing City'] || '';
         shippingCityInput.value = fields['Shipping City'] || '';
+
+        // Auto-set Quote Type based on the account's Account Type
+        const accountType = (fields['Account Type'] || '').trim();
+        if (accountType === 'Customer' || accountType === 'Dealer') {
+          const quoteTypeSelect = document.getElementById('quoteType') as HTMLSelectElement;
+          quoteTypeSelect.value = accountType === 'Dealer' ? 'Dealer ' : 'Customer';
+          quoteTypeSelect.dispatchEvent(new Event('change'));
+        }
       } catch (error) {
         console.error('Error fetching account details:', error);
         showAlert('Failed to load account details', 'error');
