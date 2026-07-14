@@ -134,6 +134,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">#</th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">QUOTE NAME</th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">DATE</th>
+              <th id="creatorHeader" class="hidden px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">CREATED BY</th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">TOTAL</th>
               <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">SHARED</th>
@@ -329,6 +330,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (status === 'Approved') statusClasses = 'bg-green-100 text-green-800';
         if (status === 'Pending Rs Discount') statusClasses = 'bg-violet-100 text-violet-800';
 
+        const createdBy = (fields['Quote Created By'] || '').trim();
+        // Prefer the resolved user name; if we only have the email, use its local part (before @)
+        const creatorName = userNameByEmail[createdBy] || createdBy.split('@')[0];
+        const creatorFirst = creatorName ? creatorName.split(/[\s._-]+/)[0] : '';
+
         return `
           <tr class="cursor-pointer transition-all hover:bg-blue-50/50 hover:shadow-sm" onclick="window.location.href='/quote-detail?id=${record.id}'">
             <td class="px-3 py-3 text-sm font-medium text-slate-900">${index + 1}</td>
@@ -337,6 +343,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               ${quoteNumber ? `<div class="text-xs text-slate-400 font-normal">${quoteNumber}</div>` : ''}
             </td>
             <td class="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">${date}</td>
+            ${isAdminUser ? `<td class="px-3 py-3 text-xs text-slate-700 whitespace-nowrap">${creatorFirst || '<span class="text-slate-300">—</span>'}</td>` : ''}
             <td class="px-3 py-3">
               <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusClasses}">
                 ${status}
@@ -479,6 +486,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             + creators.map(email => `<option value="${email}">${userNameByEmail[email] || email}</option>`).join('')
             + (hasUnknown ? '<option value="__unknown__">Unknown</option>' : '');
           creatorFilter.classList.remove('hidden');
+          document.getElementById('creatorHeader')?.classList.remove('hidden');
         }
 
         loadingDiv.classList.add('hidden');
