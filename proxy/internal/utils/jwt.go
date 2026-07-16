@@ -9,15 +9,17 @@ import (
 
 type Claims struct {
 	UserID             string `json:"user_id"`
+	Email              string `json:"email,omitempty"`
 	Role               string `json:"role"`
 	MustChangePassword bool   `json:"must_change_password,omitempty"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT creates a new JWT token with user claims
-func GenerateJWT(userID, role, secret string) (string, error) {
+func GenerateJWT(userID, email, role, secret string) (string, error) {
 	claims := Claims{
 		UserID: userID,
+		Email:  email,
 		Role:   role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
@@ -30,9 +32,10 @@ func GenerateJWT(userID, role, secret string) (string, error) {
 }
 
 // GenerateJWTWithPasswordFlag creates a new JWT token with user claims including must_change_password flag
-func GenerateJWTWithPasswordFlag(userID, role string, mustChangePassword bool, secret string) (string, error) {
+func GenerateJWTWithPasswordFlag(userID, email, role string, mustChangePassword bool, secret string) (string, error) {
 	claims := Claims{
 		UserID:             userID,
+		Email:              email,
 		Role:               role,
 		MustChangePassword: mustChangePassword,
 		RegisteredClaims: jwt.RegisteredClaims{

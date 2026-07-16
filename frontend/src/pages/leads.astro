@@ -627,16 +627,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const userEmail = getUserEmail();
         const userRole = getUserRole();
         
-        let url = `${API_BASE_URL}/proxy/leads/records`;
-        
-        if (userRole === 'admin' || userRole === 'super_admin') {
-          console.log('[LEADS] Admin/super_admin user - loading all leads');
-        } else {
-          const rawWhere = `(Lead Created By,eq,${userEmail})~or(Assigned to,eq,${userEmail})`;
-          url = `${url}?where=${encodeURIComponent(rawWhere)}`;
-          console.log('[LEADS] Loading leads for user:', userEmail);
-        }
-        
+        // Row-level scoping is enforced server-side by the proxy (non-admins are
+        // restricted to leads they created or are assigned to). No owner filter here.
+        const url = `${API_BASE_URL}/proxy/leads/records`;
+
         console.log('[LEADS] Query URL:', url);
         
         const response = await fetch(url, {

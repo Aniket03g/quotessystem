@@ -428,12 +428,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const userEmail = getUserEmail();
         const userRole = getUserRole();
 
-        let url = `${API_BASE_URL}/proxy/quotes/records`;
-
-        if (userRole !== 'admin' && userRole !== 'super_admin') {
-          const encodedWhere = encodeURIComponent(`(Quote Created By,eq,${userEmail})`);
-          url = `${url}?where=${encodedWhere}`;
-        }
+        // Row-level scoping is enforced server-side by the proxy (non-admins are
+        // restricted to quotes they created). Do not add an owner filter here.
+        const url = `${API_BASE_URL}/proxy/quotes/records`;
 
         const response = await fetch(url, {
           method: 'GET',

@@ -109,6 +109,7 @@ func (h *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	// with must_change_password=true are effectively invalidated
 	token, err := utils.GenerateJWTWithPasswordFlag(
 		fmt.Sprintf("%d", userID),
+		user.Email,
 		user.Role,
 		false, // must_change_password is now false
 		h.jwtSecret,

@@ -15,6 +15,7 @@ type contextKey string
 const (
 	UserIDKey contextKey = "user_id"
 	RoleKey   contextKey = "role"
+	EmailKey  contextKey = "email"
 )
 
 // AuthMiddleware validates JWT tokens and extracts user claims
@@ -54,6 +55,7 @@ func AuthMiddleware(jwtSecret string) func(http.Handler) http.Handler {
 			// Add claims to request context
 			ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
 			ctx = context.WithValue(ctx, RoleKey, claims.Role)
+			ctx = context.WithValue(ctx, EmailKey, claims.Email)
 			log.Printf("[AUTH] Authentication successful, proceeding to next handler")
 
 			next.ServeHTTP(w, r.WithContext(ctx))

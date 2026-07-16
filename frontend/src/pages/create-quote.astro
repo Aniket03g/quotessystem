@@ -564,12 +564,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       accountDropdown.classList.remove('hidden');
 
       try {
-        const isAdmin = getUserRole() === 'admin' || getUserRole() === 'super_admin';
-        const userEmail = getUserEmail();
-        const whereBase = `(Company Name,like,${encodeURIComponent(query)})`;
-        const whereClause = (!isAdmin && userEmail)
-          ? `${whereBase}~and(Handled By,eq,${encodeURIComponent(userEmail)})`
-          : whereBase;
+        // Owner scoping (non-admins search only their own accounts) is enforced
+        // server-side by the proxy — only the name-search filter is sent here.
+        const whereClause = `(Company Name,like,${encodeURIComponent(query)})`;
         const response = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?where=${whereClause}&limit=50`, {
           headers: {
             'Authorization': `Bearer ${token}`,

@@ -259,9 +259,32 @@ func main() {
 	)
 	mux.Handle("/api/secure/ping", protectedPingHandler)
 
+	// Build ownership rules (table key -> owner/public columns) from the proxy
+	// config. This drives server-side row-level ownership filtering; tables
+	// without owner_fields stay unrestricted.
+	ownerRules := map[string]middleware.OwnerRule{}
+	if proxyConfig != nil {
+		for key, tbl := range proxyConfig.Tables {
+			if len(tbl.OwnerFields) > 0 {
+				ownerRules[key] = middleware.OwnerRule{
+					Fields:           tbl.OwnerFields,
+					PublicReadFields: tbl.PublicReadFields,
+				}
+			}
+		}
+	}
+	if len(ownerRules) == 0 {
+		log.Printf("[STARTUP WARN] No owner_fields configured - row-level ownership filtering is INACTIVE")
+	} else {
+		log.Printf("[STARTUP] Row-level ownership filtering active for %d table(s)", len(ownerRules))
+		for k, rule := range ownerRules {
+			log.Printf("[STARTUP]    %s: owner=%v public=%v", k, rule.Fields, rule.PublicReadFields)
+		}
+	}
+
 	// Protected proxy endpoints (ONLY data access path)
 	protectedHandler := middleware.AuthMiddleware(cfg.JWTSecret)(
-		middleware.AuthorizeMiddleware(proxyHandler),
+		middleware.AuthorizeMiddleware(ownerRules, database, proxyHandler),
 	)
 	mux.Handle("/proxy/", protectedHandler)
 
@@ -354,6 +377,7 @@ func loginHandler(database *db.Database, jwtSecret string) http.HandlerFunc {
 			// Generate JWT with must_change_password flag if needed
 			token, err := utils.GenerateJWTWithPasswordFlag(
 				fmt.Sprintf("%d", dbUser.ID),
+				dbUser.Email,
 				dbUser.Role,
 				dbUser.MustChangePassword,
 				jwtSecret,
@@ -387,7 +411,7 @@ func loginHandler(database *db.Database, jwtSecret string) http.HandlerFunc {
 
 		// Generate JWT
 		log.Printf("[LOGIN] Generating JWT token...")
-		token, err := utils.GenerateJWT(user.UserID, user.Role, jwtSecret)
+		token, err := utils.GenerateJWT(user.UserID, req.Email, user.Role, jwtSecret)
 		if err != nil {
 			log.Printf("[LOGIN ERROR] Failed to generate JWT: %v", err)
 			respondWithError(w, http.StatusInternalServerError, "failed to generate token")
@@ -467,7 +491,7 @@ func signupHandler(database *db.Database, jwtSecret string) http.HandlerFunc {
 		log.Printf("[SIGNUP] User created successfully: ID=%d, Email=%s", user.ID, user.Email)
 
 		// Generate JWT token
-		token, err := utils.GenerateJWT(fmt.Sprintf("%d", user.ID), user.Role, jwtSecret)
+		token, err := utils.GenerateJWT(fmt.Sprintf("%d", user.ID), user.Email, user.Role, jwtSecret)
 		if err != nil {
 			log.Printf("[SIGNUP ERROR] Failed to generate JWT: %v", err)
 			respondWithError(w, http.StatusInternalServerError, "failed to generate token")

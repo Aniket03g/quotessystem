@@ -232,10 +232,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
           const userEmail = getUserEmail();
           const userRole = getUserRole();
-          let accountsUrl = `${API_BASE_URL}/proxy/accounts_duplicate/records`;
-          if (userRole !== 'admin' && userRole !== 'super_admin') {
-            accountsUrl += `?where=${encodeURIComponent(`(Handled By,eq,${userEmail})`)}`;
-          }
+          // Row-level scoping is enforced server-side by the proxy (non-admins
+          // are restricted to their own accounts). Do not add an owner filter here.
+          const accountsUrl = `${API_BASE_URL}/proxy/accounts_duplicate/records`;
 
           const [accountsRes, contactsRes, usersRes] = await Promise.all([
             fetch(accountsUrl, { headers }),

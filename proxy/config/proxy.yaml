@@ -7,6 +7,10 @@ tables:
   quotes:
     name: "Quotes"
     operations: [read, create, update, delete, link]
+    owner_fields: ["Quote Created By"]
+    # Quote-number sequencing must count all quotes globally; exposing only the
+    # sequence identifier is safe and required for correct numbering.
+    public_read_fields: ["Quote Number"]
 
   products:
     name: "Products"
@@ -39,8 +43,10 @@ tables:
   accounts_duplicate:
     name: "Accounts Duplicate"
     operations: [read, create, update, delete, link]
+    owner_fields: ["Handled By"]
 
   leads:
     name: "Leads"
     operations: [read, create, update, delete, link]
+    owner_fields: ["Lead Created By", "Assigned to"]
 
