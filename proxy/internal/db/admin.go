@@ -11,12 +11,12 @@ import (
 
 // CreateUserByAdmin creates a new user with a temporary password (admin-only operation)
 // Returns the created user and the plaintext temporary password
-func (d *Database) CreateUserByAdmin(email, name, role string) (*User, string, error) {
-	log.Printf("[DB] Admin creating user: email=%s, role=%s", email, role)
+func (d *Database) CreateUserByAdmin(email, name, role, managerEmail string) (*User, string, error) {
+	log.Printf("[DB] Admin creating user: email=%s, role=%s, manager=%q", email, role, managerEmail)
 
 	// Validate role
-	if role != "user" && role != "admin" && role != "super_admin" {
-		return nil, "", fmt.Errorf("invalid role: must be 'user', 'admin', or 'super_admin'")
+	if role != "user" && role != "admin" && role != "super_admin" && role != "manager" {
+		return nil, "", fmt.Errorf("invalid role: must be 'user', 'manager', 'admin', or 'super_admin'")
 	}
 
 	// Check if user already exists
@@ -40,10 +40,16 @@ func (d *Database) CreateUserByAdmin(email, name, role string) (*User, string, e
 		return nil, "", fmt.Errorf("failed to hash password: %w", err)
 	}
 
+	// Normalize manager linkage: only a non-empty value is stored.
+	var managerVal interface{}
+	if managerEmail != "" {
+		managerVal = managerEmail
+	}
+
 	// Insert new user with must_change_password = true
 	result, err := d.db.Exec(
-		"INSERT INTO users (email, provider, name, password_hash, role, must_change_password) VALUES (?, ?, ?, ?, ?, ?)",
-		email, "local", name, string(hashedPassword), role, true,
+		"INSERT INTO users (email, provider, name, password_hash, role, must_change_password, manager_email) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		email, "local", name, string(hashedPassword), role, true, managerVal,
 	)
 	if err != nil {
 		log.Printf("[DB ERROR] Failed to insert user: %v", err)

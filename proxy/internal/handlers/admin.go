@@ -21,9 +21,10 @@ func NewAdminHandler(database *db.Database) *AdminHandler {
 }
 
 type CreateUserRequest struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-	Role  string `json:"role"`
+	Email        string `json:"email"`
+	Name         string `json:"name"`
+	Role         string `json:"role"`
+	ManagerEmail string `json:"manager_email"`
 }
 
 type CreateUserResponse struct {
@@ -41,6 +42,7 @@ type UserListItem struct {
 	Role               string `json:"role"`
 	Provider           string `json:"provider"`
 	MustChangePassword bool   `json:"must_change_password"`
+	ManagerEmail       string `json:"manager_email"`
 	CreatedAt          string `json:"created_at"`
 }
 
@@ -93,16 +95,16 @@ func (h *AdminHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusForbidden, "only super admin can create super admin accounts")
 		return
 	}
-	if req.Role != "user" && req.Role != "admin" && req.Role != "super_admin" {
+	if req.Role != "user" && req.Role != "manager" && req.Role != "admin" && req.Role != "super_admin" {
 		log.Printf("[ADMIN ERROR] Invalid role: %s", req.Role)
-		respondWithError(w, http.StatusBadRequest, "role must be 'user', 'admin', or 'super_admin'")
+		respondWithError(w, http.StatusBadRequest, "role must be 'user', 'manager', 'admin', or 'super_admin'")
 		return
 	}
 
-	log.Printf("[ADMIN] Creating user: email=%s, name=%s, role=%s", req.Email, req.Name, req.Role)
+	log.Printf("[ADMIN] Creating user: email=%s, name=%s, role=%s, manager=%q", req.Email, req.Name, req.Role, req.ManagerEmail)
 
 	// Create user with temporary password
-	user, tempPassword, err := h.database.CreateUserByAdmin(req.Email, req.Name, req.Role)
+	user, tempPassword, err := h.database.CreateUserByAdmin(req.Email, req.Name, req.Role, req.ManagerEmail)
 	if err != nil {
 		// Check if user already exists
 		if err.Error() == fmt.Sprintf("user with email %s already exists", req.Email) {
@@ -169,6 +171,7 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 			Role:               user.Role,
 			Provider:           user.Provider,
 			MustChangePassword: user.MustChangePassword,
+			ManagerEmail:       user.ManagerEmail,
 			CreatedAt:          user.CreatedAt.Format("2006-01-02 15:04:05"),
 		})
 	}
@@ -317,8 +320,8 @@ func (h *AdminHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.NewRole != "user" && req.NewRole != "admin" && req.NewRole != "super_admin" {
-		respondWithError(w, http.StatusBadRequest, "new_role must be 'user', 'admin', or 'super_admin'")
+	if req.NewRole != "user" && req.NewRole != "manager" && req.NewRole != "admin" && req.NewRole != "super_admin" {
+		respondWithError(w, http.StatusBadRequest, "new_role must be 'user', 'manager', 'admin', or 'super_admin'")
 		return
 	}
 	// Only super_admin can assign super_admin role
@@ -336,6 +339,36 @@ func (h *AdminHandler) UpdateUserRole(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[ADMIN] Role updated for user %d to %s", req.UserID, req.NewRole)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("role updated to %s", req.NewRole)})
+}
+
+// UpdateUserManager sets or clears which manager a user reports to.
+// PATCH /api/admin/users/manager  { "user_id": 12, "manager_email": "j@co.com" }
+// An empty manager_email clears the linkage.
+func (h *AdminHandler) UpdateUserManager(w http.ResponseWriter, r *http.Request) {
+	callerRole, ok := r.Context().Value(middleware.RoleKey).(string)
+	if !ok || (callerRole != "admin" && callerRole != "super_admin") {
+		respondWithError(w, http.StatusForbidden, "admin access required")
+		return
+	}
+
+	var req struct {
+		UserID       int64  `json:"user_id"`
+		ManagerEmail string `json:"manager_email"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.UserID == 0 {
+		respondWithError(w, http.StatusBadRequest, "user_id is required")
+		return
+	}
+
+	if err := h.database.SetUserManager(req.UserID, req.ManagerEmail); err != nil {
+		log.Printf("[ADMIN ERROR] Failed to set manager for user %d: %v", req.UserID, err)
+		respondWithError(w, http.StatusInternalServerError, "failed to set manager")
+		return
+	}
+
+	log.Printf("[ADMIN] Manager for user %d set to %q", req.UserID, req.ManagerEmail)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"message": "manager updated"})
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {

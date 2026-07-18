@@ -280,7 +280,8 @@ export function logout(): void {
 export interface CreateUserRequest {
   email: string;
   name: string;
-  role: 'user' | 'admin' | 'super_admin';
+  role: 'user' | 'manager' | 'admin' | 'super_admin';
+  manager_email?: string;
 }
 
 export interface CreateUserResponse {
@@ -298,6 +299,7 @@ export interface UserListItem {
   role: string;
   provider: string;
   must_change_password: boolean;
+  manager_email?: string;
   created_at: string;
 }
 
@@ -351,6 +353,30 @@ export async function createUser(data: CreateUserRequest): Promise<CreateUserRes
   }
 
   return await safeJsonParse<CreateUserResponse>(response);
+}
+
+// Admin: set/clear which manager a user reports to (empty string clears it)
+export async function setUserManager(userId: number, managerEmail: string): Promise<void> {
+  const token = getToken();
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/admin/users/manager`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ user_id: userId, manager_email: managerEmail }),
+  });
+
+  if (response.status === 403) {
+    throw new Error('Admin access required');
+  }
+  if (!response.ok) {
+    throw new Error('Failed to update manager');
+  }
 }
 
 export interface ResetPasswordRequest {

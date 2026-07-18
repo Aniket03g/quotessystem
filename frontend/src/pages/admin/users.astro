@@ -223,9 +223,29 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
               >
                 <option value="">Select Department</option>
                 <option value="user">User</option>
+                <option value="manager">Manager</option>
                 <option value="admin">Admin</option>
                 <option value="super_admin">Super Admin</option>
               </select>
+            </div>
+
+            <!-- Reports To (Manager) -->
+            <div>
+              <label for="managerSelect" class="flex items-center gap-2 text-sm font-medium text-slate-700 mb-2">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4z"></path>
+                </svg>
+                Reports To (Manager)
+              </label>
+              <select
+                id="managerSelect"
+                name="managerSelect"
+                class="w-full px-4 py-2.5 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-white text-sm appearance-none cursor-pointer"
+                style="background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27currentColor%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3e%3cpolyline points=%276 9 12 15 18 9%27%3e%3c/polyline%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.25em 1.25em; padding-right: 2.5rem;"
+              >
+                <option value="">— None —</option>
+              </select>
+              <div class="mt-1 text-xs text-slate-500">Optional. Set for team members who report to a manager.</div>
             </div>
           </div>
         </div>
@@ -344,7 +364,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   </div>
 
   <script>
-    import { createUser, listUsers, resetUserPassword, getToken, type CreateUserRequest, type UserListItem } from '../../lib/api';
+    import { createUser, listUsers, resetUserPassword, setUserManager, getToken, type CreateUserRequest, type UserListItem } from '../../lib/api';
     import { requireAdmin, isSuperAdmin } from '../../utils/jwt';
 
     const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
@@ -437,6 +457,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         const response = await listUsers();
         const users = response.users;
 
+        // Managers available to assign as "reports to" (used by create form + row controls)
+        const managers = users.filter(u => u.role === 'manager');
+        const managerSelect = document.getElementById('managerSelect') as HTMLSelectElement | null;
+        if (managerSelect) {
+          managerSelect.innerHTML = '<option value="">— None —</option>'
+            + managers.map(m => `<option value="${m.email}">${m.name ? `${m.name} (${m.email})` : m.email}</option>`).join('');
+        }
+
         totalUsersSpan.textContent = response.total.toString();
 
         if (users.length === 0) {
@@ -455,9 +483,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             ? 'bg-orange-100 text-orange-800'
             : user.role === 'admin'
             ? 'bg-purple-100 text-purple-800'
+            : user.role === 'manager'
+            ? 'bg-teal-100 text-teal-800'
             : 'bg-blue-100 text-blue-800';
 
-          const roleLabel = user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : 'User';
+          const roleLabel = user.role === 'super_admin' ? 'Super Admin' : user.role === 'admin' ? 'Admin' : user.role === 'manager' ? 'Manager' : 'User';
 
           const statusClass = user.must_change_password
             ? 'bg-yellow-100 text-yellow-800'
@@ -467,15 +497,34 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             ? 'Password Reset Required'
             : 'Active';
 
-          // Role options for the change-role dropdown (super_admin can assign any role; admin can only assign user/admin)
+          // Role options for the change-role dropdown (super_admin can assign any role; admin can only assign user/manager/admin)
           const roleOptions = currentUserIsSuperAdmin
-            ? ['user', 'admin', 'super_admin'].filter(r => r !== user.role)
-            : ['user', 'admin'].filter(r => r !== user.role);
+            ? ['user', 'manager', 'admin', 'super_admin'].filter(r => r !== user.role)
+            : ['user', 'manager', 'admin'].filter(r => r !== user.role);
 
           const roleOptionHtml = roleOptions.map(r => {
-            const label = r === 'super_admin' ? 'Super Admin' : r === 'admin' ? 'Admin' : 'User';
+            const label = r === 'super_admin' ? 'Super Admin' : r === 'admin' ? 'Admin' : r === 'manager' ? 'Manager' : 'User';
             return `<button class="change-role-btn block w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 rounded" data-user-id="${user.id}" data-new-role="${r}">${label}</button>`;
           }).join('');
+
+          // "Reports to" manager selector (available for non-admin roles; excludes self)
+          const showReportsTo = user.role === 'user' || user.role === 'manager';
+          const managerOptionsHtml = [
+            `<button class="set-mgr-btn block w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 rounded ${!user.manager_email ? 'font-semibold text-teal-700' : ''}" data-user-id="${user.id}" data-manager-email="">— None —</button>`,
+            ...managers.filter(m => m.email !== user.email).map(m =>
+              `<button class="set-mgr-btn block w-full text-left px-3 py-1.5 text-xs hover:bg-slate-100 rounded ${user.manager_email === m.email ? 'font-semibold text-teal-700' : ''}" data-user-id="${user.id}" data-manager-email="${m.email}">${m.name || m.email}</button>`
+            ),
+          ].join('');
+          const reportsToHtml = showReportsTo ? `
+            <div class="mt-1 flex items-center gap-1 text-xs text-slate-500">
+              <span>Reports to: <span class="font-medium text-slate-700">${user.manager_email || '—'}</span></span>
+              <div class="relative inline-block">
+                <button class="mgr-dropdown-btn text-slate-400 hover:text-slate-700 px-1" data-user-id="${user.id}" title="Set manager">▾</button>
+                <div class="mgr-dropdown hidden absolute z-10 left-0 mt-1 w-48 bg-white border border-slate-200 rounded-lg shadow-lg p-1 max-h-56 overflow-auto" data-mgr-dropdown-id="${user.id}">
+                  ${managerOptionsHtml}
+                </div>
+              </div>
+            </div>` : '';
 
           row.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap">
@@ -502,6 +551,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
                   </div>
                 </div>` : ''}
               </div>
+              ${reportsToHtml}
             </td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
@@ -546,8 +596,40 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           });
         });
 
+        // Manager ("reports to") dropdown toggle
+        document.querySelectorAll('.mgr-dropdown-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const userId = (btn as HTMLButtonElement).dataset.userId;
+            document.querySelectorAll('.mgr-dropdown').forEach(d => {
+              if ((d as HTMLElement).dataset.mgrDropdownId !== userId) d.classList.add('hidden');
+            });
+            const dropdown = document.querySelector(`.mgr-dropdown[data-mgr-dropdown-id="${userId}"]`);
+            dropdown?.classList.toggle('hidden');
+          });
+        });
+
+        // Set-manager buttons
+        document.querySelectorAll('.set-mgr-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const target = e.currentTarget as HTMLButtonElement;
+            const userId = parseInt(target.dataset.userId || '0');
+            const managerEmail = target.dataset.managerEmail || '';
+            try {
+              await setUserManager(userId, managerEmail);
+              loadUsers();
+            } catch (err) {
+              showAlert(err instanceof Error ? err.message : 'Failed to update manager', 'error');
+            }
+          });
+        });
+
         // Close dropdowns on outside click
-        document.addEventListener('click', () => document.querySelectorAll('.role-dropdown').forEach(d => d.classList.add('hidden')));
+        document.addEventListener('click', () => {
+          document.querySelectorAll('.role-dropdown').forEach(d => d.classList.add('hidden'));
+          document.querySelectorAll('.mgr-dropdown').forEach(d => d.classList.add('hidden'));
+        });
 
         // Change role buttons
         document.querySelectorAll('.change-role-btn').forEach(btn => {
@@ -556,10 +638,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             const target = e.target as HTMLButtonElement;
             const userId = parseInt(target.dataset.userId || '0');
             const newRole = target.dataset.newRole || '';
-            const roleLabel = newRole === 'super_admin' ? 'Super Admin' : newRole === 'admin' ? 'Admin' : 'User';
-            const iconBg = newRole === 'super_admin' ? 'bg-orange-100' : newRole === 'admin' ? 'bg-purple-100' : 'bg-blue-100';
-            const iconColor = newRole === 'super_admin' ? 'text-orange-600' : newRole === 'admin' ? 'text-purple-600' : 'text-blue-600';
-            const btnClass = newRole === 'super_admin' ? 'bg-orange-600 hover:bg-orange-700' : newRole === 'admin' ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700';
+            const roleLabel = newRole === 'super_admin' ? 'Super Admin' : newRole === 'admin' ? 'Admin' : newRole === 'manager' ? 'Manager' : 'User';
+            const iconBg = newRole === 'super_admin' ? 'bg-orange-100' : newRole === 'admin' ? 'bg-purple-100' : newRole === 'manager' ? 'bg-teal-100' : 'bg-blue-100';
+            const iconColor = newRole === 'super_admin' ? 'text-orange-600' : newRole === 'admin' ? 'text-purple-600' : newRole === 'manager' ? 'text-teal-600' : 'text-blue-600';
+            const btnClass = newRole === 'super_admin' ? 'bg-orange-600 hover:bg-orange-700' : newRole === 'admin' ? 'bg-purple-600 hover:bg-purple-700' : newRole === 'manager' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-blue-600 hover:bg-blue-700';
             const confirmed = await showConfirmModal({
               title: `Change role to ${roleLabel}?`,
               body: `This user will be updated to ${roleLabel}. They will need to log out and back in for the change to take effect.`,
@@ -786,7 +868,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       const email = emailInput.value.trim();
       const name = nameInput.value.trim();
-      const role = roleSelect.value as 'user' | 'admin' | 'super_admin';
+      const role = roleSelect.value as 'user' | 'manager' | 'admin' | 'super_admin';
+      const managerSelect = document.getElementById('managerSelect') as HTMLSelectElement | null;
+      const manager_email = managerSelect?.value || '';
 
       // Validation
       if (!email) {
@@ -800,7 +884,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       try {
         submitBtn.textContent = 'Creating User...';
-        const result = await createUser({ email, name, role });
+        const result = await createUser({ email, name, role, manager_email });
 
         submitBtn.textContent = 'Sending Invitation...';
         const emailSent = await sendCredentialsEmail('welcome', result.email, name, result.temporary_password);

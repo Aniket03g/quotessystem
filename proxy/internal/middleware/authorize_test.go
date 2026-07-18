@@ -25,12 +25,19 @@ func TestFieldsRestrictedTo(t *testing.T) {
 }
 
 func TestBuildOwnerClause(t *testing.T) {
-	if got := buildOwnerClause([]string{"Handled By"}, "j@co.com"); got != "(Handled By,eq,j@co.com)" {
+	// Single field, single (self) email.
+	if got := buildOwnerClause([]string{"Handled By"}, []string{"j@co.com"}); got != "(Handled By,eq,j@co.com)" {
 		t.Errorf("single: got %q", got)
 	}
+	// Two owner fields (leads), single email.
 	want := "((Lead Created By,eq,j@co.com)~or(Assigned to,eq,j@co.com))"
-	if got := buildOwnerClause([]string{"Lead Created By", "Assigned to"}, "j@co.com"); got != want {
-		t.Errorf("multi: got %q want %q", got, want)
+	if got := buildOwnerClause([]string{"Lead Created By", "Assigned to"}, []string{"j@co.com"}); got != want {
+		t.Errorf("multi-field: got %q want %q", got, want)
+	}
+	// Manager: one owner field, a team of three emails.
+	wantTeam := "((Handled By,eq,j@co.com)~or(Handled By,eq,x@co.com)~or(Handled By,eq,y@co.com))"
+	if got := buildOwnerClause([]string{"Handled By"}, []string{"j@co.com", "x@co.com", "y@co.com"}); got != wantTeam {
+		t.Errorf("team: got %q want %q", got, wantTeam)
 	}
 }
 

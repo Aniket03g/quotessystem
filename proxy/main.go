@@ -253,6 +253,11 @@ func main() {
 		http.HandlerFunc(adminHandler.UpdateUserRole),
 	))
 
+	// Protected admin update manager (reports-to) endpoint
+	mux.Handle("/api/admin/users/manager", middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(adminHandler.UpdateUserManager),
+	))
+
 	// Protected secure ping endpoint (example)
 	protectedPingHandler := auth.AuthMiddleware(cfg.JWTSecret)(
 		http.HandlerFunc(securePingHandler(database)),

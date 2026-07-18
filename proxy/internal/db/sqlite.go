@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
@@ -18,6 +19,7 @@ type User struct {
 	PasswordHash       string
 	Role               string
 	MustChangePassword bool
+	ManagerEmail       string // for "manager" tier: the manager this user reports to (empty if none)
 	CreatedAt          time.Time
 }
 
@@ -155,6 +157,26 @@ func (d *Database) runMigrations() error {
 		log.Println("[DB] must_change_password column added successfully")
 	}
 
+	// Check if manager_email column exists (for the manager tier)
+	err = d.db.QueryRow(`
+		SELECT COUNT(*) FROM pragma_table_info('users') WHERE name='manager_email'
+	`).Scan(&columnExists)
+
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to check for manager_email column: %v", err)
+		return err
+	}
+
+	if columnExists == 0 {
+		log.Println("[DB] Adding manager_email column to users table...")
+		_, err = d.db.Exec(`ALTER TABLE users ADD COLUMN manager_email TEXT`)
+		if err != nil {
+			log.Printf("[DB ERROR] Failed to add manager_email column: %v", err)
+			return err
+		}
+		log.Println("[DB] manager_email column added successfully")
+	}
+
 	log.Println("[DB] Migrations completed successfully")
 	return nil
 }
@@ -197,13 +219,13 @@ func (d *Database) CreateUser(email, provider, name, avatarURL string) (*User, e
 // GetUserByID retrieves a user by their ID
 func (d *Database) GetUserByID(id int64) (*User, error) {
 	user := &User{}
-	var name, avatarURL, passwordHash, role sql.NullString
+	var name, avatarURL, passwordHash, role, managerEmail sql.NullString
 	var mustChangePassword sql.NullBool
 
 	err := d.db.QueryRow(
-		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, created_at FROM users WHERE id = ?",
+		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, manager_email, created_at FROM users WHERE id = ?",
 		id,
-	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &user.CreatedAt)
+	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &managerEmail, &user.CreatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -222,6 +244,7 @@ func (d *Database) GetUserByID(id int64) (*User, error) {
 		user.Role = "user"
 	}
 	user.MustChangePassword = mustChangePassword.Bool
+	user.ManagerEmail = managerEmail.String
 
 	return user, nil
 }
@@ -229,13 +252,13 @@ func (d *Database) GetUserByID(id int64) (*User, error) {
 // GetUserByEmail retrieves a user by their email
 func (d *Database) GetUserByEmail(email string) (*User, error) {
 	user := &User{}
-	var name, avatarURL, passwordHash, role sql.NullString
+	var name, avatarURL, passwordHash, role, managerEmail sql.NullString
 	var mustChangePassword sql.NullBool
 
 	err := d.db.QueryRow(
-		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, created_at FROM users WHERE email = ?",
+		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, manager_email, created_at FROM users WHERE email = ?",
 		email,
-	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &user.CreatedAt)
+	).Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &managerEmail, &user.CreatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -254,6 +277,7 @@ func (d *Database) GetUserByEmail(email string) (*User, error) {
 		user.Role = "user"
 	}
 	user.MustChangePassword = mustChangePassword.Bool
+	user.ManagerEmail = managerEmail.String
 
 	return user, nil
 }
@@ -261,7 +285,7 @@ func (d *Database) GetUserByEmail(email string) (*User, error) {
 // GetAllUsers retrieves all users
 func (d *Database) GetAllUsers() ([]*User, error) {
 	rows, err := d.db.Query(
-		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, created_at FROM users ORDER BY created_at DESC",
+		"SELECT id, email, provider, name, avatar_url, password_hash, role, must_change_password, manager_email, created_at FROM users ORDER BY created_at DESC",
 	)
 	if err != nil {
 		log.Printf("[DB ERROR] Failed to get all users: %v", err)
@@ -272,10 +296,10 @@ func (d *Database) GetAllUsers() ([]*User, error) {
 	var users []*User
 	for rows.Next() {
 		user := &User{}
-		var name, avatarURL, passwordHash, role sql.NullString
+		var name, avatarURL, passwordHash, role, managerEmail sql.NullString
 		var mustChangePassword sql.NullBool
 
-		if err := rows.Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &user.CreatedAt); err != nil {
+		if err := rows.Scan(&user.ID, &user.Email, &user.Provider, &name, &avatarURL, &passwordHash, &role, &mustChangePassword, &managerEmail, &user.CreatedAt); err != nil {
 			return nil, err
 		}
 
@@ -288,6 +312,7 @@ func (d *Database) GetAllUsers() ([]*User, error) {
 			user.Role = "user"
 		}
 		user.MustChangePassword = mustChangePassword.Bool
+		user.ManagerEmail = managerEmail.String
 
 		users = append(users, user)
 	}
@@ -319,6 +344,49 @@ func (d *Database) DeleteUser(id int64) error {
 	}
 
 	log.Printf("[DB] User deleted successfully: ID=%d", id)
+	return nil
+}
+
+// GetReportEmails returns the emails of all users who report to the given
+// manager (i.e. whose manager_email matches). Used by the manager tier to widen
+// a manager's row-level scope to include their team's records.
+func (d *Database) GetReportEmails(managerEmail string) ([]string, error) {
+	if managerEmail == "" {
+		return nil, nil
+	}
+	rows, err := d.db.Query("SELECT email FROM users WHERE manager_email = ?", managerEmail)
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to get report emails for %s: %v", managerEmail, err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var emails []string
+	for rows.Next() {
+		var email string
+		if err := rows.Scan(&email); err != nil {
+			return nil, err
+		}
+		emails = append(emails, email)
+	}
+	return emails, rows.Err()
+}
+
+// SetUserManager sets (or clears, when managerEmail is empty) the manager a user
+// reports to.
+func (d *Database) SetUserManager(userID int64, managerEmail string) error {
+	var val interface{}
+	if managerEmail == "" {
+		val = nil
+	} else {
+		val = managerEmail
+	}
+	_, err := d.db.Exec("UPDATE users SET manager_email = ? WHERE id = ?", val, userID)
+	if err != nil {
+		log.Printf("[DB ERROR] Failed to set manager for user %d: %v", userID, err)
+		return fmt.Errorf("failed to set manager: %w", err)
+	}
+	log.Printf("[DB] Manager set for user %d -> %q", userID, managerEmail)
 	return nil
 }
 

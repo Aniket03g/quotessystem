@@ -98,9 +98,22 @@ func AuthorizeMiddleware(rules map[string]OwnerRule, database *db.Database, next
 			return
 		}
 
-		ownerClause := buildOwnerClause(fields, email)
+		// The scope is the caller's own email plus, for managers, the emails of
+		// everyone who reports to them (their team).
+		scopeEmails := []string{email}
+		if role == "manager" && database != nil {
+			reports, err := database.GetReportEmails(email)
+			if err != nil {
+				log.Printf("[AUTHORIZE] Failed to resolve team for manager %s: %v", email, err)
+				respondWithError(w, http.StatusInternalServerError, "failed to resolve manager team")
+				return
+			}
+			scopeEmails = append(scopeEmails, reports...)
+		}
+
+		ownerClause := buildOwnerClause(fields, scopeEmails)
 		injectWhere(r, ownerClause)
-		log.Printf("[AUTHORIZE] Scoped %s %s to owner=%s (fields=%v)", r.Method, tableKey, email, fields)
+		log.Printf("[AUTHORIZE] Scoped %s %s to %d owner email(s) (fields=%v)", r.Method, tableKey, len(scopeEmails), fields)
 
 		next.ServeHTTP(w, r)
 	})
@@ -130,15 +143,19 @@ func fieldsRestrictedTo(r *http.Request, allowed []string) bool {
 }
 
 // buildOwnerClause builds a NocoDB `where` expression (unencoded) restricting
-// rows to those owned by email. A single field yields (Field,eq,email); multiple
-// fields are OR-combined and wrapped for safe grouping.
-func buildOwnerClause(fields []string, email string) string {
-	if len(fields) == 1 {
-		return fmt.Sprintf("(%s,eq,%s)", fields[0], email)
+// rows to those owned by any of the given emails across any of the owner fields.
+// Every (field,email) pair is OR-combined. A single pair yields (Field,eq,email);
+// multiple pairs are wrapped in parens for safe grouping (e.g. a manager scoped
+// to their whole team, or a table with created-by/assigned-to owner fields).
+func buildOwnerClause(fields []string, emails []string) string {
+	var subs []string
+	for _, e := range emails {
+		for _, f := range fields {
+			subs = append(subs, fmt.Sprintf("(%s,eq,%s)", f, e))
+		}
 	}
-	subs := make([]string, len(fields))
-	for i, f := range fields {
-		subs[i] = fmt.Sprintf("(%s,eq,%s)", f, email)
+	if len(subs) == 1 {
+		return subs[0]
 	}
 	return "(" + strings.Join(subs, "~or") + ")"
 }
