@@ -433,9 +433,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         showAlert('Lead created successfully!', 'success');
         
-        // Redirect to leads page after 1.5 seconds
+        // Redirect to leads page after 1.5 seconds.
+        // Replace so Back does not return to the create-lead form.
         setTimeout(() => {
-          window.location.href = '/leads';
+          window.location.replace('/leads');
         }, 1500);
       } catch (error) {
         console.error('[LEAD CREATE] Error:', error);

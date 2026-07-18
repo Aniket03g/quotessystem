@@ -416,7 +416,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           'Employees': formData.get('employees') || '',
           'Annual Revenue': formData.get('annualRevenue') || '',
           'Description': formData.get('description') || '',
-          'Source': 'Manual'
+          'Source': 'Manual',
+          // Assign ownership to the creating user so it's visible to them under
+          // server-side row-level scoping (owner field for accounts = "Handled By").
+          'Handled By': localStorage.getItem('user_email') || ''
         }
       };
 
@@ -471,9 +474,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         showToast('Account created successfully!', 'success');
 
-        // Redirect to account detail page after 1.5 seconds
+        // Redirect to account detail page after 1.5 seconds.
+        // Replace so Back does not return to the create-account form.
         setTimeout(() => {
-          window.location.href = `/account-detail?id=${accountId}`;
+          window.location.replace(`/account-detail?id=${accountId}`);
         }, 1500);
 
       } catch (error) {

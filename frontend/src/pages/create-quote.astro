@@ -158,12 +158,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <!-- Quote Date -->
         <div>
           <label for="quoteDate" class="block text-sm font-medium text-slate-700 mb-2">Quote Date *</label>
-          <input 
-            type="date" 
-            id="quoteDate" 
-            required 
-            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
+          <input
+            type="date"
+            id="quoteDate"
+            required
+            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
           />
+          <p class="mt-1 text-xs text-slate-400">Backdated quotes are not allowed.</p>
         </div>
 
         <!-- Valid Until -->
@@ -175,21 +176,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             required 
             class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" 
           />
-        </div>
-
-        <!-- Quote Status -->
-        <div>
-          <label for="quoteStatus" class="block text-sm font-medium text-slate-700 mb-2">Quote Status *</label>
-          <select 
-            id="quoteStatus" 
-            required 
-            class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-          >
-            <option value="Draft">Draft</option>
-            <option value="Sent">Sent</option>
-            <option value="Approved">Approved</option>
-            <option value="Final">Final</option>
-          </select>
         </div>
 
         <!-- Quote Type -->
@@ -268,7 +254,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">Unit Price</label>
-              <input type="number" class="product-custom-price w-32 px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-md text-sm text-slate-500 cursor-not-allowed transition-all" placeholder="Price" min="0" step="0.01" readonly />
+              <input type="number" class="product-custom-price w-32 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Price" min="0" step="0.01" />
             </div>
             <div>
               <label class="block text-xs font-medium text-slate-700 mb-1">Quantity *</label>
@@ -431,9 +417,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       });
     }
 
-    // Show admin toggles or non-admin "Request ₹ Discount" button
+    // Show admin toggles or non-admin "Request ₹ Discount" button.
+    // Managers get the same discount controls as admins.
     const userRole = getUserRole();
-    const isAdminUser = userRole === 'admin' || userRole === 'super_admin';
+    const isAdminUser = userRole === 'admin' || userRole === 'super_admin' || userRole === 'manager';
 
     if (isAdminUser) {
       document.querySelectorAll('.discount-toggle').forEach(t => {
@@ -460,7 +447,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const today = new Date().toISOString().split('T')[0];
     const validUntil = new Date();
     validUntil.setDate(validUntil.getDate() + 30);
-    (document.getElementById('quoteDate') as HTMLInputElement).value = today;
+    const quoteDateInput = document.getElementById('quoteDate') as HTMLInputElement;
+    quoteDateInput.value = today;
+    // Block backdated quotes: earliest selectable date is today
+    quoteDateInput.min = today;
     (document.getElementById('validUntil') as HTMLInputElement).value = validUntil.toISOString().split('T')[0];
 
     // Pre-fill account when coming from account-detail page
@@ -810,16 +800,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           productIdInput.removeAttribute('required');
           searchInput.value = '';
           productIdInput.value = '';
-          customPriceInput.readOnly = false;
-          customPriceInput.classList.remove('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
-          customPriceInput.classList.add('bg-slate-50');
           customPriceInput.value = '';
         } else {
           searchInput.setAttribute('required', 'true');
           productIdInput.setAttribute('required', 'true');
-          customPriceInput.readOnly = true;
-          customPriceInput.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
-          customPriceInput.classList.remove('bg-slate-50');
           outsourcedNameInput.value = '';
         }
       });
@@ -947,10 +931,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const clonedProductIdInput = newItem.querySelector('.product-id') as HTMLInputElement;
       clonedSearchInput.setAttribute('required', 'true');
       clonedProductIdInput.setAttribute('required', 'true');
-      const clonedPriceInput = newItem.querySelector('.product-custom-price') as HTMLInputElement;
-      clonedPriceInput.readOnly = true;
-      clonedPriceInput.classList.add('bg-slate-100', 'text-slate-500', 'cursor-not-allowed');
-      clonedPriceInput.classList.remove('bg-slate-50');
       const discountInput = newItem.querySelector('.product-discount') as HTMLInputElement;
       discountInput.value = '0';
       // Reset toggle to percent mode
@@ -1015,7 +995,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const issuingCompany = (document.getElementById('issuingCompany') as HTMLSelectElement).value;
       const quoteDate = (document.getElementById('quoteDate') as HTMLInputElement).value;
       const validUntilDate = (document.getElementById('validUntil') as HTMLInputElement).value;
-      const quoteStatus = (document.getElementById('quoteStatus') as HTMLSelectElement).value;
       const quoteType = (document.getElementById('quoteType') as HTMLSelectElement).value;
       const notes = (document.getElementById('notes') as HTMLTextAreaElement).value;
 
@@ -1026,6 +1005,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       if (!issuingCompany) {
         showAlert('Please select a company', 'error');
+        return;
+      }
+
+      // Block backdated quotes
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (quoteDate && quoteDate < todayStr) {
+        showAlert('Backdated quotes are not allowed. Please select today or a future date.', 'error');
         return;
       }
 
@@ -1112,15 +1098,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       // Determine quote status based on discount slabs
       const maxDiscount = Math.max(...productData.map(p => p.discount));
-      let effectiveQuoteStatus = quoteStatus;
+      // Status is handled automatically; new quotes start as Draft unless a discount approval flow overrides it below
+      let effectiveQuoteStatus = 'Draft';
       const creatorRole = getUserRole();
       if (requestRsDiscount) {
         effectiveQuoteStatus = 'Pending Rs Discount';
         requestRsDiscount = false;
       } else if (creatorRole === 'super_admin') {
         // super_admin can approve any discount level themselves
-      } else if (creatorRole === 'admin') {
-        // admin can self-approve up to 10%, but >10% still needs super_admin
+      } else if (creatorRole === 'admin' || creatorRole === 'manager') {
+        // admin/manager can self-approve up to 10%, but >10% still needs super_admin
         if (maxDiscount > 10) {
           effectiveQuoteStatus = 'Pending Super Admin Approval';
           const confirmed = await showDiscountConfirm('superadmin', maxDiscount);
@@ -1385,7 +1372,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         showAlert('Quote created successfully!', 'success');
         setTimeout(() => {
-          window.location.href = `/quote-detail?id=${quoteId}`;
+          // Replace (not push) so pressing Back from the quote page does not
+          // return to the create-quote form.
+          window.location.replace(`/quote-detail?id=${quoteId}`);
         }, 1000);
       } catch (error) {
         console.error('Error creating quote:', error);

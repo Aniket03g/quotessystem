@@ -296,7 +296,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const submitBtn = document.getElementById('submitBtn') as HTMLButtonElement;
 
     if (!accountId) {
-      window.location.href = '/accounts';
+      window.location.replace('/accounts');
     }
 
     // Set back/cancel links to return to the account detail page
@@ -465,7 +465,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         showToast('Account updated successfully!', 'success');
 
         setTimeout(() => {
-          window.location.href = `/account-detail?id=${accountId}`;
+          // Replace so Back does not return to the edit-account form.
+          window.location.replace(`/account-detail?id=${accountId}`);
         }, 1200);
       } catch (error) {
         showToast((error as Error).message || 'Failed to update account. Please try again.', 'error');
