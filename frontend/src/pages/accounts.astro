@@ -234,11 +234,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const userRole = getUserRole();
           // Row-level scoping is enforced server-side by the proxy (non-admins
           // are restricted to their own accounts). Do not add an owner filter here.
-          const accountsUrl = `${API_BASE_URL}/proxy/accounts_duplicate/records`;
+          // Only the columns this page reads (filters, dedup key, and the table
+          // itself). The table has many more; pulling them all for ~1,100 rows
+          // is pure transfer cost. 'Handled By' must stay — the proxy scopes
+          // non-admins on it server-side.
+          const accountFields = encodeURIComponent([
+            'Id', 'Account Name', 'Account Type', 'Phone Number', 'GST No', 'Handled By',
+            'Billing Street', 'Billing City', 'Billing State', 'Billing Code',
+          ].join(','));
+          const contactFields = encodeURIComponent(['Id', 'Name', 'Accounts duplicate'].join(','));
+          const accountsUrl = `${API_BASE_URL}/proxy/accounts_duplicate/records?fields=${accountFields}`;
 
           const [accountsRes, contactsRes, usersRes] = await Promise.all([
             fetch(accountsUrl, { headers }),
-            fetch(`${API_BASE_URL}/proxy/contacts/records`, { headers }),
+            fetch(`${API_BASE_URL}/proxy/contacts/records?fields=${contactFields}`, { headers }),
             fetch(`${API_BASE_URL}/api/admin/users`, { headers }),
           ]);
 

@@ -12,6 +12,31 @@ import (
 	"github.com/grove/generic-proxy/internal/config"
 )
 
+// defaultListLimit is the page size requested from NocoDB for list reads that
+// don't specify one. 1000 is NocoDB's maximum; anything larger is clamped by it.
+const defaultListLimit = 1000
+
+// isRecordsListPath reports whether a proxy path is a list read of the form
+// /proxy/<table>/records (no trailing record id, no link sub-path).
+func isRecordsListPath(path string) bool {
+	trimmed := strings.Trim(strings.TrimPrefix(path, "/proxy/"), "/")
+	segments := strings.Split(trimmed, "/")
+	return len(segments) == 2 && segments[1] == "records"
+}
+
+// getRawQueryParam returns the raw (still-encoded) value of key from a raw query
+// string, or "" if absent. Works on the raw string rather than url.Values so the
+// caller's exact encoding of other params (notably `where`) is left untouched.
+func getRawQueryParam(rawQuery, key string) string {
+	prefix := key + "="
+	for _, p := range strings.Split(rawQuery, "&") {
+		if strings.HasPrefix(p, prefix) {
+			return strings.TrimPrefix(p, prefix)
+		}
+	}
+	return ""
+}
+
 type ProxyHandler struct {
 	NocoDBURL      string
 	NocoDBToken    string
@@ -109,8 +134,20 @@ func (p *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else {
 		targetURL += resolvedPath
 	}
-	if r.URL.RawQuery != "" {
-		targetURL += "?" + r.URL.RawQuery
+	// Default the page size on list reads. Without an explicit limit NocoDB
+	// returns 25 rows per page, and handlePagination then walks the remainder
+	// serially — ~46 round-trips for a 1,100-row table, which dominates page
+	// load. Asking for the maximum collapses that to one or two requests.
+	// Restricted to GET /<table>/records: link endpoints keep their own paging.
+	rawQuery := r.URL.RawQuery
+	if r.Method == http.MethodGet && isRecordsListPath(r.URL.Path) && getRawQueryParam(rawQuery, "limit") == "" {
+		if rawQuery != "" {
+			rawQuery += "&"
+		}
+		rawQuery += fmt.Sprintf("limit=%d", defaultListLimit)
+	}
+	if rawQuery != "" {
+		targetURL += "?" + rawQuery
 	}
 	log.Printf("[PROXY] Target URL: %s", targetURL)
 
