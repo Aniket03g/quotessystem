@@ -22,6 +22,7 @@ export interface QuoteData {
   id: number;
   subject: string;
   date: string;
+  validUntil?: string;
   version?: string;
   total: number;
   logo?: string;
@@ -29,6 +30,8 @@ export interface QuoteData {
   deliveryTerms?: string;
   paymentTerms?: string;
   extraTerms?: string;
+  endUser?: string;
+  endUserLocation?: string;
   account: {
     name: string;
     street?: string;
@@ -63,6 +66,21 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   const deliveryTerms: string = quoteData.deliveryTerms || '';
   const paymentTerms: string = quoteData.paymentTerms || '';
   const extraTerms: string = quoteData.extraTerms || '';
+
+  // Validity term: derive the number of days from Quote Date → Valid Until so
+  // the PDF reflects the validity chosen on the create-quote form. Falls back to
+  // the historical "20 days" wording when the dates are missing or unparseable.
+  const validityDays = (() => {
+    if (!quoteData.date || !quoteData.validUntil) return null;
+    const start = new Date(quoteData.date);
+    const end = new Date(quoteData.validUntil);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
+    const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    return days > 0 ? days : null;
+  })();
+  const validityTerm = validityDays
+    ? `Quote valid for ${validityDays} days`
+    : 'Quote valid for 20 days';
   const companyName =
     selectedLogo === 'grove'
       ? 'Grove Systems Pvt. Ltd.'
@@ -171,6 +189,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
+
   doc.text('Customer Name', margin, currentY);
 
   const rightX = pageWidth - margin;
@@ -180,29 +199,66 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.setFont('helvetica', 'normal');
   doc.text(quoteData.account.name, margin, currentY);
   doc.text(`Version: ${quoteData.version || '1.0'}`, rightX, currentY, { align: 'right' });
-  currentY += 5;
-  doc.text(`Date: ${quoteData.date}`, rightX, currentY, { align: 'right' });
+
+  // The two columns advance independently from here. They previously shared one
+  // cursor, so every line added on the right (Date, Quote No) pushed the
+  // customer address further from the account name it belongs under.
+  let leftY = currentY;
+  let rightY = currentY;
+
+  rightY += 5;
+  doc.text(`Date: ${quoteData.date}`, rightX, rightY, { align: 'right' });
 
   if (quoteData.quoteNumber) {
-    currentY += 5;
-    doc.text(quoteData.quoteNumber, rightX, currentY, { align: 'right' });
+    rightY += 5;
+    doc.text(quoteData.quoteNumber, rightX, rightY, { align: 'right' });
   }
 
-  doc.setFontSize(9);
+  // End user: a bold heading with its value beneath, then the location as an
+  // unlabelled continuation. Set smaller than the rest of the column so it reads
+  // as secondary detail. Nothing is drawn when the values are empty, so an
+  // unfilled end user leaves no gap at all.
+  if (quoteData.endUser || quoteData.endUserLocation) {
+    doc.setFontSize(9);
+    rightY += 2;
+    // 68mm is the clear width to the right of the address column
+    const drawRight = (text: string) => {
+      doc.splitTextToSize(text, 68).forEach((wrapped: string) => {
+        rightY += 4.5;
+        doc.text(wrapped, rightX, rightY, { align: 'right' });
+      });
+    };
+
+    if (quoteData.endUser) {
+      doc.setFont('helvetica', 'bold');
+      drawRight('End User Company');
+      doc.setFont('helvetica', 'normal');
+      drawRight(quoteData.endUser);
+    }
+    if (quoteData.endUserLocation) {
+      drawRight(quoteData.endUserLocation);
+    }
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+  }
+
+  // Address is set at the same size as the account name it sits under (11pt).
   doc.setTextColor(0, 0, 0);
   const { street, city, state, pinCode, country } = quoteData.account;
   const maxAddressWidth = rightX - margin - 70; // keep clear of the Version/Date/Quote No column on the right
   const cityLine = [city, state, pinCode].filter(Boolean).join(', ');
   const addressLines = [street, cityLine, country].filter(Boolean) as string[];
+  leftY += 5; // single step down from the account name to the first address line
   addressLines.forEach((line) => {
     const wrapped = doc.splitTextToSize(line, maxAddressWidth);
-    doc.text(wrapped, margin, currentY);
-    currentY += 4.5 * wrapped.length;
+    doc.text(wrapped, margin, leftY);
+    leftY += 4.5 * wrapped.length;
   });
   doc.setFontSize(11);
   doc.setTextColor(0, 0, 0);
 
-  currentY += 4;
+  currentY = Math.max(leftY, rightY) + 4;
   doc.line(margin, currentY, pageWidth - margin, currentY);
   currentY += 10;
 
@@ -366,9 +422,15 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.text(formatINR(totalTax), summaryValueX, currentY, { align: 'right' });
   currentY += 6;
 
-  doc.text('Discount', summaryLabelX, currentY);
-  doc.text(formatINR(totalDiscount), summaryValueX, currentY, { align: 'right' });
-  currentY += 8;
+  // Only show the discount line when something was actually discounted — a
+  // "Rs. 0.00" row reads as a mistake. Threshold is half a paisa so values that
+  // round away to nothing don't produce an empty-looking row either.
+  if (totalDiscount >= 0.005) {
+    doc.text('Discount', summaryLabelX, currentY);
+    doc.text(formatINR(totalDiscount), summaryValueX, currentY, { align: 'right' });
+    currentY += 6;
+  }
+  currentY += 2; // gap before the rule above Grand Total
 
   doc.setLineWidth(0.5);
   doc.line(summaryLabelX, currentY, summaryValueX, currentY);
@@ -407,13 +469,13 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
           '1. Order to be placed on: Grove Systems Pvt. Ltd., F-85, Okhla Industrial Area, Phase III, New Delhi - 110020.',
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
-          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', '6. Quote valid for 20 days'] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', '5. Quote valid for 20 days']),
+          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', `6. ${validityTerm}`] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', `5. ${validityTerm}`]),
         ]
       : [
           '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
-          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', '6. Quote valid for 20 days'] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', '5. Quote valid for 20 days']),
+          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', `6. ${validityTerm}`] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', `5. ${validityTerm}`]),
         ];
 
   terms.forEach((term) => {

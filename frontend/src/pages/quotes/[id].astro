@@ -219,6 +219,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
           id: parseInt(quoteId),
           subject: fields['Subject'] || 'Untitled Quote',
           date: fields['Quote Date'] || new Date().toISOString().split('T')[0],
+          validUntil: fields['Valid Until'] || '',
           total: fields['Total Amount'] || 0,
           account: {
             name: accountData?.['Account Name'] || 'N/A'

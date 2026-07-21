@@ -630,6 +630,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           products: products,
           logo: fields['Company'] === 'Grove Systems' ? 'grove' : 'greenocare',
           quoteNumber: fields['Quote Number'] || '',
+          endUser: fields['End User'] || '',
+          endUserLocation: fields['End User Location'] || '',
           deliveryTerms,
           paymentTerms
         };
@@ -749,6 +751,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           account: {
             name: accountName
           },
+          endUser: fields['End User'] || '',
+          endUserLocation: fields['End User Location'] || '',
           products: products
         };
 
