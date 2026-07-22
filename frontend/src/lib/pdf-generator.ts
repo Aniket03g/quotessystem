@@ -98,11 +98,20 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
     if (!quoteData.validUntil) return null;
     const end = new Date(quoteData.validUntil);
     if (isNaN(end.getTime())) return null;
-    return end.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
+    const day = end.getDate();
+    // 11th/12th/13th are special-cased; otherwise the last digit drives the suffix.
+    const suffix =
+      day % 100 >= 11 && day % 100 <= 13
+        ? 'th'
+        : day % 10 === 1
+          ? 'st'
+          : day % 10 === 2
+            ? 'nd'
+            : day % 10 === 3
+              ? 'rd'
+              : 'th';
+    const month = end.toLocaleDateString('en-GB', { month: 'short' });
+    return `${day}${suffix} ${month} ${end.getFullYear()}`;
   })();
   const validityTerm = validUntilDate
     ? `Quote valid till ${validUntilDate}`
@@ -507,8 +516,17 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
         ];
 
   terms.forEach((term) => {
-    const lines = doc.splitTextToSize(term, usableWidth);
-    doc.text(lines, margin, currentY);
+    // Hang the wrapped lines under the text, not under the "N." marker, so a
+    // continuation (e.g. the address spilling onto a second line) lines up with
+    // the first word rather than sitting beneath the number.
+    const marker = term.match(/^(\d+\.\s+)/);
+    const prefix = marker ? marker[1] : '';
+    const body = marker ? term.slice(prefix.length) : term;
+    const indent = prefix ? doc.getTextWidth(prefix) : 0;
+
+    const lines = doc.splitTextToSize(body, usableWidth - indent);
+    if (prefix) doc.text(prefix, margin, currentY);
+    doc.text(lines, margin + indent, currentY);
     currentY += lines.length * 5 + 3;
   });
 
