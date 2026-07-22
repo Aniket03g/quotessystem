@@ -3110,9 +3110,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     }
 
     // ── DELETE QUOTE ────────────────────────────────────────────────────────
-    document.getElementById('deleteQuoteBtn')?.addEventListener('click', () => {
-      const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
-      if (userInfo.role !== 'admin') {
+    // Deleting a quote is limited to admins and super admins. Hide the button
+    // outright for everyone else so it isn't even offered.
+    const deleteQuoteBtn = document.getElementById('deleteQuoteBtn');
+    if (deleteQuoteBtn && !isAdmin()) {
+      deleteQuoteBtn.classList.add('hidden');
+    }
+    deleteQuoteBtn?.addEventListener('click', () => {
+      if (!isAdmin()) {
         showToast('Only administrators can delete quotes.', 'error');
         return;
       }
