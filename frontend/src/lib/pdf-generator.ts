@@ -50,6 +50,30 @@ function formatINR(amount: number): string {
   })}`;
 }
 
+// jsPDF's standard fonts only speak WinAnsi. Product text copy-pasted from
+// supplier datasheets often carries characters outside that set — a stray
+// U+00A0/U+00FF, smart quotes, unicode dashes/spaces. Left alone they render as
+// garbage (e.g. an "ÿ" between words) and, worse, an exotic non-space glued
+// between two words makes an unbreakable mega-token that jsPDF can neither wrap
+// nor space correctly, so the line spills past the cell border. Normalise the
+// common offenders to their ASCII equivalents, keep the bullet we rely on, and
+// turn anything else non-printable into a plain space so wrapping still works.
+function sanitizePdfText(input: string | null | undefined): string {
+  if (!input) return '';
+  return input
+    .replace(/\r\n?/g, '\n')
+    .replace(/[‘’‚‛]/g, "'")
+    .replace(/[“”„‟]/g, '"')
+    .replace(/[–—―]/g, '-')
+    .replace(/[•‣◦⁃∙]/g, '•') // normalise bullets to •
+    .replace(/[   -   　]/g, ' ') // unicode spaces
+    .replace(/[​-‍﻿]/g, '') // zero-width characters
+    .replace(/[^\n\x20-\x7E•]/g, ' ') // anything else non-WinAnsi -> space
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+\n/g, '\n') // drop trailing spaces on each line
+    .replace(/^\s+|\s+$/g, ''); // strip leading/trailing blank lines & spaces
+}
+
 export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -67,19 +91,21 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   const paymentTerms: string = quoteData.paymentTerms || '';
   const extraTerms: string = quoteData.extraTerms || '';
 
-  // Validity term: derive the number of days from Quote Date → Valid Until so
-  // the PDF reflects the validity chosen on the create-quote form. Falls back to
-  // the historical "20 days" wording when the dates are missing or unparseable.
-  const validityDays = (() => {
-    if (!quoteData.date || !quoteData.validUntil) return null;
-    const start = new Date(quoteData.date);
+  // Validity term: show the actual "Valid Until" date chosen on the create-quote
+  // form. Falls back to the historical "20 days" wording when the date is missing
+  // or unparseable.
+  const validUntilDate = (() => {
+    if (!quoteData.validUntil) return null;
     const end = new Date(quoteData.validUntil);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return null;
-    const days = Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    return days > 0 ? days : null;
+    if (isNaN(end.getTime())) return null;
+    return end.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   })();
-  const validityTerm = validityDays
-    ? `Quote valid for ${validityDays} days`
+  const validityTerm = validUntilDate
+    ? `Quote valid till ${validUntilDate}`
     : 'Quote valid for 20 days';
   const companyName =
     selectedLogo === 'grove'
@@ -243,7 +269,8 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
     doc.setFont('helvetica', 'normal');
   }
 
-  // Address is set at the same size as the account name it sits under (11pt).
+  // Address is set a notch smaller (9pt) than the account name it sits under.
+  doc.setFontSize(9);
   doc.setTextColor(0, 0, 0);
   const { street, city, state, pinCode, country } = quoteData.account;
   const maxAddressWidth = rightX - margin - 70; // keep clear of the Version/Date/Quote No column on the right
@@ -295,16 +322,16 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    const boldNameLines: string[] = doc.splitTextToSize(product.name, 49);
+    const boldNameLines: string[] = doc.splitTextToSize(sanitizePdfText(product.name), 49);
     nameLineCounts.push(boldNameLines.length);
     doc.setFont('helvetica', 'normal');
 
     const allDisplayLines: string[] = [...boldNameLines];
     if (product.brand) {
-      allDisplayLines.push(...doc.splitTextToSize(`Brand: ${product.brand}`, 49));
+      allDisplayLines.push(...doc.splitTextToSize(`Brand: ${sanitizePdfText(product.brand)}`, 49));
     }
     if (product.description) {
-      const descParts = (product.description as string).replace(/\r\n?/g, '\n').split('\n');
+      const descParts = sanitizePdfText(product.description as string).split('\n');
       for (const part of descParts) {
         if (part.trim()) allDisplayLines.push(...doc.splitTextToSize(part, 49));
       }
@@ -391,6 +418,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
 
         doc.setFont('helvetica', 'bold');
         lines.slice(0, nameLineCount).forEach((line: string) => {
+          if (!line.trim()) return; // a stray blank line must not push the name down
           doc.text(line, contentX, textY);
           textY += 4;
         });
@@ -411,7 +439,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   const summaryLabelX = pageWidth - margin - 95;
   const summaryValueX = pageWidth - margin;
 
-  doc.setFontSize(10);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
 
   doc.text('Sub Total', summaryLabelX, currentY);
@@ -436,7 +464,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.line(summaryLabelX, currentY, summaryValueX, currentY);
   currentY += 6;
 
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('Grand Total', summaryLabelX, currentY);
   doc.text(formatINR(grandTotal), summaryValueX, currentY, { align: 'right' });
@@ -455,7 +483,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.line(margin, currentY, pageWidth - margin, currentY);
   currentY += 8;
 
-  doc.setFontSize(13);
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text('Terms and Conditions', margin, currentY);
   currentY += 8;
