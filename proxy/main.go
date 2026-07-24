@@ -258,6 +258,11 @@ func main() {
 		http.HandlerFunc(adminHandler.UpdateUserManager),
 	))
 
+	// Protected super-admin announcements audit log (GET list / POST record)
+	mux.Handle("/api/admin/announcements", middleware.AuthMiddleware(cfg.JWTSecret)(
+		http.HandlerFunc(adminHandler.Announcements),
+	))
+
 	// Protected secure ping endpoint (example)
 	protectedPingHandler := auth.AuthMiddleware(cfg.JWTSecret)(
 		http.HandlerFunc(securePingHandler(database)),

@@ -147,7 +147,9 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if role != "admin" && role != "super_admin" {
+	// Managers may also read the directory (read-only) so the UI can resolve
+	// owner emails to display names, e.g. the accounts "Assigned To" column.
+	if role != "admin" && role != "super_admin" && role != "manager" {
 		log.Printf("[ADMIN ERROR] Non-admin user attempted to list users: role=%s", role)
 		respondWithError(w, http.StatusForbidden, "admin access required")
 		return
@@ -185,6 +187,72 @@ func (h *AdminHandler) ListUsers(w http.ResponseWriter, r *http.Request) {
 		Total: len(userList),
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+type LogAnnouncementRequest struct {
+	Subject        string `json:"subject"`
+	Message        string `json:"message"`
+	RecipientCount int    `json:"recipient_count"`
+	SentCount      int    `json:"sent_count"`
+	FailedCount    int    `json:"failed_count"`
+}
+
+// Announcements handles the super-admin announcement audit log.
+// GET  /api/admin/announcements -> list recent announcements
+// POST /api/admin/announcements -> record a sent announcement
+func (h *AdminHandler) Announcements(w http.ResponseWriter, r *http.Request) {
+	role, ok := r.Context().Value(middleware.RoleKey).(string)
+	if !ok {
+		respondWithError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	// Announcements are strictly super-admin.
+	if role != "super_admin" {
+		log.Printf("[ADMIN ERROR] Non-super-admin attempted announcements access: role=%s", role)
+		respondWithError(w, http.StatusForbidden, "super admin access required")
+		return
+	}
+
+	switch r.Method {
+	case http.MethodGet:
+		announcements, err := h.database.GetAnnouncements(100)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "failed to retrieve announcements")
+			return
+		}
+		if announcements == nil {
+			announcements = []*db.Announcement{}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"announcements": announcements,
+			"total":         len(announcements),
+		})
+
+	case http.MethodPost:
+		var req LogAnnouncementRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			respondWithError(w, http.StatusBadRequest, "invalid request body")
+			return
+		}
+		if req.Subject == "" {
+			respondWithError(w, http.StatusBadRequest, "subject is required")
+			return
+		}
+		senderEmail, _ := r.Context().Value(middleware.EmailKey).(string)
+
+		a, err := h.database.LogAnnouncement(senderEmail, req.Subject, req.Message, req.RecipientCount, req.SentCount, req.FailedCount)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "failed to log announcement")
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(a)
+
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
 }
 
 type ResetPasswordRequest struct {

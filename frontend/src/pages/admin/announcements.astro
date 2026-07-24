@@ -1,0 +1,285 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Announcements" currentPage="announcements">
+  <div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6 flex items-center gap-3">
+      <div class="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">Announcements</h1>
+        <p class="text-sm text-slate-600">Send an email to every CRM user</p>
+      </div>
+    </div>
+
+    <!-- Not-authorized state (non super-admins) -->
+    <div id="noAccess" class="hidden bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
+      <p class="text-amber-800 font-medium">Only super admins can send announcements.</p>
+    </div>
+
+    <!-- Alert -->
+    <div id="alert" class="hidden mb-6"></div>
+
+    <!-- Compose card -->
+    <div id="composeCard" class="hidden bg-white rounded-lg border border-slate-200 shadow-sm">
+      <div class="p-6 border-b border-slate-200">
+        <h2 class="text-lg font-semibold text-slate-800">New Announcement</h2>
+        <p class="text-sm text-slate-600 mt-1">
+          This will be emailed to <span id="recipientCount" class="font-semibold text-slate-800">…</span> users.
+          Recipients are BCC'd and won't see each other.
+        </p>
+      </div>
+
+      <form id="announcementForm" class="p-6 space-y-5">
+        <div>
+          <label for="subject" class="block text-sm font-medium text-slate-700 mb-2">Subject</label>
+          <input
+            type="text"
+            id="subject"
+            name="subject"
+            required
+            maxlength="150"
+            placeholder="e.g. Scheduled maintenance this weekend"
+            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+          />
+        </div>
+
+        <div>
+          <label for="message" class="block text-sm font-medium text-slate-700 mb-2">Message</label>
+          <textarea
+            id="message"
+            name="message"
+            required
+            rows="10"
+            placeholder="Write your announcement here. Line breaks are preserved."
+            class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-y"
+          ></textarea>
+          <p class="text-xs text-slate-500 mt-1">Plain text only. Line breaks are kept; no HTML.</p>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button
+            type="submit"
+            id="sendBtn"
+            class="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all text-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+            </svg>
+            Send Announcement
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- History -->
+    <div id="historyCard" class="hidden mt-8">
+      <h2 class="text-lg font-semibold text-slate-800 mb-3">Sent history</h2>
+      <div id="historyList" class="space-y-3"></div>
+      <p id="historyEmpty" class="hidden text-sm text-slate-500">No announcements sent yet.</p>
+    </div>
+  </div>
+
+  <!-- Confirm modal -->
+  <div id="confirmModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+      <h3 class="text-lg font-semibold text-slate-800 mb-2">Send to all users?</h3>
+      <p class="text-sm text-slate-600 mb-4">
+        This will email <span id="confirmCount" class="font-semibold">0</span> users immediately. This cannot be undone.
+        Type <span class="font-mono font-semibold text-slate-800">SEND</span> to confirm.
+      </p>
+      <input
+        type="text"
+        id="confirmInput"
+        placeholder="Type SEND"
+        class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm mb-4"
+      />
+      <div class="flex items-center justify-end gap-3">
+        <button id="cancelConfirmBtn" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800">Cancel</button>
+        <button
+          id="confirmSendBtn"
+          disabled
+          class="px-5 py-2.5 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Send Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { listUsers } from '../../lib/api';
+    import { getToken, getTokenClaims } from '../../utils/jwt';
+
+    const noAccess = document.getElementById('noAccess')!;
+    const composeCard = document.getElementById('composeCard')!;
+    const alertEl = document.getElementById('alert')!;
+    const form = document.getElementById('announcementForm') as HTMLFormElement;
+    const subjectInput = document.getElementById('subject') as HTMLInputElement;
+    const messageInput = document.getElementById('message') as HTMLTextAreaElement;
+    const sendBtn = document.getElementById('sendBtn') as HTMLButtonElement;
+    const recipientCountEl = document.getElementById('recipientCount')!;
+
+    const confirmModal = document.getElementById('confirmModal')!;
+    const confirmCountEl = document.getElementById('confirmCount')!;
+    const confirmInput = document.getElementById('confirmInput') as HTMLInputElement;
+    const confirmSendBtn = document.getElementById('confirmSendBtn') as HTMLButtonElement;
+    const cancelConfirmBtn = document.getElementById('cancelConfirmBtn')!;
+
+    const historyCard = document.getElementById('historyCard')!;
+    const historyList = document.getElementById('historyList')!;
+    const historyEmpty = document.getElementById('historyEmpty')!;
+
+    let recipientTotal = 0;
+
+    function showAlert(type: 'success' | 'error', msg: string) {
+      const styles =
+        type === 'success'
+          ? 'bg-green-50 border-green-200 text-green-800'
+          : 'bg-red-50 border-red-200 text-red-800';
+      alertEl.className = `mb-6 border rounded-lg px-4 py-3 text-sm ${styles}`;
+      alertEl.textContent = msg;
+      alertEl.classList.remove('hidden');
+      alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Gate the page to super admins only.
+    const claims = getTokenClaims();
+    if (!claims || claims.role !== 'super_admin') {
+      noAccess.classList.remove('hidden');
+    } else {
+      composeCard.classList.remove('hidden');
+      historyCard.classList.remove('hidden');
+      loadRecipientCount();
+      loadHistory();
+    }
+
+    async function loadRecipientCount() {
+      try {
+        const res = await listUsers();
+        recipientTotal = res.total ?? res.users?.length ?? 0;
+        recipientCountEl.textContent = String(recipientTotal);
+      } catch {
+        recipientCountEl.textContent = '—';
+      }
+    }
+
+    function escapeHtml(s: string): string {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    async function loadHistory() {
+      const base =
+        import.meta.env.PUBLIC_API_BASE_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8082`;
+      try {
+        const res = await fetch(`${base}/api/admin/announcements`, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const items = (data.announcements || []) as Array<any>;
+        if (items.length === 0) {
+          historyList.innerHTML = '';
+          historyEmpty.classList.remove('hidden');
+          return;
+        }
+        historyEmpty.classList.add('hidden');
+        historyList.innerHTML = items
+          .map((a) => {
+            const when = new Date(a.created_at).toLocaleString();
+            const failed =
+              a.failed_count > 0
+                ? `<span class="text-red-600">${a.failed_count} failed</span>`
+                : '';
+            const stats = [`${a.sent_count}/${a.recipient_count} delivered`, failed]
+              .filter(Boolean)
+              .join(' · ');
+            return `
+              <div class="bg-white border border-slate-200 rounded-lg p-4">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="min-w-0">
+                    <p class="font-medium text-slate-800 truncate">${escapeHtml(a.subject)}</p>
+                    <p class="text-xs text-slate-500 mt-0.5">${when} · by ${escapeHtml(a.sender_email || 'unknown')}</p>
+                  </div>
+                  <span class="shrink-0 text-xs font-medium text-slate-600">${stats}</span>
+                </div>
+              </div>`;
+          })
+          .join('');
+      } catch {
+        /* history is non-critical */
+      }
+    }
+
+    // Compose form -> open confirm modal
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!subjectInput.value.trim() || !messageInput.value.trim()) {
+        showAlert('error', 'Subject and message are required.');
+        return;
+      }
+      confirmCountEl.textContent = String(recipientTotal || '?');
+      confirmInput.value = '';
+      confirmSendBtn.disabled = true;
+      confirmModal.classList.remove('hidden');
+      confirmInput.focus();
+    });
+
+    confirmInput.addEventListener('input', () => {
+      confirmSendBtn.disabled = confirmInput.value.trim().toUpperCase() !== 'SEND';
+    });
+
+    function closeModal() {
+      confirmModal.classList.add('hidden');
+    }
+    cancelConfirmBtn.addEventListener('click', closeModal);
+    confirmModal.addEventListener('click', (e) => {
+      if (e.target === confirmModal) closeModal();
+    });
+
+    confirmSendBtn.addEventListener('click', async () => {
+      closeModal();
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending…';
+      try {
+        const res = await fetch('/api/email/announcement', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify({
+            subject: subjectInput.value.trim(),
+            message: messageInput.value.trim(),
+            siteUrl: window.location.origin,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showAlert('success', `Announcement sent to ${data.sent} of ${data.totalRecipients} users.`);
+          form.reset();
+          loadHistory();
+        } else if (res.ok) {
+          showAlert('error', `Partially sent: ${data.sent} delivered, ${data.failed} failed. Check logs and retry.`);
+          loadHistory();
+        } else {
+          showAlert('error', data.error || 'Failed to send announcement.');
+        }
+      } catch (err) {
+        showAlert('error', 'Network error while sending announcement.');
+      } finally {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML =
+          '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg> Send Announcement';
+      }
+    });
+  </script>
+</AdminLayout>

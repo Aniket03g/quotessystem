@@ -76,6 +76,11 @@ func (d *Database) initSchema() error {
 
 	log.Println("[DB] Schema initialized")
 
+	// Announcements audit log (super-admin broadcast emails)
+	if err := d.initAnnouncementsSchema(); err != nil {
+		return err
+	}
+
 	// Run migrations to add missing columns to existing tables
 	if err := d.runMigrations(); err != nil {
 		log.Printf("[DB ERROR] Failed to run migrations: %v", err)
