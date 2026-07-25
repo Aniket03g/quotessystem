@@ -195,7 +195,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const token = getToken();
       if (!token) { window.location.href = '/login'; return; }
 
-      const isAdminUser = getUserRole() === 'admin' || getUserRole() === 'super_admin';
+      // Admins, super admins and managers see the "Assigned To" column + filter.
+      const isAdminUser = getUserRole() === 'admin' || getUserRole() === 'super_admin' || getUserRole() === 'manager';
       if (!isAdminUser) {
         document.getElementById('assignedToHeader')?.remove();
         document.getElementById('assignedToCol')?.remove();
