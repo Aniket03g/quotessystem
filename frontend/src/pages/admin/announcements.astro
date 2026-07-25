@@ -62,6 +62,23 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           <p class="text-xs text-slate-500 mt-1">Plain text only. Line breaks are kept; no HTML.</p>
         </div>
 
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">Attachment (optional)</label>
+          <input
+            type="file"
+            id="attachment"
+            name="attachment"
+            accept="application/pdf,.pdf"
+            class="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+          />
+          <div id="attachmentInfo" class="hidden mt-2 flex items-center gap-2 text-sm text-slate-700">
+            <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+            <span id="attachmentName" class="truncate"></span>
+            <button type="button" id="removeAttachmentBtn" class="text-red-600 hover:text-red-700 font-medium shrink-0">Remove</button>
+          </div>
+          <p class="text-xs text-slate-500 mt-1">PDF only, up to 5 MB. Attached to the email sent to every user.</p>
+        </div>
+
         <div class="flex items-center justify-end gap-3 pt-2">
           <button
             type="submit"
@@ -124,6 +141,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     const messageInput = document.getElementById('message') as HTMLTextAreaElement;
     const sendBtn = document.getElementById('sendBtn') as HTMLButtonElement;
     const recipientCountEl = document.getElementById('recipientCount')!;
+    const attachmentInput = document.getElementById('attachment') as HTMLInputElement;
+    const attachmentInfo = document.getElementById('attachmentInfo')!;
+    const attachmentNameEl = document.getElementById('attachmentName')!;
+    const removeAttachmentBtn = document.getElementById('removeAttachmentBtn')!;
+
+    const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
+    let selectedFile: File | null = null;
 
     const confirmModal = document.getElementById('confirmModal')!;
     const confirmCountEl = document.getElementById('confirmCount')!;
@@ -219,6 +243,56 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       }
     }
 
+    function clearAttachment() {
+      selectedFile = null;
+      attachmentInput.value = '';
+      attachmentInfo.classList.add('hidden');
+      attachmentNameEl.textContent = '';
+    }
+
+    function formatSize(bytes: number): string {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    attachmentInput.addEventListener('change', () => {
+      const file = attachmentInput.files?.[0] || null;
+      if (!file) {
+        clearAttachment();
+        return;
+      }
+      if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') {
+        showAlert('error', 'Only PDF files can be attached.');
+        clearAttachment();
+        return;
+      }
+      if (file.size > MAX_ATTACHMENT_BYTES) {
+        showAlert('error', `Attachment is too large (${formatSize(file.size)}). Max is 5 MB.`);
+        clearAttachment();
+        return;
+      }
+      selectedFile = file;
+      attachmentNameEl.textContent = `${file.name} (${formatSize(file.size)})`;
+      attachmentInfo.classList.remove('hidden');
+    });
+
+    removeAttachmentBtn.addEventListener('click', clearAttachment);
+
+    // Read a File as base64 without the "data:...;base64," prefix.
+    function fileToBase64(file: File): Promise<string> {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = String(reader.result || '');
+          const comma = result.indexOf(',');
+          resolve(comma >= 0 ? result.slice(comma + 1) : result);
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    }
+
     // Compose form -> open confirm modal
     form.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -250,6 +324,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       sendBtn.disabled = true;
       sendBtn.textContent = 'Sending…';
       try {
+        let attachment: { filename: string; content: string } | undefined;
+        if (selectedFile) {
+          attachment = {
+            filename: selectedFile.name,
+            content: await fileToBase64(selectedFile),
+          };
+        }
         const res = await fetch('/api/email/announcement', {
           method: 'POST',
           headers: {
@@ -260,12 +341,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             subject: subjectInput.value.trim(),
             message: messageInput.value.trim(),
             siteUrl: window.location.origin,
+            ...(attachment ? { attachment } : {}),
           }),
         });
         const data = await res.json();
         if (res.ok && data.success) {
           showAlert('success', `Announcement sent to ${data.sent} of ${data.totalRecipients} users.`);
           form.reset();
+          clearAttachment();
           loadHistory();
         } else if (res.ok) {
           showAlert('error', `Partially sent: ${data.sent} delivered, ${data.failed} failed. Check logs and retry.`);

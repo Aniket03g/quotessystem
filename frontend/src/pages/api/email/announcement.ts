@@ -3,11 +3,21 @@ import { Resend } from 'resend';
 
 export const prerender = false;
 
+interface AnnouncementAttachment {
+  filename: string;
+  content: string; // base64 (no data: prefix)
+}
+
 interface AnnouncementBody {
   subject: string;
   message: string;
   siteUrl?: string;
+  attachment?: AnnouncementAttachment | null;
 }
+
+// Cap the decoded attachment so one announcement can't try to push a huge file
+// to every user. 5 MB is generous for a PDF and well under Resend's limit.
+const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
 interface JWTPayload {
   role?: string;
@@ -70,6 +80,33 @@ export const POST: APIRoute = async ({ request }) => {
       return json({ error: 'subject and message are required' }, 400);
     }
 
+    // Optional PDF attachment. Validated here so a bad file is rejected before
+    // we fan out to every recipient. Decoded to a Buffer once and reused across
+    // all batches.
+    let attachmentBuffer: Buffer | null = null;
+    let attachmentName = '';
+    if (body.attachment && body.attachment.content) {
+      attachmentName = (body.attachment.filename || 'attachment.pdf').trim();
+      if (!/\.pdf$/i.test(attachmentName)) {
+        return json({ error: 'Only PDF attachments are allowed' }, 400);
+      }
+      try {
+        attachmentBuffer = Buffer.from(body.attachment.content, 'base64');
+      } catch {
+        return json({ error: 'Attachment could not be decoded' }, 400);
+      }
+      if (attachmentBuffer.length === 0) {
+        return json({ error: 'Attachment is empty' }, 400);
+      }
+      if (attachmentBuffer.length > MAX_ATTACHMENT_BYTES) {
+        return json({ error: 'Attachment exceeds the 5 MB limit' }, 400);
+      }
+      // A real PDF starts with "%PDF-". Cheap guard against mislabelled files.
+      if (attachmentBuffer.subarray(0, 5).toString('latin1') !== '%PDF-') {
+        return json({ error: 'Attachment is not a valid PDF' }, 400);
+      }
+    }
+
     const apiKey = process.env.RESEND_API_KEY;
     const fromAddress = process.env.EMAIL_FROM_ADMIN || process.env.EMAIL_FROM;
     if (!apiKey || !fromAddress) {
@@ -114,6 +151,10 @@ export const POST: APIRoute = async ({ request }) => {
     let sent = 0;
     const failedBatches: string[] = [];
 
+    const attachments = attachmentBuffer
+      ? [{ filename: attachmentName, content: attachmentBuffer }]
+      : undefined;
+
     for (let i = 0; i < recipients.length; i += BATCH_SIZE) {
       const batch = recipients.slice(i, i + BATCH_SIZE);
       const { error } = await resend.emails.send({
@@ -124,6 +165,7 @@ export const POST: APIRoute = async ({ request }) => {
         subject,
         html: htmlBody,
         text: textBody,
+        ...(attachments ? { attachments } : {}),
       });
 
       if (error) {
