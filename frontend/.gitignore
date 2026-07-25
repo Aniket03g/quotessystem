@@ -15,6 +15,13 @@ pnpm-debug.log*
 .env
 .env.production
 
+# PDF signing certificates / private keys — NEVER commit these
+certs/
+*.p12
+*.pfx
+*.pem
+*.key
+
 # macOS-specific files
 .DS_Store
 

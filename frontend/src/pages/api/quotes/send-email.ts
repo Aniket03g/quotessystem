@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
 import { generatePdfBuffer, type QuoteData } from '../../../lib/pdf-generator';
+import { signPdfBuffer } from '../../../lib/pdf-signer';
 
 export const prerender = false;
 
@@ -33,7 +34,14 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const pdfBuffer = generatePdfBuffer(quoteData as QuoteData);
+    const rawPdf = generatePdfBuffer(quoteData as QuoteData);
+    const pdfBuffer = await signPdfBuffer(rawPdf, {
+      companyName:
+        quoteData.logo === 'grove'
+          ? 'Grove Systems Pvt. Ltd.'
+          : 'GreenOCare Solutions Pvt. Ltd.',
+      quoteNumber: quoteData.quoteNumber,
+    });
 
     const resend = new Resend(apiKey);
 

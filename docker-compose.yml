@@ -42,6 +42,15 @@ services:
       - RESEND_API_KEY=${RESEND_API_KEY}
       - EMAIL_FROM=${EMAIL_FROM}
       - EMAIL_FROM_ADMIN=${EMAIL_FROM_ADMIN}
+      # PDF digital-signing cert. The .p12 is gitignored / never in the image,
+      # so it is bind-mounted below and this points the signer at it. If the
+      # file is absent, quotes still send but go out UNSIGNED (safe fallback).
+      - PDF_SIGNING_P12=/app/certs/grove-signing.p12
+      # - PDF_SIGNING_P12_PASS=   # only if the .p12 has a passphrase
+    volumes:
+      # Supply the signing cert to the container without baking it into the image.
+      # Copy grove-signing.p12 to ./frontend/certs/ on the VPS (scp) before deploy.
+      - ./frontend/certs:/app/certs:ro
     depends_on:
       - backend
     restart: unless-stopped
