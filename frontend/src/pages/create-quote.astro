@@ -1002,7 +1002,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       const data = await safeJsonParse(response);
       const existing = data.records || data.list || [];
-      const nextSeq = existing.length + 1;
+
+      // Take the highest sequence actually in use, not the row count. Versions of a
+      // quote are separate rows that deliberately share one Quote Number, so counting
+      // rows runs ahead of the real numbers and skips a number per version. Counting
+      // also moves backwards when a quote is deleted, which would reissue a number
+      // that is already on a customer's PDF.
+      let maxSeq = 0;
+      for (const rec of existing) {
+        const quoteNumber = String((rec.fields?.['Quote Number']) ?? rec['Quote Number'] ?? '');
+        if (!quoteNumber.startsWith(numberPrefix)) continue;
+        const seq = parseInt(quoteNumber.slice(numberPrefix.length), 10);
+        if (Number.isFinite(seq)) maxSeq = Math.max(maxSeq, seq);
+      }
+      const nextSeq = maxSeq + 1;
 
       return `${numberPrefix}${nextSeq.toString().padStart(4, '0')}`;
     }
