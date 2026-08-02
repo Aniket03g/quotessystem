@@ -337,6 +337,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         let result = allAccounts.filter((r: any) => {
           const f = r.fields || {};
           if (search && !(f['Account Name'] || '').toLowerCase().includes(search)) return false;
+          // Prospects are placeholder accounts created so a lead can be quoted;
+          // they are not customers yet, so keep them out of the default view.
+          // "Lost Prospect" is one whose lead went cold — kept as the record of
+          // what was quoted and lost. Either is still reachable via the Type filter.
+          if (!type && (f['Account Type'] === 'Prospect' || f['Account Type'] === 'Lost Prospect')) return false;
           if (type && f['Account Type'] !== type) return false;
           if (state && f['Billing State'] !== state) return false;
           if (assignee) {

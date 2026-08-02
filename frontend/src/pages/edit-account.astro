@@ -357,7 +357,21 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const typeSelect = document.getElementById('accountType') as HTMLSelectElement;
         const typeValue = f['Account Type'] || '';
         const matchingOption = Array.from(typeSelect.options).find(o => o.value === typeValue);
-        if (matchingOption) typeSelect.value = typeValue;
+        if (matchingOption) {
+          typeSelect.value = typeValue;
+        } else if (typeValue) {
+          // "Account Type" is free text in NocoDB, so records legitimately carry
+          // values this form does not offer (Partner, and the lead pipeline's
+          // Prospect / Lost Prospect). Without an option to select, the field
+          // would render blank and saving would silently wipe the stored value —
+          // promoting a hidden prospect back into the accounts list. Preserve
+          // whatever is on the record instead.
+          const preserved = document.createElement('option');
+          preserved.value = typeValue;
+          preserved.textContent = typeValue;
+          typeSelect.appendChild(preserved);
+          typeSelect.value = typeValue;
+        }
 
         // Handled By — admin only
         if (getUserRole() === 'admin' || getUserRole() === 'super_admin') {

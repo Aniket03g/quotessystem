@@ -55,6 +55,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 </svg>
                 Delete
               </button>
+              <button id="sendQuoteBtn" class="hidden px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 text-sm font-semibold transition-all items-center gap-2 shadow-lg shadow-indigo-500/25">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Send Quote
+              </button>
+              <button id="markWonBtn" class="hidden px-4 py-2.5 bg-white border border-emerald-200 text-emerald-700 rounded-xl hover:bg-emerald-50 text-sm font-semibold transition-all items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Mark as Won
+              </button>
               <button id="markLostBtn" class="px-4 py-2.5 bg-white border border-orange-200 text-orange-600 rounded-xl hover:bg-orange-50 text-sm font-semibold transition-all flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -285,6 +297,70 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     </div>
   </div>
 
+  <!-- Send Quote Modal -->
+  <div id="sendQuoteModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <h2 class="text-xl font-bold text-slate-800">Send Quote</h2>
+        <button id="closeSendQuoteBtn" class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <!-- Checking for an existing account -->
+        <div id="sendQuoteChecking" class="py-8 text-center">
+          <svg class="animate-spin w-6 h-6 text-indigo-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-sm text-slate-500">Checking for an existing account…</p>
+        </div>
+
+        <div id="sendQuoteBody" class="hidden space-y-5">
+          <!-- Existing account matched -->
+          <div id="sendQuoteMatch" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-lg">
+            <p id="sendQuoteMatchTitle" class="text-sm font-semibold text-amber-900 mb-1">An account already exists</p>
+            <p id="sendQuoteMatchText" class="text-xs text-amber-800 leading-relaxed"></p>
+            <!-- Enough of the matched account to tell whether it is really the
+                 same company, since a shared switchboard number is not proof. -->
+            <div id="sendQuoteMatchDetails" class="hidden mt-3 space-y-1.5 p-3 bg-white/70 border border-amber-200 rounded-md"></div>
+            <button type="button" id="sendQuoteOverrideBtn"
+              class="hidden mt-3 text-xs font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-950">
+              Not the same company — create a new account instead
+            </button>
+          </div>
+
+          <!-- New prospect account will be created -->
+          <div id="sendQuoteNew" class="hidden space-y-4">
+            <p class="text-sm text-slate-600 leading-relaxed">
+              A <span class="font-semibold text-slate-800">Prospect</span> account will be created from this lead so the
+              quote has something to attach to. It stays out of the accounts list until the deal is won.
+            </p>
+            <div id="sendQuotePreview" class="space-y-2 p-4 bg-slate-50 border border-slate-200 rounded-lg"></div>
+            <div>
+              <label for="sendQuoteGst" class="block text-sm font-medium text-slate-700 mb-2">
+                GST No <span class="text-slate-400 font-normal">(printed on the quote PDF)</span>
+              </label>
+              <input type="text" id="sendQuoteGst" placeholder="e.g. 07AABCU9603R1ZM"
+                class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <p class="text-xs text-slate-500 mt-1.5">Leave blank if the buyer has not shared it yet — you can add it to the account later.</p>
+            </div>
+          </div>
+
+          <div id="sendQuoteError" class="hidden p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800"></div>
+        </div>
+      </div>
+
+      <div id="sendQuoteFooter" class="hidden sticky bottom-0 bg-white border-t border-slate-200 px-6 py-4 flex gap-3 justify-end">
+        <button type="button" id="cancelSendQuoteBtn" class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors">Cancel</button>
+        <button type="button" id="confirmSendQuoteBtn" class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-2">Continue to Quote</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toastContainer" class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
 
@@ -425,6 +501,81 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       });
     }
 
+    // A lead that has been quoted owns a Prospect account (see the Send Quote
+    // flow below). When the lead reaches an end state that account has to follow
+    // it, otherwise a won deal stays invisible in the accounts list and a lost
+    // one is indistinguishable from a live prospect.
+    //
+    // Every path that changes lead status routes through changeStatus(), so this
+    // is the single place that decides what a status means for the account.
+    const ACCOUNT_TYPE_FOR_STATUS: Record<string, string> = {
+      'Converted': 'Customer',
+      'Lost': 'Lost Prospect',
+    };
+
+    // Which account a quoted lead owns is recorded on the lead itself, in the
+    // "Converted To Account" link written at handoff. Inferring it from the phone
+    // number instead went wrong two ways: two companies sharing a switchboard
+    // resolved to one another's account, and editing a lead's phone after the
+    // quote went out silently severed the connection.
+    function linkedAccountId(): string | null {
+      const link = currentLead?.fields?.['Converted To Account'];
+      return link && link.id != null ? String(link.id) : null;
+    }
+
+    async function fetchAccountById(accountId: string): Promise<any | null> {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=Account Name,Company Name,Account Type`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        if (!res.ok) return null;
+        return await res.json();
+      } catch {
+        return null;
+      }
+    }
+
+    async function syncAccountToLeadStatus(newStatus: string) {
+      const nextType = ACCOUNT_TYPE_FOR_STATUS[newStatus];
+      if (!nextType || !currentLead) return;
+
+      const accountId = linkedAccountId();
+      if (!accountId) return; // lead was never quoted — nothing to sync
+
+      const account = await fetchAccountById(accountId);
+      if (!account) {
+        // The link exists but the account behind it no longer resolves — most
+        // likely deleted. Say so rather than failing quietly, since the lead's
+        // outcome has already saved.
+        showToast('Lead updated, but its linked account could not be read.', 'error');
+        return;
+      }
+
+      const currentType = ((account.fields || {})['Account Type'] || '').trim();
+      // Only accounts this flow created may be relabelled. If the salesperson
+      // picked an established Customer or Dealer at handoff, the link points at
+      // it, and it must not be demoted just because this deal went cold.
+      if (currentType !== 'Prospect' && currentType !== 'Lost Prospect') return;
+      if (currentType === nextType) return;
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: accountId, fields: { 'Account Type': nextType } })
+        });
+        if (!res.ok) throw new Error('PATCH failed');
+        if (nextType === 'Customer') {
+          showToast('Account promoted to Customer.', 'success');
+        }
+      } catch {
+        // The lead status itself already saved; surface the partial failure
+        // rather than rolling back, so the user knows to fix the account.
+        showToast('Lead updated, but the linked account could not be updated.', 'error');
+      }
+    }
+
     async function changeStatus(newStatus: string) {
       if (!currentLead) return;
       const oldStatus = currentLead.fields?.['Status'] || 'New';
@@ -433,7 +584,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       currentLead.fields['Status'] = newStatus;
       renderPipelineTrack(newStatus);
       const lostBadge = document.getElementById('detailLostBadge')!;
-      lostBadge.classList.add('hidden');
+      lostBadge.classList.toggle('hidden', newStatus !== 'Lost');
+      lostBadge.classList.toggle('inline-flex', newStatus === 'Lost');
+      updateOutcomeButtons(newStatus);
 
       try {
         const res = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
@@ -445,7 +598,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       } catch {
         currentLead.fields['Status'] = oldStatus;
         renderPipelineTrack(oldStatus);
+        lostBadge.classList.toggle('hidden', oldStatus !== 'Lost');
+        lostBadge.classList.toggle('inline-flex', oldStatus === 'Lost');
+        updateOutcomeButtons(oldStatus);
         showToast('Failed to update status. Please try again.', 'error');
+        return;
+      }
+
+      await syncAccountToLeadStatus(newStatus);
+    }
+
+    // Won/Lost/Send Quote only apply while the lead is still in play.
+    function updateOutcomeButtons(status: string) {
+      const settled = status === 'Lost' || status === 'Converted';
+      for (const id of ['sendQuoteBtn', 'markWonBtn', 'markLostBtn']) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        el.classList.toggle('hidden', settled);
+        el.classList.toggle('flex', !settled);
       }
     }
 
@@ -543,6 +713,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       } else {
         sourceEl.classList.add('hidden');
       }
+
+      updateOutcomeButtons(status);
 
       // Delete button: admin only
       if (userRole === 'admin') {
@@ -735,34 +907,291 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     });
 
-    // --- Mark as Lost ---
+    // --- Mark as Won / Mark as Lost ---
+    // Both delegate to changeStatus() so the linked account is kept in step by
+    // the same code that handles the pipeline track.
+    document.getElementById('markWonBtn')!.addEventListener('click', async () => {
+      if (!currentLead) return;
+      if (currentLead.fields?.['Status'] === 'Converted') return;
+      const name = currentLead.fields?.['Lead Name'] || 'this lead';
+      if (!await showConfirm(
+        `Mark "${name}" as Won? Its account becomes a Customer and appears in the accounts list.`,
+        'Mark as Won', 'bg-emerald-600 hover:bg-emerald-700')) return;
+      await changeStatus('Converted');
+    });
+
     document.getElementById('markLostBtn')!.addEventListener('click', async () => {
       if (!currentLead) return;
-      const status = currentLead.fields?.['Status'];
-      if (status === 'Lost') return;
+      if (currentLead.fields?.['Status'] === 'Lost') return;
       const name = currentLead.fields?.['Lead Name'] || 'this lead';
       if (!await showConfirm(`Mark "${name}" as Lost?`, 'Mark as Lost', 'bg-orange-600 hover:bg-orange-700')) return;
+      await changeStatus('Lost');
+    });
 
-      const oldStatus = status;
-      currentLead.fields['Status'] = 'Lost';
-      renderPipelineTrack('Lost');
-      const lostBadge = document.getElementById('detailLostBadge')!;
-      lostBadge.classList.remove('hidden');
-      lostBadge.classList.add('inline-flex');
+    // --- Send Quote (lead → prospect account → quote) ---
+    //
+    // A quote cannot hang off a lead: the Cases junction links quotes to
+    // Accounts Duplicate, and the PDF reads GST and the billing address from
+    // the account. So quoting a lead first materialises it as an account marked
+    // "Prospect", then hands off to the existing create-quote flow. On a won
+    // deal the Account Type flips to Customer — no data is copied or migrated.
+    const sendQuoteModal = document.getElementById('sendQuoteModal') as HTMLDivElement;
+    const sendQuoteChecking = document.getElementById('sendQuoteChecking') as HTMLDivElement;
+    const sendQuoteBody = document.getElementById('sendQuoteBody') as HTMLDivElement;
+    const sendQuoteFooter = document.getElementById('sendQuoteFooter') as HTMLDivElement;
+    const sendQuoteMatchBox = document.getElementById('sendQuoteMatch') as HTMLDivElement;
+    const sendQuoteNewBox = document.getElementById('sendQuoteNew') as HTMLDivElement;
+    const sendQuoteErrorBox = document.getElementById('sendQuoteError') as HTMLDivElement;
+    const confirmSendQuoteBtn = document.getElementById('confirmSendQuoteBtn') as HTMLButtonElement;
+
+    // The account this quote will be raised against, when one already exists:
+    // either the one this lead was quoted against before (authoritative), or a
+    // phone-number match on an account the lead may or may not actually belong to
+    // (a guess, and labelled as one in the modal).
+    let matchedAccount: any = null;
+
+    async function findAccountByPhone(phone: string): Promise<any | null> {
+      const trimmed = (phone || '').trim();
+      if (!trimmed) return null;
+      try {
+        const where = encodeURIComponent(`(Phone Number,eq,${trimmed})`);
+        const res = await fetch(
+          `${API_BASE_URL}/proxy/accounts_duplicate/records?where=${where}&limit=1&fields=Account Name,Company Name,Account Type,GST No,Billing City`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        const records = data.records || data.list || [];
+        return records[0] || null;
+      } catch {
+        // A failed lookup must not block quoting — worst case we create a
+        // duplicate account, which is recoverable; a hard block is not.
+        return null;
+      }
+    }
+
+    // Writes the Leads → "Accounts duplicate" one-to-one link. Underscores in the
+    // alias are what the proxy's link resolver expects; it maps them back to the
+    // field title.
+    async function linkAccountToLead(accountId: string) {
+      const res = await fetch(
+        `${API_BASE_URL}/proxy/leads/links/Converted_To_Account/${currentLead.id}`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: Number(accountId) })
+        }
+      );
+      if (!res.ok) {
+        throw new Error(`The account was ready but could not be linked to this lead: ${await res.text()}`);
+      }
+    }
+
+    async function openSendQuoteModal() {
+      if (!currentLead) return;
+      const f = currentLead.fields || {};
+
+      matchedAccount = null;
+      sendQuoteErrorBox.classList.add('hidden');
+      sendQuoteMatchBox.classList.add('hidden');
+      sendQuoteNewBox.classList.add('hidden');
+      sendQuoteBody.classList.add('hidden');
+      sendQuoteFooter.classList.add('hidden');
+      sendQuoteChecking.classList.remove('hidden');
+      sendQuoteModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+
+      // A lead that has been quoted before already owns an account: reuse that
+      // one outright. Only a lead with no account yet falls back to searching by
+      // phone, so a re-quote can neither spawn a duplicate nor drift onto a
+      // different company that happens to share the number.
+      const linkedId = linkedAccountId();
+      matchedAccount = linkedId ? await fetchAccountById(linkedId) : null;
+      const isLinked = !!matchedAccount;
+      if (!matchedAccount) matchedAccount = await findAccountByPhone(f['Phone Number']);
+
+      sendQuoteChecking.classList.add('hidden');
+      sendQuoteBody.classList.remove('hidden');
+      sendQuoteFooter.classList.remove('hidden');
+
+      if (matchedAccount) {
+        const mf = matchedAccount.fields || {};
+        const name = mf['Account Name'] || mf['Company Name'] || 'An existing account';
+        (document.getElementById('sendQuoteMatchTitle') as HTMLElement).textContent =
+          isLinked ? 'This lead already has an account' : 'An account already exists';
+        (document.getElementById('sendQuoteMatchText') as HTMLElement).innerHTML = isLinked
+          ? `This lead was already quoted against <span class="font-semibold">${name}</span>.
+             The new quote will be raised against the same account.`
+          : `<span class="font-semibold">${name}</span> has the same phone number as this lead.
+             Check it is the same company before continuing — the quote will be addressed to it,
+             using its GST number and billing address.`;
+
+        // Only a phone-number guess may be overridden. A lead that was already
+        // quoted must keep its account, otherwise re-quoting would fork it into a
+        // second record and the Won/Lost outcome would land on only one of them.
+        const details = document.getElementById('sendQuoteMatchDetails') as HTMLElement;
+        const overrideBtn = document.getElementById('sendQuoteOverrideBtn') as HTMLElement;
+        if (isLinked) {
+          details.classList.add('hidden');
+          overrideBtn.classList.add('hidden');
+        } else {
+          details.innerHTML = [
+            matchRow('Account Name', mf['Account Name']),
+            matchRow('Company Name', mf['Company Name']),
+            matchRow('GST No', mf['GST No']),
+            matchRow('Billing City', mf['Billing City']),
+            matchRow('Type', mf['Account Type']),
+          ].join('');
+          details.classList.remove('hidden');
+          overrideBtn.classList.remove('hidden');
+        }
+
+        sendQuoteMatchBox.classList.remove('hidden');
+        confirmSendQuoteBtn.textContent = 'Use Existing & Continue';
+        return;
+      }
+
+      showNewAccountForm();
+    }
+
+    const matchRow = (label: string, value: string) => `
+      <div class="flex items-start gap-3">
+        <span class="text-xs font-semibold text-amber-900/70 w-28 flex-shrink-0 pt-0.5">${label}</span>
+        <span class="text-xs text-amber-950">${value || '—'}</span>
+      </div>`;
+
+    // Switches the modal to "a new Prospect account will be created". Reached
+    // either because nothing matched, or because the user rejected a phone match.
+    function showNewAccountForm() {
+      const f = currentLead?.fields || {};
+
+      const row = (label: string, value: string) => `
+        <div class="flex items-start gap-3">
+          <span class="text-xs font-semibold text-slate-500 w-32 flex-shrink-0 pt-0.5">${label}</span>
+          <span class="text-xs text-slate-800">${value || '—'}</span>
+        </div>`;
+
+      (document.getElementById('sendQuotePreview') as HTMLElement).innerHTML = [
+        row('Account Name', f['Lead Name'] || f['Company'] || 'Unnamed Account'),
+        row('Company Name', f['Company']),
+        row('Primary Contact', f['Contact Person']),
+        row('Phone Number', f['Phone Number']),
+        row('Email', f['Email']),
+        row('Billing City', f['Billing City']),
+      ].join('');
+      (document.getElementById('sendQuoteGst') as HTMLInputElement).value = '';
+      sendQuoteMatchBox.classList.add('hidden');
+      sendQuoteNewBox.classList.remove('hidden');
+      confirmSendQuoteBtn.textContent = 'Create Account & Continue';
+    }
+
+    function closeSendQuoteModal() {
+      sendQuoteModal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    async function performQuoteHandoff() {
+      if (!currentLead) return;
+      const f = currentLead.fields || {};
+
+      confirmSendQuoteBtn.disabled = true;
+      const originalLabel = confirmSendQuoteBtn.textContent;
+      confirmSendQuoteBtn.innerHTML = `
+        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Preparing…`;
+      sendQuoteErrorBox.classList.add('hidden');
 
       try {
-        const res = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
-          method: 'PATCH',
-          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: currentLead.id, fields: { 'Status': 'Lost' } })
-        });
-        if (!res.ok) throw new Error('PATCH failed');
-      } catch {
-        currentLead.fields['Status'] = oldStatus;
-        renderPipelineTrack(oldStatus || 'New');
-        lostBadge.classList.add('hidden');
-        showToast('Failed to update status. Please try again.', 'error');
+        let accountId: string;
+        let accountName: string;
+
+        if (matchedAccount) {
+          accountId = matchedAccount.id;
+          const mf = matchedAccount.fields || {};
+          accountName = mf['Account Name'] || mf['Company Name'] || 'Account';
+        } else {
+          accountName = f['Lead Name'] || f['Company'] || 'Unnamed Account';
+          const gstNo = (document.getElementById('sendQuoteGst') as HTMLInputElement).value.trim();
+
+          const accountFields: Record<string, string> = {
+            'Account Name': accountName,
+            'Company Name': f['Company'] || '',
+            'Primary Contact': f['Contact Person'] || '',
+            'Email 1': f['Email'] || '',
+            'Phone Number': f['Phone Number'] || '',
+            'Phone Number 2': f['Phone Number 2'] || '',
+            'Phone Number 3': f['Phone Number 3'] || '',
+            'GST No': gstNo,
+            'Source': f['Source'] || '',
+            // Marks this as a not-yet-won account so the accounts list can keep
+            // it hidden until the deal closes.
+            'Account Type': 'Prospect',
+            'Description': f['Notes'] ? `Prospect from Lead: ${f['Notes']}` : 'Prospect from Lead',
+            'Billing Street': f['Billing Street'] || '',
+            'Billing City': f['Billing City'] || '',
+            'Billing State': f['Billing State'] || '',
+            'Billing Code': f['Billing Code'] || '',
+            'Billing Country': f['Billing Country'] || '',
+            'Shipping Street': f['Shipping Street'] || '',
+            'Shipping City': f['Shipping City'] || '',
+            'Shipping State': f['Shipping State'] || '',
+            'Shipping Code': f['Shipping Code'] || '',
+            'Shipping Country': f['Shipping Country'] || '',
+            // Owner-scoped server-side; without this the creator cannot see it.
+            'Handled By': f['Assigned to'] || f['Lead Created By'] || getUserEmail() || '',
+          };
+
+          const res = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields: accountFields })
+          });
+          if (!res.ok) throw new Error(`Failed to create account: ${await res.text()}`);
+
+          const result = await res.json();
+          accountId = result.records ? result.records[0]?.id : result.id;
+          if (!accountId) throw new Error('Account was created but no id came back');
+        }
+
+        // Record which account this lead was quoted against, before handing off.
+        // Won/Lost promotion and any later re-quote both read this link, so if it
+        // is not written the lead is quoted but orphaned — better to surface that
+        // here and let the user retry (which reuses the same account) than to let
+        // it fail silently weeks later when the deal closes.
+        await linkAccountToLead(accountId);
+
+        // Hand off to the existing quote flow, which prefills from these params.
+        // The lead is NOT advanced to "Proposal Sent" here: the user can still
+        // abandon the quote form, and a lead claiming a proposal was sent when
+        // none was is worse than a lead left a stage behind. create-quote moves
+        // it once the quote actually exists (that is what fromLead is for).
+        window.location.href =
+          `/create-quote?accountId=${accountId}&accountName=${encodeURIComponent(accountName)}` +
+          `&fromLead=${currentLead.id}`;
+      } catch (err: any) {
+        confirmSendQuoteBtn.disabled = false;
+        confirmSendQuoteBtn.textContent = originalLabel;
+        sendQuoteErrorBox.textContent = err.message || 'Could not prepare the quote. Please try again.';
+        sendQuoteErrorBox.classList.remove('hidden');
       }
+    }
+
+    // Rejecting the phone match drops it entirely, so the handoff takes the
+    // create-a-new-account path exactly as if nothing had matched.
+    document.getElementById('sendQuoteOverrideBtn')!.addEventListener('click', () => {
+      matchedAccount = null;
+      showNewAccountForm();
+    });
+
+    document.getElementById('sendQuoteBtn')!.addEventListener('click', openSendQuoteModal);
+    document.getElementById('closeSendQuoteBtn')!.addEventListener('click', closeSendQuoteModal);
+    document.getElementById('cancelSendQuoteBtn')!.addEventListener('click', closeSendQuoteModal);
+    confirmSendQuoteBtn.addEventListener('click', performQuoteHandoff);
+    sendQuoteModal.addEventListener('click', (e) => {
+      if (e.target === sendQuoteModal) closeSendQuoteModal();
     });
 
     function showError(msg: string) {

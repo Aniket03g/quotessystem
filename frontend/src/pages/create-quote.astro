@@ -357,6 +357,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     <!-- Form Actions -->
     <div class="flex gap-3 justify-end">
       <a
+        id="cancelQuoteBtn"
         href="/quotes"
         class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors"
       >
@@ -479,6 +480,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     const urlParams = new URLSearchParams(window.location.search);
     const prefillAccountId = urlParams.get('accountId');
     const prefillAccountName = urlParams.get('accountName');
+    // Set when this quote was started from a lead (see lead-detail's Send Quote
+    // flow). The lead only advances to "Proposal Sent" once the quote exists.
+    const fromLeadId = urlParams.get('fromLead');
+
+    // Cancel defaults to the quotes list, which is wrong when the user arrived
+    // from a lead — send them back where they started.
+    if (fromLeadId) {
+      const cancelBtn = document.getElementById('cancelQuoteBtn') as HTMLAnchorElement | null;
+      if (cancelBtn) cancelBtn.href = `/lead-detail?id=${fromLeadId}`;
+    }
 
     if (prefillAccountId && prefillAccountName) {
       accountSearch.value = decodeURIComponent(prefillAccountName);
@@ -1406,6 +1417,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
         console.log('[JUNCTION] ✓ All junction records created');
         console.log('==========================================\n');
+
+        // The quote now exists, so it is finally true that a proposal was sent.
+        // "Negotiation" is further along than "Proposal Sent", so re-quoting a
+        // lead already in that stage must not walk it backwards.
+        if (fromLeadId) {
+          try {
+            const leadRes = await fetch(`${API_BASE_URL}/proxy/leads/records/${fromLeadId}?fields=Status`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const leadStatus = leadRes.ok ? (await safeJsonParse(leadRes)).fields?.['Status'] : '';
+            if (leadStatus !== 'Negotiation' && leadStatus !== 'Converted' && leadStatus !== 'Lost') {
+              await fetch(`${API_BASE_URL}/proxy/leads/records`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: fromLeadId, fields: { 'Status': 'Proposal Sent' } })
+              });
+            }
+          } catch (e) {
+            // The quote is already saved — a stale lead status must not surface
+            // as a quote-creation failure.
+            console.error('[CREATE QUOTE] Could not advance originating lead:', e);
+          }
+        }
 
         showAlert('Quote created successfully!', 'success');
         setTimeout(() => {

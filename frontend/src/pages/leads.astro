@@ -1441,6 +1441,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           'Shipping State': f['Shipping State'] || '',
           'Shipping Code': f['Shipping Code'] || '',
           'Shipping Country': f['Shipping Country'] || '',
+          // Ownership must be stamped at creation: accounts are owner-scoped by
+          // "Handled By" server-side, so without this the converting user cannot
+          // see the account they just made. Prefer the lead's owner over the
+          // caller so a converted lead stays with whoever was working it.
+          'Handled By': f['Assigned to'] || f['Lead Created By'] || localStorage.getItem('user_email') || '',
         };
 
         const accountResponse = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records`, {
@@ -1722,6 +1727,50 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         updateStats(allLeads);
         applyFilters();
         showToast('Failed to update status. Please try again.', 'error');
+        return;
+      }
+
+      await syncAccountToLeadStatus(lead, newStatus);
+    }
+
+    // Mirror of the sync in lead-detail.astro: a quoted lead owns a Prospect
+    // account, and reaching an end state has to carry that account with it —
+    // whichever screen the status was changed from.
+    const ACCOUNT_TYPE_FOR_STATUS: Record<string, string> = {
+      'Converted': 'Customer',
+      'Lost': 'Lost Prospect',
+    };
+
+    async function syncAccountToLeadStatus(lead: any, newStatus: string) {
+      const nextType = ACCOUNT_TYPE_FOR_STATUS[newStatus];
+      if (!nextType) return;
+
+      const phone = (lead.fields?.['Phone Number'] || '').trim();
+      if (!phone) return;
+
+      try {
+        const where = encodeURIComponent(`(Phone Number,eq,${phone})`);
+        const res = await fetch(
+          `${API_BASE_URL}/proxy/accounts_duplicate/records?where=${where}&limit=1&fields=Account Type`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        );
+        if (!res.ok) return;
+        const account = ((await res.json()).records || [])[0];
+        if (!account) return; // lead was never quoted — nothing to sync
+
+        const currentType = ((account.fields || {})['Account Type'] || '').trim();
+        // Only relabel accounts this flow created; an established Customer or
+        // Dealer sharing a phone number must not be demoted by a cold lead.
+        if (currentType !== 'Prospect' && currentType !== 'Lost Prospect') return;
+        if (currentType === nextType) return;
+
+        await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: account.id, fields: { 'Account Type': nextType } })
+        });
+      } catch {
+        showToast('Lead updated, but the linked account could not be updated.', 'error');
       }
     }
     // ── End stage popover ───────────────────────────────────────
