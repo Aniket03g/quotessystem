@@ -9,12 +9,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <div>
         <h1 class="text-2xl font-semibold text-slate-800">Quotes</h1>
       </div>
-      <a href="/create-quote" class="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        Create Quote
-      </a>
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Separate page on purpose: the room builder is only wanted for AV
+             bill-of-materials quotes, and mixing it into the normal form makes
+             that form confusing for everyone else. -->
+        <a href="/create-room-quote" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-slate-300 text-slate-700 text-base font-semibold rounded-lg hover:bg-slate-50 transition-all shadow-sm hover:shadow" title="Quote grouped by floor and room, for AV bill-of-materials">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"></path>
+          </svg>
+          Room-wise Quote
+        </a>
+        <a href="/create-quote" class="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white text-base font-semibold rounded-lg hover:bg-green-600 transition-all shadow-lg hover:shadow-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Create Quote
+        </a>
+      </div>
     </div>
   </div>
 

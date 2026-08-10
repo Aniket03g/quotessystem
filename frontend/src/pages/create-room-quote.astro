@@ -2,7 +2,7 @@
 import AdminLayout from '../layouts/AdminLayout.astro';
 ---
 
-<AdminLayout title="Create Quote - Grove Systems" currentPage="quotes">
+<AdminLayout title="Room-wise Quote - Grove Systems" currentPage="quotes">
   <!-- Header -->
   <div class="mb-6">
     <a href="/quotes" class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 transition-colors mb-4">
@@ -11,8 +11,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       </svg>
       Back to Quotes
     </a>
-    <h1 class="text-2xl font-bold text-slate-800">Create New Quote</h1>
-    <p class="text-sm text-slate-600 mt-1">Fill in the details to create a new quote</p>
+    <h1 class="text-2xl font-bold text-slate-800">Create Room-wise Quote</h1>
+    <p class="text-sm text-slate-600 mt-1">For AV bill-of-materials quotes: group the line items by floor and room, then download the room-wise PDF.</p>
   </div>
 
   <!-- Alert -->
@@ -217,12 +217,37 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     <!-- Products Card -->
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-      <h2 class="text-base font-semibold text-slate-800 mb-4">Products *</h2>
-      
+      <h2 class="text-base font-semibold text-slate-800 mb-4">Products by Room *</h2>
+
+      <div class="mb-5 rounded-lg border border-slate-200 bg-slate-50 p-3">
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="flex-1 min-w-[10rem]">
+            <label for="activeFloor" class="block text-xs font-medium text-slate-700 mb-1">Floor</label>
+            <input type="text" id="activeFloor" list="floorOptions" autocomplete="off" placeholder="e.g. Ground Floor" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+            <datalist id="floorOptions"></datalist>
+          </div>
+          <div class="pb-3 text-slate-400 font-semibold">&gt;</div>
+          <div class="flex-1 min-w-[10rem]">
+            <label for="activeRoom" class="block text-xs font-medium text-slate-700 mb-1">Room</label>
+            <input type="text" id="activeRoom" list="roomOptions" autocomplete="off" placeholder="e.g. Board Room 12 PAX" class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" />
+            <datalist id="roomOptions"></datalist>
+          </div>
+          <button type="button" id="clearActiveRoomBtn" class="px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-200 rounded-md transition-colors">Clear</button>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">
+          Products you add next go into <span id="activeRoomLabel" class="font-semibold text-slate-700">no room</span>. Type a new name to create a floor or room; pick an existing one to keep adding to it.
+        </p>
+      </div>
+
       <div id="productsContainer" class="space-y-6">
         <div class="product-item border border-slate-200 rounded-lg p-4 space-y-4">
-          <div class="flex justify-end">
-            <button type="button" class="toggle-outsourced-btn text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-2">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="product-section-wrap hidden items-center gap-2">
+              <label class="text-xs font-medium text-slate-500">Room</label>
+              <select class="product-section-select px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+              <input type="hidden" class="product-section" />
+            </div>
+            <button type="button" class="toggle-outsourced-btn text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-2 ml-auto">
               + Add outsourced product
             </button>
           </div>
@@ -936,6 +961,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       removeBtn.addEventListener('click', () => {
         if (productsContainer.querySelectorAll('.product-item').length > 1) {
           productItem.remove();
+          renderRooms(); // the room it was in may now be empty
         }
       });
 
@@ -987,7 +1013,374 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       productsContainer.appendChild(newItem);
       setupProductSearch(newItem);
       setupOutsourcedToggle(newItem);
+      // Inherit whatever room the bar is pointing at, so a room's kit can be
+      // typed in without touching the row controls at all.
+      setItemSection(newItem, activeSection());
+      renderRooms();
     });
+
+    // ---------------------------------------------------------------- rooms ---
+    //
+    // Floor/room capture, the whole reason this page exists separately from
+    // create-quote.astro. Deliberately layered on top of the same DOM-node model
+    // that page uses rather than a state array: a room is just a string in the
+    // row's hidden `.product-section` input, and the grouping below is purely
+    // presentation, produced by reordering those same nodes.
+
+    const activeFloorInput = document.getElementById('activeFloor') as HTMLInputElement;
+    const activeRoomInput = document.getElementById('activeRoom') as HTMLInputElement;
+    const activeRoomLabel = document.getElementById('activeRoomLabel') as HTMLElement;
+
+    /** "1st Floor > Meeting Room 4 PAX" — the exact string the PDF parses. */
+    function joinSection(floor: string, room: string): string {
+      return [floor.trim(), room.trim()].filter(Boolean).join(' > ');
+    }
+
+    function splitSection(section: string): { floor: string; room: string } {
+      const parts = section.split('>').map((s) => s.trim()).filter(Boolean);
+      return { floor: parts[0] || '', room: parts.slice(1).join(' > ') };
+    }
+
+    function sectionDisplay(section: string): string {
+      const parts = section.split('>').map((s) => s.trim()).filter(Boolean);
+      return parts.join('  —  ') || 'No room assigned';
+    }
+
+    function activeSection(): string {
+      return joinSection(activeFloorInput.value, activeRoomInput.value);
+    }
+
+    function itemSection(item: Element): string {
+      return ((item.querySelector('.product-section') as HTMLInputElement)?.value || '').trim();
+    }
+
+    function setItemSection(item: Element, section: string) {
+      const input = item.querySelector('.product-section') as HTMLInputElement;
+      if (input) input.value = section;
+    }
+
+    function allProductItems(): HTMLElement[] {
+      return Array.from(productsContainer.querySelectorAll('.product-item')) as HTMLElement[];
+    }
+
+    /** Sections in use, first-seen order, blanks excluded. */
+    function usedSections(): string[] {
+      const seen: string[] = [];
+      for (const item of allProductItems()) {
+        const section = itemSection(item);
+        if (section && !seen.includes(section)) seen.push(section);
+      }
+      return seen;
+    }
+
+    function uniqueSectionName(base: string): string {
+      const taken = usedSections();
+      if (!taken.includes(base)) return base;
+      for (let n = 2; ; n += 1) {
+        const candidate = `${base} (${n})`;
+        if (!taken.includes(candidate)) return candidate;
+      }
+    }
+
+    function buildRoomHeader(section: string, count: number): HTMLElement {
+      const header = document.createElement('div');
+      header.className = section
+        ? 'room-header flex flex-wrap items-center justify-between gap-2 rounded-md border border-indigo-100 bg-indigo-50 px-3 py-2'
+        : 'room-header flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-100 px-3 py-2';
+      header.dataset.section = section;
+
+      const title = document.createElement('div');
+      title.className = section
+        ? 'room-title text-sm font-semibold text-indigo-900'
+        : 'room-title text-sm font-semibold text-slate-600';
+      title.textContent = sectionDisplay(section);
+
+      const countLabel = document.createElement('span');
+      countLabel.className = 'ml-2 text-xs font-normal opacity-70';
+      countLabel.textContent = count === 1 ? '1 item' : `${count} items`;
+      title.appendChild(countLabel);
+
+      const actions = document.createElement('div');
+      actions.className = 'flex items-center gap-1';
+      const buttons: Array<[string, string]> = section
+        ? [['activate', 'Add here'], ['duplicate', 'Duplicate'], ['rename', 'Rename'], ['unassign', 'Unassign']]
+        : [['activate', 'Add here']];
+      for (const [action, label] of buttons) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.act = action;
+        button.className = 'room-action px-2 py-1 text-xs font-semibold text-slate-600 hover:text-indigo-700 hover:bg-white rounded transition-colors';
+        button.textContent = label;
+        actions.appendChild(button);
+      }
+
+      header.appendChild(title);
+      header.appendChild(actions);
+      return header;
+    }
+
+    /**
+     * Reorder the existing nodes into room blocks and (re)insert the headers.
+     * appendChild moves nodes rather than copying them, so listeners and typed
+     * values survive untouched — which is why this can be a full redraw.
+     *
+     * Only ever called from discrete actions (add, remove, room change), never
+     * from an input handler, so it can't steal focus mid-typing.
+     */
+    function renderRooms() {
+      const items = allProductItems();
+      productsContainer.querySelectorAll('.room-header').forEach((h) => h.remove());
+
+      const order: string[] = [];
+      const groups = new Map<string, HTMLElement[]>();
+      for (const item of items) {
+        const section = itemSection(item);
+        if (!groups.has(section)) {
+          groups.set(section, []);
+          order.push(section);
+        }
+        groups.get(section)!.push(item);
+      }
+
+      // Unassigned rows sink to the bottom, matching where the PDF puts them.
+      const blankIndex = order.indexOf('');
+      if (blankIndex !== -1) order.push(order.splice(blankIndex, 1)[0]);
+
+      const named = order.filter(Boolean);
+      for (const section of order) {
+        // Before any room is named the page looks like an ordinary quote form —
+        // no headers to explain, nothing in the way.
+        if (section || named.length) {
+          productsContainer.appendChild(buildRoomHeader(section, groups.get(section)!.length));
+        }
+        for (const item of groups.get(section)!) productsContainer.appendChild(item);
+      }
+
+      refreshRoomControls(named);
+    }
+
+    function refreshRoomControls(named: string[]) {
+      const floors: string[] = [];
+      const rooms: string[] = [];
+      for (const section of named) {
+        const { floor, room } = splitSection(section);
+        if (floor && !floors.includes(floor)) floors.push(floor);
+        if (room && !rooms.includes(room)) rooms.push(room);
+      }
+      const fill = (id: string, values: string[]) => {
+        const list = document.getElementById(id) as HTMLDataListElement;
+        if (!list) return;
+        list.innerHTML = '';
+        for (const value of values) {
+          const option = document.createElement('option');
+          option.value = value;
+          list.appendChild(option);
+        }
+      };
+      fill('floorOptions', floors);
+      fill('roomOptions', rooms);
+
+      const active = activeSection();
+      activeRoomLabel.textContent = active ? sectionDisplay(active) : 'no room';
+
+      // The per-row picker is noise until there is somewhere to move a row to.
+      const anyRooms = named.length > 0 || !!active;
+      for (const item of allProductItems()) {
+        const wrap = item.querySelector('.product-section-wrap') as HTMLElement;
+        const select = item.querySelector('.product-section-select') as HTMLSelectElement;
+        if (!wrap || !select) continue;
+        wrap.classList.toggle('hidden', !anyRooms);
+        wrap.classList.toggle('flex', anyRooms);
+        if (!anyRooms) continue;
+
+        const current = itemSection(item);
+        const choices = [...named];
+        if (active && !choices.includes(active)) choices.push(active);
+        if (current && !choices.includes(current)) choices.push(current);
+
+        select.innerHTML = '';
+        const none = document.createElement('option');
+        none.value = '';
+        none.textContent = '— No room —';
+        select.appendChild(none);
+        for (const choice of choices) {
+          const option = document.createElement('option');
+          option.value = choice;
+          option.textContent = sectionDisplay(choice);
+          select.appendChild(option);
+        }
+        select.value = current;
+      }
+    }
+
+    /**
+     * cloneNode copies value *attributes*, not the live values the product
+     * search writes with `.value =`, so every field is copied across by hand.
+     */
+    function duplicateProductItem(source: HTMLElement): HTMLElement {
+      const clone = source.cloneNode(true) as HTMLElement;
+      const from = source.querySelectorAll('input, textarea, select');
+      const to = clone.querySelectorAll('input, textarea, select');
+      from.forEach((el, i) => {
+        const target = to[i] as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+        if (target) target.value = (el as HTMLInputElement).value;
+      });
+      setupProductSearch(clone);
+      setupOutsourcedToggle(clone);
+      if (isAdminUser) setupDiscountToggle(clone);
+      return clone;
+    }
+
+    /** Copy a whole room's line items under a new name — the repeated-kit case. */
+    function duplicateRoom(section: string) {
+      const sources = allProductItems().filter((item) => itemSection(item) === section);
+      if (!sources.length) return;
+      const { floor, room } = splitSection(section);
+      const newSection = uniqueSectionName(joinSection(floor, room ? `${room} (Copy)` : ''));
+      for (const source of sources) {
+        const clone = duplicateProductItem(source);
+        setItemSection(clone, newSection);
+        productsContainer.appendChild(clone);
+      }
+      const split = splitSection(newSection);
+      activeFloorInput.value = split.floor;
+      activeRoomInput.value = split.room;
+      renderRooms();
+      startRename(newSection);
+    }
+
+    /** Inline rename on the header, so no modal and no window.prompt. */
+    function startRename(section: string) {
+      const header = Array.from(productsContainer.querySelectorAll('.room-header')).find(
+        (h) => (h as HTMLElement).dataset.section === section,
+      ) as HTMLElement | undefined;
+      if (!header) return;
+      const title = header.querySelector('.room-title') as HTMLElement;
+      const { floor, room } = splitSection(section);
+
+      const editor = document.createElement('div');
+      editor.className = 'flex items-center gap-1';
+      const floorBox = document.createElement('input');
+      floorBox.type = 'text';
+      floorBox.value = floor;
+      floorBox.placeholder = 'Floor';
+      floorBox.className = 'px-2 py-1 border border-indigo-200 rounded text-sm w-36';
+      const sep = document.createElement('span');
+      sep.className = 'text-slate-400 text-sm';
+      sep.textContent = '>';
+      const roomBox = document.createElement('input');
+      roomBox.type = 'text';
+      roomBox.value = room;
+      roomBox.placeholder = 'Room';
+      roomBox.className = 'px-2 py-1 border border-indigo-200 rounded text-sm w-48';
+      editor.append(floorBox, sep, roomBox);
+      title.replaceWith(editor);
+      roomBox.focus();
+      roomBox.select();
+
+      let done = false;
+      const commit = () => {
+        if (done) return;
+        done = true;
+        const next = joinSection(floorBox.value, roomBox.value);
+        if (next && next !== section) {
+          const unique = uniqueSectionName(next);
+          for (const item of allProductItems()) {
+            if (itemSection(item) === section) setItemSection(item, unique);
+          }
+          if (activeSection() === section) {
+            const split = splitSection(unique);
+            activeFloorInput.value = split.floor;
+            activeRoomInput.value = split.room;
+          }
+        }
+        renderRooms();
+      };
+      for (const box of [floorBox, roomBox]) {
+        box.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); commit(); }
+          else if (e.key === 'Escape') { done = true; renderRooms(); }
+        });
+        box.addEventListener('blur', () => {
+          // Let focus land on the sibling box before deciding it's finished.
+          setTimeout(() => {
+            if (document.activeElement !== floorBox && document.activeElement !== roomBox) commit();
+          }, 0);
+        });
+      }
+    }
+
+    // Delegated so cloned rows and rebuilt headers need no rebinding.
+    productsContainer.addEventListener('change', (e) => {
+      const select = (e.target as HTMLElement).closest('.product-section-select') as HTMLSelectElement | null;
+      if (!select) return;
+      const item = select.closest('.product-item') as HTMLElement | null;
+      if (!item) return;
+      setItemSection(item, select.value);
+      renderRooms();
+    });
+
+    productsContainer.addEventListener('click', (e) => {
+      const button = (e.target as HTMLElement).closest('.room-action') as HTMLButtonElement | null;
+      if (!button) return;
+      const header = button.closest('.room-header') as HTMLElement;
+      const section = header.dataset.section || '';
+      const action = button.dataset.act;
+
+      if (action === 'activate') {
+        const { floor, room } = splitSection(section);
+        activeFloorInput.value = floor;
+        activeRoomInput.value = room;
+        adoptEmptyRows();
+        renderRooms();
+      } else if (action === 'duplicate') {
+        duplicateRoom(section);
+      } else if (action === 'rename') {
+        startRename(section);
+      } else if (action === 'unassign') {
+        // Clears the room off the rows; it never deletes priced line items.
+        for (const item of allProductItems()) {
+          if (itemSection(item) === section) setItemSection(item, '');
+        }
+        if (activeSection() === section) {
+          activeFloorInput.value = '';
+          activeRoomInput.value = '';
+        }
+        renderRooms();
+      }
+    });
+
+    /**
+     * A row nobody has picked a product for yet. The form always starts with one
+     * of these, and naming a room before filling it in is the natural order to
+     * work in — so it would otherwise be left behind as unassigned.
+     */
+    function isEmptyRow(item: HTMLElement): boolean {
+      const productId = (item.querySelector('.product-id') as HTMLInputElement)?.value || '';
+      const outsourced = (item.querySelector('.outsourced-name') as HTMLInputElement)?.value || '';
+      return !productId.trim() && !outsourced.trim();
+    }
+
+    function adoptEmptyRows() {
+      const active = activeSection();
+      if (!active) return;
+      for (const item of allProductItems()) {
+        if (!itemSection(item) && isEmptyRow(item)) setItemSection(item, active);
+      }
+    }
+
+    for (const input of [activeFloorInput, activeRoomInput]) {
+      input.addEventListener('change', () => { adoptEmptyRows(); renderRooms(); });
+      input.addEventListener('blur', () => { adoptEmptyRows(); renderRooms(); });
+    }
+
+    document.getElementById('clearActiveRoomBtn')?.addEventListener('click', () => {
+      activeFloorInput.value = '';
+      activeRoomInput.value = '';
+      renderRooms();
+    });
+
+    renderRooms();
 
     // Quote numbering lives in lib/quote-number.ts — the room-wise quote page
     // issues numbers from the same sequence, and two copies of this would sooner
@@ -1031,6 +1424,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         discount: number; discountRs: number | null; isOutsourced: boolean;
         outsourcedBrand?: string; outsourcedModel?: string; outsourcedHsn?: string; outsourcedTax?: number | null;
         outsourcedWarranty?: number | null; outsourcedUom?: string; outsourcedDescription?: string;
+        section: string;
       }> = [];
       let totalAmount = 0;
 
@@ -1095,7 +1489,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const lineTotal = quantity * unitPrice - discountAmount;
         console.log(`[PRODUCT ${i + 1}] Line total: ${quantity} × ${unitPrice} - ${discountRs !== null ? '₹' + discountRs : discount + '%'} = ${lineTotal}`);
 
-        productData.push({ productId, quantity, unitPrice, productName, discount, discountRs, isOutsourced, outsourcedBrand, outsourcedModel, outsourcedHsn, outsourcedTax, outsourcedWarranty, outsourcedUom, outsourcedDescription });
+        productData.push({ productId, quantity, unitPrice, productName, discount, discountRs, isOutsourced, outsourcedBrand, outsourcedModel, outsourcedHsn, outsourcedTax, outsourcedWarranty, outsourcedUom, outsourcedDescription, section: itemSection(item) });
         totalAmount += lineTotal;
 
         console.log(`[PRODUCT ${i + 1}] Running total: ${totalAmount}`);
@@ -1300,10 +1694,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const catalogProductData = productData.filter(p => !p.isOutsourced);
         const productLinkUrl = `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`;
         // Deduplicated: this links table is a *set* of quote↔product relations,
-        // while the per-line data (quantity, price, discount) lives in the
-        // junction table. Adding the same product on two lines is legitimate,
-        // and sending its id twice here is at best redundant and at worst fails
-        // the whole call, which would leave every line showing "Unnamed Product".
+        // while the per-line data (quantity, price, discount, room) lives in the
+        // junction table. The same product legitimately appears on several lines
+        // — which "Duplicate room" makes routine — and sending its id twice here
+        // is at best redundant and at worst fails the whole call, which would
+        // leave every line on the quote showing "Unnamed Product".
         const productLinkPayload = [...new Set(catalogProductData.map(p => p.productId))]
           .map(id => ({ id }));
 
@@ -1348,6 +1743,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           };
           if (product.discountRs !== null) {
             junctionFields['Discount Rs'] = product.discountRs;
+          }
+          // Only sent when a room was actually named, so a NocoDB without the
+          // Section column still creates quotes from this page.
+          if (product.section) {
+            junctionFields['Section'] = product.section;
           }
           if (product.isOutsourced) {
             junctionFields['Is Outsourced'] = true;
