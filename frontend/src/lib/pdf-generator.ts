@@ -352,21 +352,22 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
     const warrantyDisplay = product.warranty != null ? product.warranty.toString() : '-';
     const taxLabel = product.tax || 'GST-18%';
 
+    // Column order must match `head` and `columnStyles` below.
     return [
       (index + 1).toString(),
       productDetails,
       product.productCode || '-',
-      warrantyDisplay,
-      price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       `${qty}${product.uom ? ' ' + product.uom : ''}`,
+      price.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       taxLabel,
       itemTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      warrantyDisplay,
     ];
   });
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Sr. No', 'Product Details', 'Model No', 'Warranty (months)', 'Unit Price (Rs.)', 'Qty/UOM', 'Tax(%)', 'Total (Rs.)']],
+    head: [['Sr. No', 'Product Details', 'Model No', 'Qty/UOM', 'Unit Price (Rs.)', 'Tax(%)', 'Total (Rs.)', 'Warranty (months)']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -385,15 +386,17 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
       cellPadding: { top: 2, right: 2, bottom: 2, left: 2 },
       minCellHeight: 12,
     },
+    // Each column keeps the width and alignment it had before the reorder, so
+    // the row still totals 180mm and nothing reflows.
     columnStyles: {
-      0: { halign: 'center', cellWidth: 9 },
-      1: { halign: 'left',   cellWidth: 53, overflow: 'linebreak' },
-      2: { halign: 'center', cellWidth: 18 },
-      3: { halign: 'center', cellWidth: 18 },
-      4: { halign: 'right',  cellWidth: 24 },
-      5: { halign: 'center', cellWidth: 16 },
-      6: { halign: 'center', cellWidth: 14 },
-      7: { halign: 'right',  cellWidth: 28 },
+      0: { halign: 'center', cellWidth: 9 },  // Sr. No
+      1: { halign: 'left',   cellWidth: 53, overflow: 'linebreak' }, // Product Details
+      2: { halign: 'center', cellWidth: 18 }, // Model No
+      3: { halign: 'center', cellWidth: 16 }, // Qty/UOM
+      4: { halign: 'right',  cellWidth: 24 }, // Unit Price
+      5: { halign: 'center', cellWidth: 14 }, // Tax
+      6: { halign: 'right',  cellWidth: 28 }, // Total
+      7: { halign: 'center', cellWidth: 18 }, // Warranty
     },
     styles: { lineColor: [0, 0, 0], lineWidth: 0.3 },
     margin: { left: margin, right: margin },
