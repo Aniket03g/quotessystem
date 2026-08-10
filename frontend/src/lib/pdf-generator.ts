@@ -50,6 +50,22 @@ function formatINR(amount: number): string {
   })}`;
 }
 
+/**
+ * Label for the Tax column, which the field reaches in two shapes: a bare
+ * number from the catalog (18) and a ready-made label typed by hand
+ * ("GST-18%"). Only the bare number needs a sign — appending one blindly
+ * turns "GST-18%" into "GST-18%%".
+ *
+ * A falsy value, which includes a genuine 0, keeps the long-standing
+ * "GST-18%" fallback rather than printing "0%".
+ */
+function formatTaxLabel(tax: string | number | null | undefined): string {
+  if (!tax) return 'GST-18%';
+  const text = String(tax).trim();
+  if (!text) return 'GST-18%';
+  return text.includes('%') ? text : `${text}%`;
+}
+
 // jsPDF's standard fonts only speak WinAnsi. Product text copy-pasted from
 // supplier datasheets often carries characters outside that set — a stray
 // U+00A0/U+00FF, smart quotes, unicode dashes/spaces. Left alone they render as
@@ -350,7 +366,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
 
     const productDetails = allDisplayLines.join('\n');
     const warrantyDisplay = product.warranty != null ? product.warranty.toString() : '-';
-    const taxLabel = product.tax || 'GST-18%';
+    const taxLabel = formatTaxLabel(product.tax);
 
     // Column order must match `head` and `columnStyles` below.
     return [
