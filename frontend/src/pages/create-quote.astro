@@ -1335,7 +1335,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         console.log('\n=== LINKING PRODUCTS TO QUOTE ===');
         const catalogProductData = productData.filter(p => !p.isOutsourced);
         const productLinkUrl = `${API_BASE_URL}/proxy/quotes/links/products/${quoteId}`;
-        const productLinkPayload = catalogProductData.map(p => ({ id: p.productId }));
+        // Deduplicated: this links table is a *set* of quote↔product relations,
+        // while the per-line data (quantity, price, discount) lives in the
+        // junction table. Adding the same product on two lines is legitimate,
+        // and sending its id twice here is at best redundant and at worst fails
+        // the whole call — which leaves every line on the quote showing
+        // "Unnamed Product", because quote-detail resolves names from the links.
+        const productLinkPayload = [...new Set(catalogProductData.map(p => p.productId))]
+          .map(id => ({ id }));
 
         console.log('[PRODUCT LINK] Quote ID:', quoteId);
         console.log('[PRODUCT LINK] URL:', productLinkUrl);
