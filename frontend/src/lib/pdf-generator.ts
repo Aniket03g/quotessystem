@@ -98,9 +98,24 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   });
 
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
   const usableWidth = pageWidth - margin * 2;
   let currentY = margin;
+
+  // jsPDF neither clips nor reflows: text written past the page height is
+  // simply absent from the output. Everything drawn after the products table
+  // sits at an unconditional offset from the table's end, so a table that
+  // happens to finish low on the page used to push the totals — or the closing
+  // terms — over the edge, where they vanished silently. Every such block now
+  // reserves its height first.
+  const contentBottom = pageHeight - margin;
+  const ensureSpace = (blockHeight: number) => {
+    if (currentY + blockHeight > contentBottom) {
+      doc.addPage();
+      currentY = margin;
+    }
+  };
 
   const selectedLogo = quoteData.logo || 'greenocare';
   const deliveryTerms: string = quoteData.deliveryTerms || '';
@@ -467,6 +482,13 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   const summaryLabelX = pageWidth - margin - 95;
   const summaryValueX = pageWidth - margin;
 
+  // Sub Total through the rule under Grand Total spans 26mm, plus 6mm for the
+  // optional Discount row. Reserve it as one unit — a Grand Total orphaned from
+  // its Sub Total on the next page is no better than one that fell off this
+  // one.
+  const showDiscount = totalDiscount >= 0.005;
+  ensureSpace(26 + (showDiscount ? 6 : 0));
+
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
 
@@ -481,7 +503,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   // Only show the discount line when something was actually discounted — a
   // "Rs. 0.00" row reads as a mistake. Threshold is half a paisa so values that
   // round away to nothing don't produce an empty-looking row either.
-  if (totalDiscount >= 0.005) {
+  if (showDiscount) {
     doc.text('Discount', summaryLabelX, currentY);
     doc.text(formatINR(totalDiscount), summaryValueX, currentY, { align: 'right' });
     currentY += 6;
@@ -502,23 +524,6 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.line(summaryLabelX, currentY, summaryValueX, currentY);
   currentY += 15;
 
-  if (currentY > 250) {
-    doc.addPage();
-    currentY = margin;
-  }
-
-  doc.setLineWidth(0.5);
-  doc.line(margin, currentY, pageWidth - margin, currentY);
-  currentY += 8;
-
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Terms and Conditions', margin, currentY);
-  currentY += 8;
-
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-
   const terms =
     selectedLogo === 'grove'
       ? [
@@ -534,7 +539,14 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
           ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', `6. ${validityTerm}`] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', `5. ${validityTerm}`]),
         ];
 
-  terms.forEach((term) => {
+  // Wrap every term up front, at the same font the terms are drawn in, so the
+  // block's height is measured rather than guessed. The old guess was a bare
+  // `currentY > 250`, which took no account of how many terms there were or how
+  // they wrapped, and let the last one or two run off the bottom of the page.
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+
+  const wrappedTerms = terms.map((term) => {
     // Hang the wrapped lines under the text, not under the "N." marker, so a
     // continuation (e.g. the address spilling onto a second line) lines up with
     // the first word rather than sitting beneath the number.
@@ -542,11 +554,38 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
     const prefix = marker ? marker[1] : '';
     const body = marker ? term.slice(prefix.length) : term;
     const indent = prefix ? doc.getTextWidth(prefix) : 0;
+    const lines: string[] = doc.splitTextToSize(body, usableWidth - indent);
+    return { prefix, indent, lines, height: lines.length * 5 + 3 };
+  });
 
-    const lines = doc.splitTextToSize(body, usableWidth - indent);
+  // Terms run to roughly 64mm, so prefer to keep the rule, the heading and
+  // every term on one page: a heading with a lone term under it, and the rest
+  // overleaf, reads as broken. The 16mm is the rule-to-heading and
+  // heading-to-first-term gaps below. If the block genuinely cannot fit on a
+  // page of its own, the per-term check in the loop still keeps each term on
+  // the paper.
+  const termsHeaderHeight = 16;
+  ensureSpace(termsHeaderHeight + wrappedTerms.reduce((sum, t) => sum + t.height, 0));
+
+  doc.setLineWidth(0.5);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+  currentY += 8;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Terms and Conditions', margin, currentY);
+  currentY += 8;
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+
+  wrappedTerms.forEach(({ prefix, indent, lines, height }) => {
+    // A term is kept whole: if it doesn't fit, the whole term moves down rather
+    // than being split across the page edge.
+    ensureSpace(height);
     if (prefix) doc.text(prefix, margin, currentY);
     doc.text(lines, margin + indent, currentY);
-    currentY += lines.length * 5 + 3;
+    currentY += height;
   });
 
   return Buffer.from(doc.output('arraybuffer'));
