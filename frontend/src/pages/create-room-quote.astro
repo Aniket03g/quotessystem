@@ -219,6 +219,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
       <h2 class="text-base font-semibold text-slate-800 mb-4">Products by Room *</h2>
 
+      <!--
+        Options: two priced alternatives for the same job (wired vs wireless).
+        Hidden entirely until someone adds one, so a plain room-wise quote never
+        has to know they exist.
+      -->
+      <div class="mb-4">
+        <div id="optionTabs" class="flex flex-wrap items-center gap-2"></div>
+        <p id="optionHint" class="mt-2 text-xs text-slate-500"></p>
+      </div>
+
       <div class="mb-5 rounded-lg border border-slate-200 bg-slate-50 p-3">
         <div class="flex flex-wrap items-end gap-3">
           <div class="flex-1 min-w-[10rem]">
@@ -246,6 +256,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <label class="text-xs font-medium text-slate-500">Room</label>
               <select class="product-section-select px-2 py-1.5 bg-white border border-slate-200 rounded-md text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
               <input type="hidden" class="product-section" />
+              <input type="hidden" class="product-option" />
             </div>
             <button type="button" class="toggle-outsourced-btn text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline underline-offset-2 ml-auto">
               + Add outsourced product
@@ -977,7 +988,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       setupOutsourcedToggle(item as HTMLElement);
     });
 
-    addProductBtn.addEventListener('click', () => {
+    /**
+     * A fresh, empty line item cloned from the first row on the page. Extracted
+     * from the Add Product handler because copying a room layout into another
+     * option needs exactly the same blank row, minus the click.
+     */
+    function createBlankProductItem(): HTMLElement {
       const newItem = productsContainer.querySelector('.product-item')!.cloneNode(true) as HTMLElement;
       newItem.querySelectorAll('input, textarea').forEach(el => (el as HTMLInputElement | HTMLTextAreaElement).value = '');
       // Reset outsourced toggle state to catalog mode on the fresh clone
@@ -1010,12 +1026,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         toggle?.classList.add('flex');
         setupDiscountToggle(newItem);
       }
+      return newItem;
+    }
+
+    addProductBtn.addEventListener('click', () => {
+      const newItem = createBlankProductItem();
       productsContainer.appendChild(newItem);
       setupProductSearch(newItem);
       setupOutsourcedToggle(newItem);
-      // Inherit whatever room the bar is pointing at, so a room's kit can be
-      // typed in without touching the row controls at all.
+      // Inherit whatever room and option the bar is pointing at, so a room's kit
+      // can be typed in without touching the row controls at all.
       setItemSection(newItem, activeSection());
+      setItemOption(newItem, activeOption());
       renderRooms();
     });
 
@@ -1063,10 +1085,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       return Array.from(productsContainer.querySelectorAll('.product-item')) as HTMLElement[];
     }
 
-    /** Sections in use, first-seen order, blanks excluded. */
+    /**
+     * Sections in use *within the option on screen*, first-seen order, blanks
+     * excluded. Scoped deliberately: option 2 is meant to carry the same room
+     * names as option 1, so a global check would rename its copies to "(2)".
+     */
     function usedSections(): string[] {
       const seen: string[] = [];
-      for (const item of allProductItems()) {
+      for (const item of activeOptionItems()) {
         const section = itemSection(item);
         if (section && !seen.includes(section)) seen.push(section);
       }
@@ -1128,8 +1154,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
      * from an input handler, so it can't steal focus mid-typing.
      */
     function renderRooms() {
-      const items = allProductItems();
       productsContainer.querySelectorAll('.room-header').forEach((h) => h.remove());
+
+      // Rows belonging to the options that aren't on screen stay in the DOM —
+      // submit reads every row, not just the visible ones — but are hidden and
+      // parked at the end so they can't be edited by accident.
+      const showAll = !optionsInUse();
+      const active = activeOption();
+      const items: HTMLElement[] = [];
+      const parked: HTMLElement[] = [];
+      for (const item of allProductItems()) {
+        const mine = showAll || itemOption(item) === active;
+        item.classList.toggle('hidden', !mine);
+        (mine ? items : parked).push(item);
+      }
 
       const order: string[] = [];
       const groups = new Map<string, HTMLElement[]>();
@@ -1155,8 +1193,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
         for (const item of groups.get(section)!) productsContainer.appendChild(item);
       }
+      for (const item of parked) productsContainer.appendChild(item);
 
       refreshRoomControls(named);
+      renderOptionTabs();
     }
 
     function refreshRoomControls(named: string[]) {
@@ -1185,7 +1225,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       // The per-row picker is noise until there is somewhere to move a row to.
       const anyRooms = named.length > 0 || !!active;
-      for (const item of allProductItems()) {
+      for (const item of activeOptionItems()) {
         const wrap = item.querySelector('.product-section-wrap') as HTMLElement;
         const select = item.querySelector('.product-section-select') as HTMLSelectElement;
         if (!wrap || !select) continue;
@@ -1233,13 +1273,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     /** Copy a whole room's line items under a new name — the repeated-kit case. */
     function duplicateRoom(section: string) {
-      const sources = allProductItems().filter((item) => itemSection(item) === section);
+      const sources = activeOptionItems().filter((item) => itemSection(item) === section);
       if (!sources.length) return;
       const { floor, room } = splitSection(section);
       const newSection = uniqueSectionName(joinSection(floor, room ? `${room} (Copy)` : ''));
       for (const source of sources) {
         const clone = duplicateProductItem(source);
         setItemSection(clone, newSection);
+        setItemOption(clone, activeOption());
         productsContainer.appendChild(clone);
       }
       const split = splitSection(newSection);
@@ -1285,7 +1326,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const next = joinSection(floorBox.value, roomBox.value);
         if (next && next !== section) {
           const unique = uniqueSectionName(next);
-          for (const item of allProductItems()) {
+          for (const item of activeOptionItems()) {
             if (itemSection(item) === section) setItemSection(item, unique);
           }
           if (activeSection() === section) {
@@ -1339,7 +1380,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         startRename(section);
       } else if (action === 'unassign') {
         // Clears the room off the rows; it never deletes priced line items.
-        for (const item of allProductItems()) {
+        for (const item of activeOptionItems()) {
           if (itemSection(item) === section) setItemSection(item, '');
         }
         if (activeSection() === section) {
@@ -1364,7 +1405,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function adoptEmptyRows() {
       const active = activeSection();
       if (!active) return;
-      for (const item of allProductItems()) {
+      for (const item of activeOptionItems()) {
         if (!itemSection(item) && isEmptyRow(item)) setItemSection(item, active);
       }
     }
@@ -1378,6 +1419,299 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       activeFloorInput.value = '';
       activeRoomInput.value = '';
       renderRooms();
+    });
+
+    // -------------------------------------------------------------- options ---
+    //
+    // An option is a priced alternative for the same job — wired vs wireless —
+    // and the two are never added together. Modelled exactly like a room: a
+    // string in a hidden input on each row, with the tab bar below being pure
+    // presentation over those same nodes.
+    //
+    // `quoteOptions` is the one piece of real state on this page, and it has to
+    // be: an option the salesperson has named but not yet priced owns no rows,
+    // so it cannot be recovered from the DOM. It is also the order the PDF
+    // prints in, which the rows likewise can't tell us.
+
+    let quoteOptions: string[] = [];
+    let activeOptionIndex = 0;
+
+    const optionTabs = document.getElementById('optionTabs') as HTMLElement;
+    const optionHint = document.getElementById('optionHint') as HTMLElement;
+
+    function optionsInUse(): boolean {
+      return quoteOptions.length > 0;
+    }
+
+    function activeOption(): string {
+      return optionsInUse() ? quoteOptions[activeOptionIndex] || '' : '';
+    }
+
+    function itemOption(item: Element): string {
+      return ((item.querySelector('.product-option') as HTMLInputElement)?.value || '').trim();
+    }
+
+    function setItemOption(item: Element, option: string) {
+      const input = item.querySelector('.product-option') as HTMLInputElement;
+      if (input) input.value = option;
+    }
+
+    /** Rows belonging to the option currently on screen. */
+    function activeOptionItems(): HTMLElement[] {
+      if (!optionsInUse()) return allProductItems();
+      const active = activeOption();
+      return allProductItems().filter((item) => itemOption(item) === active);
+    }
+
+    function uniqueOptionName(base: string): string {
+      if (!quoteOptions.includes(base)) return base;
+      for (let n = 2; ; n += 1) {
+        const candidate = `${base} (${n})`;
+        if (!quoteOptions.includes(candidate)) return candidate;
+      }
+    }
+
+    /**
+     * Copy one option's floor/room headings into another as empty rows.
+     *
+     * Structure only, not prices: the whole reason for a second option is that
+     * the same rooms are being solved a different way. A room exists on this
+     * page only as a string on a row, so "an empty room" has to be an empty row
+     * — which is also exactly what the salesperson wants to type into next.
+     */
+    function copyRoomLayout(fromOption: string, toOption: string) {
+      const sections: string[] = [];
+      for (const item of allProductItems()) {
+        if (itemOption(item) !== fromOption) continue;
+        const section = itemSection(item);
+        if (section && !sections.includes(section)) sections.push(section);
+      }
+      for (const section of sections) {
+        const row = createBlankProductItem();
+        productsContainer.appendChild(row);
+        setupProductSearch(row);
+        setupOutsourcedToggle(row);
+        setItemSection(row, section);
+        setItemOption(row, toOption);
+      }
+      return sections.length;
+    }
+
+    /** Full copy — same rooms, same products, same prices, ready to be edited. */
+    function copyEverything(fromOption: string, toOption: string) {
+      const sources = allProductItems().filter((item) => itemOption(item) === fromOption);
+      for (const source of sources) {
+        const clone = duplicateProductItem(source);
+        setItemOption(clone, toOption);
+        productsContainer.appendChild(clone);
+      }
+      return sources.length;
+    }
+
+    function addOption() {
+      if (!optionsInUse()) {
+        // Turning a plain quote into a two-option one. Everything already on the
+        // page becomes option 1 — it was priced as the only answer, and it is
+        // still an answer.
+        quoteOptions = ['Option 1', 'Option 2'];
+        for (const item of allProductItems()) setItemOption(item, 'Option 1');
+        activeOptionIndex = 1;
+        copyRoomLayout('Option 1', 'Option 2');
+      } else {
+        const name = uniqueOptionName(`Option ${quoteOptions.length + 1}`);
+        quoteOptions.push(name);
+        activeOptionIndex = quoteOptions.length - 1;
+        copyRoomLayout(quoteOptions[0], name);
+      }
+      renderRooms();
+      startOptionRename(activeOptionIndex);
+    }
+
+    /**
+     * Removing an option moves its rows to the first surviving option rather
+     * than deleting them. Priced line items are work; a mis-click on a tab is
+     * not a mandate to throw them away.
+     */
+    function removeOption(index: number) {
+      const gone = quoteOptions[index];
+      if (!gone) return;
+      quoteOptions.splice(index, 1);
+      const fallback = quoteOptions[0] || '';
+      for (const item of allProductItems()) {
+        if (itemOption(item) === gone) setItemOption(item, fallback);
+      }
+      // One option left is not an option at all — drop back to a plain
+      // room-wise quote so the PDF prints without any option banners.
+      if (quoteOptions.length === 1) {
+        quoteOptions = [];
+        for (const item of allProductItems()) setItemOption(item, '');
+      }
+      activeOptionIndex = Math.min(activeOptionIndex, Math.max(quoteOptions.length - 1, 0));
+      renderRooms();
+    }
+
+    function renameOption(index: number, next: string) {
+      const previous = quoteOptions[index];
+      const trimmed = next.trim();
+      if (!previous || !trimmed || trimmed === previous) return;
+      const unique = uniqueOptionName(trimmed);
+      quoteOptions[index] = unique;
+      for (const item of allProductItems()) {
+        if (itemOption(item) === previous) setItemOption(item, unique);
+      }
+    }
+
+    /** Inline rename on the tab — same no-modal, no-window.prompt rule as rooms. */
+    function startOptionRename(index: number) {
+      const tab = optionTabs.querySelector(`[data-option-index="${index}"]`) as HTMLElement | null;
+      if (!tab) return;
+      const label = tab.querySelector('.option-label') as HTMLElement | null;
+      if (!label) return;
+
+      const box = document.createElement('input');
+      box.type = 'text';
+      box.value = quoteOptions[index] || '';
+      box.className = 'px-2 py-0.5 border border-indigo-300 rounded text-sm w-44 text-slate-800';
+      label.replaceWith(box);
+      box.focus();
+      box.select();
+
+      let done = false;
+      const commit = () => {
+        if (done) return;
+        done = true;
+        renameOption(index, box.value);
+        renderRooms();
+      };
+      box.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        else if (e.key === 'Escape') { done = true; renderRooms(); }
+      });
+      box.addEventListener('blur', commit);
+    }
+
+    function renderOptionTabs() {
+      optionTabs.innerHTML = '';
+
+      const makeButton = (text: string, className: string) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = className;
+        button.textContent = text;
+        return button;
+      };
+
+      if (!optionsInUse()) {
+        const add = makeButton(
+          '+ Add a second option (e.g. Wired / Wireless)',
+          'option-add px-3 py-1.5 text-xs font-semibold text-indigo-600 border border-dashed border-indigo-300 rounded-md hover:bg-indigo-50 transition-colors',
+        );
+        optionTabs.appendChild(add);
+        optionHint.textContent =
+          'Optional. Add a second option to quote the same rooms two ways — each option prints on its own page, and the customer picks one.';
+        return;
+      }
+
+      const counts = new Map<string, number>();
+      for (const item of allProductItems()) {
+        const option = itemOption(item);
+        counts.set(option, (counts.get(option) || 0) + 1);
+      }
+
+      quoteOptions.forEach((name, index) => {
+        const isActive = index === activeOptionIndex;
+        const tab = document.createElement('div');
+        tab.dataset.optionIndex = String(index);
+        tab.className = isActive
+          ? 'option-tab flex items-center gap-2 rounded-md border border-indigo-300 bg-indigo-50 px-3 py-1.5'
+          : 'option-tab flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5';
+
+        const label = document.createElement('button');
+        label.type = 'button';
+        label.dataset.act = 'select';
+        label.className = isActive
+          ? 'option-label text-sm font-semibold text-indigo-900'
+          : 'option-label text-sm font-medium text-slate-600 hover:text-indigo-700';
+        label.textContent = `Option ${index + 1}: ${name}`;
+
+        const count = document.createElement('span');
+        count.className = 'text-xs opacity-70';
+        const n = counts.get(name) || 0;
+        count.textContent = n === 1 ? '1 item' : `${n} items`;
+
+        tab.append(label, count);
+
+        if (isActive) {
+          for (const [act, text] of [['rename', 'Rename'], ['remove', 'Remove']] as Array<[string, string]>) {
+            const button = makeButton(
+              text,
+              'option-action px-1.5 py-0.5 text-xs font-semibold text-slate-500 hover:text-indigo-700 hover:bg-white rounded transition-colors',
+            );
+            button.dataset.act = act;
+            tab.appendChild(button);
+          }
+        }
+        optionTabs.appendChild(tab);
+      });
+
+      const add = makeButton(
+        '+ Add option',
+        'option-add px-3 py-1.5 text-xs font-semibold text-indigo-600 border border-dashed border-indigo-300 rounded-md hover:bg-indigo-50 transition-colors',
+      );
+      optionTabs.appendChild(add);
+
+      // Copying only earns a place once there is a first option to copy from.
+      if (activeOptionIndex > 0) {
+        for (const [act, text] of [
+          ['copy-rooms', 'Copy rooms from Option 1'],
+          ['copy-all', 'Copy all items from Option 1'],
+        ] as Array<[string, string]>) {
+          const button = makeButton(
+            text,
+            'option-copy px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors',
+          );
+          button.dataset.act = act;
+          optionTabs.appendChild(button);
+        }
+      }
+
+      optionHint.textContent =
+        `Showing ${quoteOptions[activeOptionIndex]}. Options are alternatives — each prints on its own page and only one is chosen, so their prices are never added together.`;
+    }
+
+    optionTabs.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+
+      if (target.closest('.option-add')) {
+        addOption();
+        return;
+      }
+
+      const copy = target.closest('.option-copy') as HTMLElement | null;
+      if (copy) {
+        const from = quoteOptions[0];
+        const to = activeOption();
+        if (!from || !to || from === to) return;
+        const added =
+          copy.dataset.act === 'copy-all' ? copyEverything(from, to) : copyRoomLayout(from, to);
+        renderRooms();
+        if (!added) showAlert(`${from} has nothing to copy yet.`, 'error');
+        return;
+      }
+
+      const tab = target.closest('.option-tab') as HTMLElement | null;
+      if (!tab) return;
+      const index = parseInt(tab.dataset.optionIndex || '0');
+      const action = (target.closest('[data-act]') as HTMLElement | null)?.dataset.act;
+
+      if (action === 'rename' && index === activeOptionIndex) {
+        startOptionRename(index);
+      } else if (action === 'remove' && index === activeOptionIndex) {
+        removeOption(index);
+      } else {
+        activeOptionIndex = index;
+        renderRooms();
+      }
     });
 
     renderRooms();
@@ -1424,8 +1758,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         discount: number; discountRs: number | null; isOutsourced: boolean;
         outsourcedBrand?: string; outsourcedModel?: string; outsourcedHsn?: string; outsourcedTax?: number | null;
         outsourcedWarranty?: number | null; outsourcedUom?: string; outsourcedDescription?: string;
-        section: string;
+        section: string; option: string;
       }> = [];
+      // Per option, never pooled: options are alternatives, so one running total
+      // across both is a number the customer will never be asked to pay.
+      const optionTotals = new Map<string, number>();
       let totalAmount = 0;
 
       console.log('\n=== QUOTE CREATION - PRODUCT DATA COLLECTION ===');
@@ -1434,6 +1771,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       for (let i = 0; i < productItems.length; i++) {
         const item = productItems[i];
         console.log(`\n[PRODUCT ${i + 1}] Extracting data...`);
+
+        // A row with nothing picked on it is skipped rather than rejected.
+        // Copying a room layout into an option deliberately creates one blank
+        // row per room, and leaving one of them unfilled is a normal thing to do.
+        if (isEmptyRow(item as HTMLElement)) {
+          console.log(`[PRODUCT ${i + 1}] Empty row - skipped`);
+          continue;
+        }
 
         const isOutsourced = (item.querySelector('.product-is-outsourced') as HTMLInputElement)?.value === 'true';
         const quantityInput = item.querySelector('.product-quantity') as HTMLInputElement;
@@ -1489,11 +1834,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const lineTotal = quantity * unitPrice - discountAmount;
         console.log(`[PRODUCT ${i + 1}] Line total: ${quantity} × ${unitPrice} - ${discountRs !== null ? '₹' + discountRs : discount + '%'} = ${lineTotal}`);
 
-        productData.push({ productId, quantity, unitPrice, productName, discount, discountRs, isOutsourced, outsourcedBrand, outsourcedModel, outsourcedHsn, outsourcedTax, outsourcedWarranty, outsourcedUom, outsourcedDescription, section: itemSection(item) });
-        totalAmount += lineTotal;
+        const option = itemOption(item);
+        productData.push({ productId, quantity, unitPrice, productName, discount, discountRs, isOutsourced, outsourcedBrand, outsourcedModel, outsourcedHsn, outsourcedTax, outsourcedWarranty, outsourcedUom, outsourcedDescription, section: itemSection(item), option });
+        optionTotals.set(option, (optionTotals.get(option) || 0) + lineTotal);
 
-        console.log(`[PRODUCT ${i + 1}] Running total: ${totalAmount}`);
+        console.log(`[PRODUCT ${i + 1}] Option "${option || 'none'}" running total: ${optionTotals.get(option)}`);
       }
+
+      if (!productData.length) {
+        showAlert('Add at least one product to the quote', 'error');
+        return;
+      }
+
+      // The headline figure the quotes list, the dashboard and every report
+      // read. On a two-option quote it is option 1's price: summing the
+      // alternatives would roughly double the reported pipeline.
+      totalAmount = optionsInUse()
+        ? optionTotals.get(quoteOptions[0]) || 0
+        : Array.from(optionTotals.values()).reduce((sum, value) => sum + value, 0);
 
       console.log('\n[QUOTE CREATE] ✓ All products collected');
       console.log('[QUOTE CREATE] Final Total Amount:', totalAmount);
@@ -1553,6 +1911,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             'Quote Created By': getUserEmail() || 'Unknown User'
           }
         };
+
+        // Only sent when the quote actually has options, so a NocoDB without
+        // these columns keeps creating ordinary quotes from this page - the same
+        // fail-soft rule the Section field follows.
+        if (optionsInUse()) {
+          (quotePayload.fields as Record<string, any>)['Options'] = JSON.stringify(quoteOptions);
+          (quotePayload.fields as Record<string, any>)['Option Totals'] = JSON.stringify(
+            Object.fromEntries(quoteOptions.map((name) => [name, optionTotals.get(name) || 0])),
+          );
+        }
 
         console.log('\n=== CREATING QUOTE RECORD ===');
         console.log('[QUOTE API] Payload:', JSON.stringify(quotePayload, null, 2));
@@ -1748,6 +2116,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           // Section column still creates quotes from this page.
           if (product.section) {
             junctionFields['Section'] = product.section;
+          }
+          if (product.option) {
+            junctionFields['Option'] = product.option;
           }
           if (product.isOutsourced) {
             junctionFields['Is Outsourced'] = true;

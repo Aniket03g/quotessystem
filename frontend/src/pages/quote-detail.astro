@@ -841,9 +841,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // the field hasn't been created in NocoDB yet that request 422s, and we
         // want an ungrouped PDF, not a broken quote page.
         const sectionById = new Map<number, string>();
+        const optionById = new Map<number, string>();
         try {
           const sectionResponse = await fetch(
-            `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Section`,
+            `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Section,Option`,
             {
               method: 'GET',
               headers: {
@@ -857,8 +858,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             (sectionData.records || []).forEach((r: any) => {
               const value = r.fields?.['Section'];
               if (value) sectionById.set(r.id, String(value));
+              const option = r.fields?.['Option'];
+              if (option) optionById.set(r.id, String(option));
             });
-            console.log('[QUOTE DETAIL] Sections fetched:', sectionById.size);
+            console.log('[QUOTE DETAIL] Sections fetched:', sectionById.size, 'options:', optionById.size);
           } else {
             console.info('[QUOTE DETAIL] No Section field yet - room-wise PDF will be ungrouped');
           }
@@ -883,6 +886,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             junctionId: jr.id,
             productId,
             section: sectionById.get(jr.id) || '',
+            option: optionById.get(jr.id) || '',
             quantity: jr.fields['Quantity'] || 1,
             customUnitPrice: jr.fields['Custom Unit Price'],
             discount,
@@ -929,6 +933,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             junctionId: null,
             productId: catalogProduct.id,
             section: '',
+            option: '',
             quantity: 1,
             customUnitPrice: null,
             discount: 0,
@@ -968,6 +973,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           // `model` is already set above; the sectioned generator falls back to
           // productCode when it's blank, which is the usual case here.
           section: record.section || '',
+          // Which alternative this line belongs to. Ignored everywhere except
+          // the room-wise PDF, which prints one option per page.
+          option: record.option || '',
           make: record.brand
         }));
 
@@ -983,6 +991,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           quoteNumber: fields['Quote Number'] || '',
           endUser: fields['End User'] || '',
           endUserLocation: fields['End User Location'] || '',
+          // Option names in print order. Stored as JSON text; a quote written
+          // before options existed simply has none, and prints as it always did.
+          options: parseQuoteOptions(fields['Options']),
           account: {
             name: accountName,
             street: accountData?.['Billing Street'] || '',
@@ -2409,6 +2420,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
      * endpoint, its own handler — so nothing here can affect the standard quote
      * PDF. Reuses the saved terms but never prompts for them.
      */
+    /**
+     * The quote's option list, which NocoDB holds as a JSON array in a text
+     * field. Anything unparseable is treated as "no options" rather than
+     * thrown: a malformed field must not cost the user their PDF.
+     */
+    function parseQuoteOptions(raw: any): string[] {
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw.map((v) => String(v).trim()).filter(Boolean);
+      try {
+        const parsed = JSON.parse(String(raw));
+        return Array.isArray(parsed) ? parsed.map((v) => String(v).trim()).filter(Boolean) : [];
+      } catch {
+        console.warn('[QUOTE DETAIL] Options field is not valid JSON:', raw);
+        return [];
+      }
+    }
+
     async function generateSectionedPDF() {
       if (!currentQuoteData) {
         showToast('Quote data not loaded', 'error');

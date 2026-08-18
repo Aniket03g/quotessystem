@@ -35,6 +35,8 @@ export interface SectionedQuoteProduct {
   uom?: string;
 
   // --- grouping ---
+  /** Tier 0. Names the alternative this line belongs to, e.g. "Wired Solution". */
+  option?: string;
   /** Tier 1 heading, e.g. "1st Floor". */
   floor?: string;
   /** Tier 2 heading, e.g. "Meeting Room 4 PAX - (3 Rooms)". */
@@ -62,6 +64,12 @@ export interface SectionedQuoteData {
   revision?: string;
   endUser?: string;
   endUserLocation?: string;
+  /**
+   * Option labels in presentation order, e.g. ["Wired Solution","Wireless Solution"].
+   * Order cannot be recovered from the line items, and an option nobody has priced
+   * yet has no line items at all — so it is carried explicitly or it is lost.
+   */
+  options?: string[];
   account: {
     name: string;
     street?: string;
@@ -83,6 +91,7 @@ const COLOR_ROOM_BG: [number, number, number] = [238, 242, 247];
 const COLOR_SUBTOTAL_BG: [number, number, number] = [248, 248, 248];
 const COLOR_TOTAL_BG: [number, number, number] = [226, 232, 240];
 const COLOR_LINE: [number, number, number] = [80, 80, 80];
+const COLOR_OPTION_BG: [number, number, number] = [31, 55, 90];
 
 function formatINR(amount: number): string {
   return `Rs. ${amount.toLocaleString('en-IN', {
@@ -196,6 +205,59 @@ function groupProducts(products: SectionedQuoteProduct[]): FloorGroup[] {
   return floors;
 }
 
+interface OptionGroup {
+  /** null on a single-option quote, which renders exactly as it did before options existed. */
+  option: string | null;
+  products: SectionedQuoteProduct[];
+}
+
+/**
+ * Split the line items into alternatives. `declared` is the quote's own ordered
+ * list of option names, and it wins over anything the line items imply: the
+ * salesperson chose that order, and an option they set up but haven't priced yet
+ * has no line items to be inferred from.
+ *
+ * With no options anywhere this returns a single unnamed group, so an ordinary
+ * room-wise quote takes exactly the path it took before.
+ */
+function groupByOption(
+  products: SectionedQuoteProduct[],
+  declared?: string[],
+): OptionGroup[] {
+  const labelOf = (p: SectionedQuoteProduct) => p.option?.trim() || null;
+  const names: string[] = [];
+  const push = (name: string) => {
+    if (name && !names.includes(name)) names.push(name);
+  };
+
+  (declared || []).forEach((name) => push(String(name).trim()));
+  // A line carrying an option the quote never declared still has to be printed
+  // somewhere — dropping it would silently delete a priced item.
+  products.forEach((p) => {
+    const label = labelOf(p);
+    if (label) push(label);
+  });
+
+  if (names.length === 0) return [{ option: null, products }];
+
+  const groups: OptionGroup[] = names.map((option) => ({ option, products: [] }));
+  const orphans: SectionedQuoteProduct[] = [];
+  for (const product of products) {
+    const label = labelOf(product);
+    const group = label ? groups.find((g) => g.option === label) : undefined;
+    if (group) group.products.push(product);
+    else orphans.push(product);
+  }
+
+  // Lines with no option on a quote that has options belong to every alternative
+  // equally — common equipment, cabling, installation. Printing them once under
+  // the first option is the least surprising of the bad choices, and matches how
+  // the unsectioned rows are handled a level down.
+  if (orphans.length) groups[0].products.push(...orphans);
+
+  return groups.filter((g) => g.products.length > 0 || (declared || []).includes(g.option!));
+}
+
 interface LineMaths {
   qty: number;
   unitPrice: number;
@@ -245,29 +307,45 @@ export function generateSectionedPdfBuffer(
 
   // ---------------------------------------------------------------- header ---
 
-  let logoRenderedHeight = 16;
-  try {
-    const logoFileName = selectedLogo === 'grove' ? 'grove_logo.png' : 'green-o-care-logo.png';
-    const possiblePaths = [
-      path.join(process.cwd(), logoFileName),
-      path.join(process.cwd(), 'dist', 'client', logoFileName),
-      path.join(process.cwd(), 'public', logoFileName),
-    ];
-
-    let logoPath: string | null = null;
-    for (const p of possiblePaths) {
-      if (fs.existsSync(p)) {
-        logoPath = p;
-        break;
+  // Resolved once. The letterhead is redrawn at the top of every option, so
+  // re-reading the file per option would be pure waste.
+  const logoAsset = (() => {
+    try {
+      const logoFileName = selectedLogo === 'grove' ? 'grove_logo.png' : 'green-o-care-logo.png';
+      const possiblePaths = [
+        path.join(process.cwd(), logoFileName),
+        path.join(process.cwd(), 'dist', 'client', logoFileName),
+        path.join(process.cwd(), 'public', logoFileName),
+      ];
+      for (const candidate of possiblePaths) {
+        if (!fs.existsSync(candidate)) continue;
+        const buffer = fs.readFileSync(candidate);
+        const ext = path.extname(logoFileName).toLowerCase();
+        return { data: buffer.toString('base64'), format: ext === '.png' ? 'PNG' : 'JPEG', ext, buffer };
       }
+    } catch (error) {
+      console.error('Logo error:', error);
     }
+    return null;
+  })();
 
-    if (logoPath) {
-      const logoBuffer = fs.readFileSync(logoPath);
-      const logoData = logoBuffer.toString('base64');
-      const logoExt = path.extname(logoFileName).toLowerCase();
-      const imgFormat = logoExt === '.png' ? 'PNG' : 'JPEG';
+  const ensureSpace = (needed: number) => {
+    if (currentY + needed > pageHeight - 16) {
+      doc.addPage();
+      currentY = margin;
+    }
+  };
 
+  /**
+   * Letterhead, quote title, optional option banner and the metadata box.
+   *
+   * Drawn once per option rather than once per document: each option starts its
+   * own page, and a customer who prints or forwards only the wireless half must
+   * still be looking at something that identifies itself.
+   */
+  const drawHeader = (optionTitle: string | null) => {
+    let logoRenderedHeight = 16;
+    if (logoAsset) {
       const LOGO_BOX_W = 90;
       const LOGO_BOX_H = 18;
       const LOGO_PADDING = 3;
@@ -279,9 +357,9 @@ export function generateSectionedPdfBuffer(
       if (selectedLogo === 'grove') {
         let imgW = 250;
         let imgH = 89;
-        if (logoExt === '.png' && logoBuffer.length > 24) {
-          imgW = logoBuffer.readUInt32BE(16);
-          imgH = logoBuffer.readUInt32BE(20);
+        if (logoAsset.ext === '.png' && logoAsset.buffer.length > 24) {
+          imgW = logoAsset.buffer.readUInt32BE(16);
+          imgH = logoAsset.buffer.readUInt32BE(20);
         }
         const scale = Math.min(availableW / imgW, availableH / imgH);
         renderW = imgW * scale;
@@ -291,340 +369,439 @@ export function generateSectionedPdfBuffer(
         renderH = renderW / (35 / 8);
       }
 
-      doc.addImage(logoData, imgFormat, margin, currentY + (LOGO_BOX_H - renderH) / 2, renderW, renderH);
+      doc.addImage(
+        logoAsset.data,
+        logoAsset.format,
+        margin,
+        currentY + (LOGO_BOX_H - renderH) / 2,
+        renderW,
+        renderH,
+      );
       logoRenderedHeight = LOGO_BOX_H;
     }
-  } catch (error) {
-    console.error('Logo error:', error);
-  }
 
-  // Company block sits opposite the logo.
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(0, 0, 0);
-  doc.text(companyName, rightX, currentY + 5, { align: 'right' });
+    // Company block sits opposite the logo.
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text(companyName, rightX, currentY + 5, { align: 'right' });
 
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  const addressLine =
-    selectedLogo === 'grove'
-      ? 'F-85, Okhla Industrial Area, Phase III'
-      : 'F-85, 2nd Floor, Okhla Industrial Area, Phase III';
-  doc.text(addressLine, rightX, currentY + 10, { align: 'right' });
-  doc.text('New Delhi - 110020', rightX, currentY + 14, { align: 'right' });
-  doc.text(`GST No- ${gstNumber}`, rightX, currentY + 18, { align: 'right' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    const addressLine =
+      selectedLogo === 'grove'
+        ? 'F-85, Okhla Industrial Area, Phase III'
+        : 'F-85, 2nd Floor, Okhla Industrial Area, Phase III';
+    doc.text(addressLine, rightX, currentY + 10, { align: 'right' });
+    doc.text('New Delhi - 110020', rightX, currentY + 14, { align: 'right' });
+    doc.text(`GST No- ${gstNumber}`, rightX, currentY + 18, { align: 'right' });
 
-  currentY += Math.max(logoRenderedHeight, 18) + 6;
+    currentY += Math.max(logoRenderedHeight, 18) + 6;
 
-  // Quote title
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text(sanitizePdfText(quoteData.subject), margin, currentY);
-  currentY += 5;
+    // Quote title
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(sanitizePdfText(quoteData.subject), margin, currentY);
+    currentY += 5;
 
-  // Metadata grid, mirroring the Excel's bordered header box: three rows, two
-  // label/value pairs each.
-  const metaLeft: Array<[string, string]> = [
-    ['Client Name', quoteData.clientName || quoteData.account.name],
-    ['Location', quoteData.location || [quoteData.account.city, quoteData.account.state].filter(Boolean).join(', ')],
-    ['Submitted By', quoteData.submittedBy || '-'],
-  ];
-  const metaRight: Array<[string, string]> = [
-    ['Approved by', quoteData.approvedBy || '-'],
-    ['Date', quoteData.date],
-    ['Revision', quoteData.revision || quoteData.version || '1'],
-  ];
-  if (quoteData.quoteNumber) metaRight.push(['Quote No', quoteData.quoteNumber]);
-
-  const metaRows = Math.max(metaLeft.length, metaRight.length);
-  const metaRowH = 5.5;
-  const metaBoxH = metaRows * metaRowH + 2;
-  const halfWidth = usableWidth / 2;
-
-  doc.setDrawColor(...COLOR_LINE);
-  doc.setLineWidth(0.3);
-  doc.rect(margin, currentY, usableWidth, metaBoxH, 'S');
-  doc.line(margin + halfWidth, currentY, margin + halfWidth, currentY + metaBoxH);
-
-  doc.setFontSize(8.5);
-  const drawMeta = (pairs: Array<[string, string]>, x: number, maxWidth: number) => {
-    let y = currentY + 4.5;
-    for (const [label, value] of pairs) {
+    // Option banner. Deliberately loud: the whole risk of a two-option quote is
+    // a reader who doesn't notice which one they're costing.
+    if (optionTitle) {
+      const bannerH = 8;
+      doc.setFillColor(...COLOR_OPTION_BG);
+      doc.rect(margin, currentY, usableWidth, bannerH, 'F');
+      doc.setFontSize(10.5);
       doc.setFont('helvetica', 'bold');
-      doc.text(`${label}:`, x, y);
-      // Measure while the bold face is still active — measuring in normal
-      // underestimates, and the longer labels then collide with their value.
-      const labelWidth = doc.getTextWidth(`${label}:`) + 2;
-      doc.setFont('helvetica', 'normal');
-      const text = doc.splitTextToSize(sanitizePdfText(value) || '-', maxWidth - labelWidth)[0] || '-';
-      doc.text(text, x + labelWidth, y);
-      y += metaRowH;
+      doc.setTextColor(255, 255, 255);
+      doc.text(sanitizePdfText(optionTitle).toUpperCase(), margin + 3, currentY + bannerH - 2.4);
+      doc.setTextColor(0, 0, 0);
+      currentY += bannerH + 3;
     }
-  };
-  drawMeta(metaLeft, margin + 2, halfWidth - 4);
-  drawMeta(metaRight, margin + halfWidth + 2, halfWidth - 4);
 
-  currentY += metaBoxH + 4;
+    // Metadata grid, mirroring the Excel's bordered header box: three rows, two
+    // label/value pairs each.
+    const metaLeft: Array<[string, string]> = [
+      ['Client Name', quoteData.clientName || quoteData.account.name],
+      ['Location', quoteData.location || [quoteData.account.city, quoteData.account.state].filter(Boolean).join(', ')],
+      ['Submitted By', quoteData.submittedBy || '-'],
+    ];
+    const metaRight: Array<[string, string]> = [
+      ['Approved by', quoteData.approvedBy || '-'],
+      ['Date', quoteData.date],
+      ['Revision', quoteData.revision || quoteData.version || '1'],
+    ];
+    if (quoteData.quoteNumber) metaRight.push(['Quote No', quoteData.quoteNumber]);
+
+    const metaRows = Math.max(metaLeft.length, metaRight.length);
+    const metaRowH = 5.5;
+    const metaBoxH = metaRows * metaRowH + 2;
+    const halfWidth = usableWidth / 2;
+
+    doc.setDrawColor(...COLOR_LINE);
+    doc.setLineWidth(0.3);
+    doc.rect(margin, currentY, usableWidth, metaBoxH, 'S');
+    doc.line(margin + halfWidth, currentY, margin + halfWidth, currentY + metaBoxH);
+
+    doc.setFontSize(8.5);
+    const drawMeta = (pairs: Array<[string, string]>, x: number, maxWidth: number) => {
+      let y = currentY + 4.5;
+      for (const [label, value] of pairs) {
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${label}:`, x, y);
+        // Measure while the bold face is still active — measuring in normal
+        // underestimates, and the longer labels then collide with their value.
+        const labelWidth = doc.getTextWidth(`${label}:`) + 2;
+        doc.setFont('helvetica', 'normal');
+        const text = doc.splitTextToSize(sanitizePdfText(value) || '-', maxWidth - labelWidth)[0] || '-';
+        doc.text(text, x + labelWidth, y);
+        y += metaRowH;
+      }
+    };
+    drawMeta(metaLeft, margin + 2, halfWidth - 4);
+    drawMeta(metaRight, margin + halfWidth + 2, halfWidth - 4);
+
+    currentY += metaBoxH + 4;
+  };
 
   // ----------------------------------------------------------------- table ---
 
-  const groups = groupProducts(quoteData.products);
-
-  const body: any[] = [];
-  const rowMeta: Array<RowMeta | null> = [];
   const COLUMN_COUNT = 11;
   // Column widths below are hand-tuned to sum to exactly the usable width
   // (A4 landscape, 277mm). Change one and change another to compensate.
   const DESC_WIDTH = 79;
 
-  let srNo = 0;
-  let subtotalPreTax = 0;
-  let totalDiscount = 0;
-  let totalTax = 0;
-
-  const bannerRow = (label: string, fill: [number, number, number], fontSize: number) => {
-    body.push([
-      {
-        content: sanitizePdfText(label),
-        colSpan: COLUMN_COUNT,
-        styles: {
-          fillColor: fill,
-          textColor: [0, 0, 0] as [number, number, number],
-          fontStyle: 'bold' as const,
-          fontSize,
-          halign: 'center' as const,
-          valign: 'middle' as const,
-          cellPadding: { top: 1.6, right: 2, bottom: 1.6, left: 2 },
-        },
-      },
-    ]);
-    rowMeta.push(null);
-  };
-
-  // On a quote where nobody set any section at all, the single unnamed group is
-  // the whole document — banner it and you've labelled every line "Other Items".
-  const hasNamedSection = groups.some((f) => f.floor);
-
-  for (const floorGroup of groups) {
-    if (floorGroup.floor) {
-      bannerRow(floorGroup.floor, COLOR_FLOOR_BG, 12);
-    } else if (hasNamedSection) {
-      // Never leave these unbannered: with nothing above them they read as part
-      // of the preceding room.
-      bannerRow(UNGROUPED_LABEL, COLOR_FLOOR_BG, 12);
-    }
-
-    for (const roomGroup of floorGroup.rooms) {
-      if (roomGroup.room) bannerRow(roomGroup.room, COLOR_ROOM_BG, 9.5);
-
-      let roomPreTax = 0;
-      let roomPostTax = 0;
-
-      for (const product of roomGroup.items) {
-        const line = computeLine(product);
-        srNo += 1;
-        subtotalPreTax += line.preTax;
-        totalDiscount += line.discountAmount;
-        totalTax += line.taxAmount;
-        roomPreTax += line.preTax;
-        roomPostTax += line.postTax;
-
-        // Measure the description cell up front: the name renders bold and the
-        // description normal, which autoTable can't express in one cell, so the
-        // text is drawn by hand in didDrawCell and the height reserved here.
-        doc.setFontSize(7.5);
-        doc.setFont('helvetica', 'bold');
-        const nameLines: string[] = doc.splitTextToSize(sanitizePdfText(product.name), DESC_WIDTH - 4);
-        doc.setFont('helvetica', 'normal');
-
-        const descriptionLines = [...nameLines];
-        if (product.description) {
-          for (const part of sanitizePdfText(product.description).split('\n')) {
-            if (part.trim()) descriptionLines.push(...doc.splitTextToSize(part, DESC_WIDTH - 4));
-          }
-        }
-
-        rowMeta.push({
-          descriptionLines,
-          nameLineCount: nameLines.length,
-          requiredHeight: descriptionLines.length * 3.4 + 3,
-        });
-
-        body.push([
-          srNo,
-          // Left empty on purpose: the mixed bold/normal text is painted in
-          // didDrawCell, and real content here would make autoTable reserve a
-          // minimum column width from the longest word, blowing out the layout.
-          '',
-          sanitizePdfText(product.make) || '-',
-          sanitizePdfText(product.model || product.productCode) || '-',
-          `${line.qty}${product.uom ? ' ' + product.uom : ''}`,
-          formatNum(line.unitPrice),
-          formatNum(line.preTax),
-          line.taxRate ? `${line.taxRate}%` : '-',
-          formatNum(line.postTax),
-          sanitizePdfText(product.remarks) || '',
-          warrantyLabel(product.warranty),
-        ]);
-      }
-
-      if (options.roomSubtotals && roomGroup.room && roomGroup.items.length > 1) {
-        body.push([
-          {
-            content: `Subtotal - ${sanitizePdfText(roomGroup.room)}`,
-            colSpan: 6,
-            styles: { halign: 'right' as const, fontStyle: 'bold' as const, fillColor: COLOR_SUBTOTAL_BG },
-          },
-          { content: formatNum(roomPreTax), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fillColor: COLOR_SUBTOTAL_BG } },
-          { content: '', styles: { fillColor: COLOR_SUBTOTAL_BG } },
-          { content: formatNum(roomPostTax), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fillColor: COLOR_SUBTOTAL_BG } },
-          { content: '', colSpan: 2, styles: { fillColor: COLOR_SUBTOTAL_BG } },
-        ]);
-        rowMeta.push(null);
-      }
-    }
+  interface OptionTotals {
+    preTax: number;
+    discount: number;
+    tax: number;
+    grandTotal: number;
   }
 
-  const grandTotal = subtotalPreTax + totalTax;
-
-  // Excel-style closing row: pre-tax under Total Price, post-tax under Total (incl. Tax).
-  body.push([
-    {
-      content: 'Total Amount',
-      colSpan: 6,
-      styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 9, fillColor: COLOR_TOTAL_BG },
-    },
-    { content: formatNum(subtotalPreTax), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 9, fillColor: COLOR_TOTAL_BG } },
-    { content: '', styles: { fillColor: COLOR_TOTAL_BG } },
-    { content: formatNum(grandTotal), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 9, fillColor: COLOR_TOTAL_BG } },
-    { content: '', colSpan: 2, styles: { fillColor: COLOR_TOTAL_BG } },
-  ]);
-  rowMeta.push(null);
-
-  autoTable(doc, {
-    startY: currentY,
-    head: [[
-      'Sr.',
-      'Description',
-      'Make',
-      'Model',
-      'Qty',
-      'Unit Price',
-      'Total Price',
-      'Tax',
-      'Total (incl. Tax)',
-      'Remarks',
-      'Warranty',
-    ]],
-    body,
-    theme: 'grid',
-    headStyles: {
-      fillColor: [230, 230, 230],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold',
-      fontSize: 7.5,
-      halign: 'center',
-      valign: 'middle',
-      lineColor: COLOR_LINE,
-      lineWidth: 0.25,
-    },
-    bodyStyles: {
-      fontSize: 7.5,
-      textColor: [0, 0, 0],
-      cellPadding: { top: 1.5, right: 1.5, bottom: 1.5, left: 1.5 },
-      valign: 'middle',
-    },
-    columnStyles: {
-      0: { halign: 'center', cellWidth: 9 },
-      1: { halign: 'left', cellWidth: DESC_WIDTH, overflow: 'linebreak' },
-      2: { halign: 'center', cellWidth: 20 },
-      3: { halign: 'center', cellWidth: 26 },
-      4: { halign: 'center', cellWidth: 10 },
-      5: { halign: 'right', cellWidth: 22 },
-      6: { halign: 'right', cellWidth: 26 },
-      7: { halign: 'center', cellWidth: 11 },
-      8: { halign: 'right', cellWidth: 28 },
-      9: { halign: 'left', cellWidth: 30, overflow: 'linebreak' },
-      10: { halign: 'center', cellWidth: 16 },
-    },
-    styles: { lineColor: COLOR_LINE, lineWidth: 0.25 },
-    margin: { left: margin, right: margin, bottom: 16 },
-    showHead: 'everyPage',
-    rowPageBreak: 'avoid',
-    didParseCell: (data) => {
-      if (data.section !== 'body') return;
-      const meta = rowMeta[data.row.index];
-      if (meta && data.column.index === 1) {
-        data.cell.styles.minCellHeight = meta.requiredHeight;
-      }
-    },
-    didDrawCell: (data) => {
-      if (data.section !== 'body' || data.column.index !== 1) return;
-      const meta = rowMeta[data.row.index];
-      if (!meta) return; // banner / subtotal / total row — autoTable already drew it
-
-      const cell = data.cell;
-
-      doc.setFontSize(7.5);
-      doc.setTextColor(0, 0, 0);
-
-      const contentX = cell.x + 1.5;
-      let textY = cell.y + 3.4;
-
-      doc.setFont('helvetica', 'bold');
-      meta.descriptionLines.slice(0, meta.nameLineCount).forEach((line) => {
-        if (!line.trim()) return;
-        doc.text(line, contentX, textY);
-        textY += 3.4;
-      });
-
+  /**
+   * Draws one option's floor/room table and its discount breakdown, and returns
+   * what it came to. Totals are per option and never accumulate across them:
+   * options are alternatives, so a running total spanning two of them is a
+   * number no customer will ever pay.
+   */
+  const renderOptionTable = (optionProducts: SectionedQuoteProduct[]): OptionTotals => {
+    if (optionProducts.length === 0) {
+      // A declared option nobody has priced yet. Saying so is better than a
+      // table with nothing but a zero in it, and far better than the option
+      // silently not appearing at all.
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.text('No items have been added to this option yet.', margin, currentY + 4);
       doc.setFont('helvetica', 'normal');
-      meta.descriptionLines.slice(meta.nameLineCount).forEach((line) => {
-        if (!line) return;
-        doc.text(line, contentX, textY);
-        textY += 3.4;
-      });
-    },
-  });
+      currentY += 12;
+      return { preTax: 0, discount: 0, tax: 0, grandTotal: 0 };
+    }
 
-  currentY = (doc as any).lastAutoTable.finalY + 8;
+    const groups = groupProducts(optionProducts);
 
-  const ensureSpace = (needed: number) => {
-    if (currentY + needed > pageHeight - 16) {
+    const body: any[] = [];
+    const rowMeta: Array<RowMeta | null> = [];
+
+    let srNo = 0;
+    let subtotalPreTax = 0;
+    let totalDiscount = 0;
+    let totalTax = 0;
+
+    const bannerRow = (label: string, fill: [number, number, number], fontSize: number) => {
+      body.push([
+        {
+          content: sanitizePdfText(label),
+          colSpan: COLUMN_COUNT,
+          styles: {
+            fillColor: fill,
+            textColor: [0, 0, 0] as [number, number, number],
+            fontStyle: 'bold' as const,
+            fontSize,
+            halign: 'center' as const,
+            valign: 'middle' as const,
+            cellPadding: { top: 1.6, right: 2, bottom: 1.6, left: 2 },
+          },
+        },
+      ]);
+      rowMeta.push(null);
+    };
+
+    // On a quote where nobody set any section at all, the single unnamed group is
+    // the whole document — banner it and you've labelled every line "Other Items".
+    const hasNamedSection = groups.some((f) => f.floor);
+
+    for (const floorGroup of groups) {
+      if (floorGroup.floor) {
+        bannerRow(floorGroup.floor, COLOR_FLOOR_BG, 12);
+      } else if (hasNamedSection) {
+        // Never leave these unbannered: with nothing above them they read as part
+        // of the preceding room.
+        bannerRow(UNGROUPED_LABEL, COLOR_FLOOR_BG, 12);
+      }
+
+      for (const roomGroup of floorGroup.rooms) {
+        if (roomGroup.room) bannerRow(roomGroup.room, COLOR_ROOM_BG, 9.5);
+
+        let roomPreTax = 0;
+        let roomPostTax = 0;
+
+        for (const product of roomGroup.items) {
+          const line = computeLine(product);
+          srNo += 1;
+          subtotalPreTax += line.preTax;
+          totalDiscount += line.discountAmount;
+          totalTax += line.taxAmount;
+          roomPreTax += line.preTax;
+          roomPostTax += line.postTax;
+
+          // Measure the description cell up front: the name renders bold and the
+          // description normal, which autoTable can't express in one cell, so the
+          // text is drawn by hand in didDrawCell and the height reserved here.
+          doc.setFontSize(7.5);
+          doc.setFont('helvetica', 'bold');
+          const nameLines: string[] = doc.splitTextToSize(sanitizePdfText(product.name), DESC_WIDTH - 4);
+          doc.setFont('helvetica', 'normal');
+
+          const descriptionLines = [...nameLines];
+          if (product.description) {
+            for (const part of sanitizePdfText(product.description).split('\n')) {
+              if (part.trim()) descriptionLines.push(...doc.splitTextToSize(part, DESC_WIDTH - 4));
+            }
+          }
+
+          rowMeta.push({
+            descriptionLines,
+            nameLineCount: nameLines.length,
+            requiredHeight: descriptionLines.length * 3.4 + 3,
+          });
+
+          body.push([
+            srNo,
+            // Left empty on purpose: the mixed bold/normal text is painted in
+            // didDrawCell, and real content here would make autoTable reserve a
+            // minimum column width from the longest word, blowing out the layout.
+            '',
+            sanitizePdfText(product.make) || '-',
+            sanitizePdfText(product.model || product.productCode) || '-',
+            `${line.qty}${product.uom ? ' ' + product.uom : ''}`,
+            formatNum(line.unitPrice),
+            formatNum(line.preTax),
+            line.taxRate ? `${line.taxRate}%` : '-',
+            formatNum(line.postTax),
+            sanitizePdfText(product.remarks) || '',
+            warrantyLabel(product.warranty),
+          ]);
+        }
+
+        if (options.roomSubtotals && roomGroup.room && roomGroup.items.length > 1) {
+          body.push([
+            {
+              content: `Subtotal - ${sanitizePdfText(roomGroup.room)}`,
+              colSpan: 6,
+              styles: { halign: 'right' as const, fontStyle: 'bold' as const, fillColor: COLOR_SUBTOTAL_BG },
+            },
+            { content: formatNum(roomPreTax), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fillColor: COLOR_SUBTOTAL_BG } },
+            { content: '', styles: { fillColor: COLOR_SUBTOTAL_BG } },
+            { content: formatNum(roomPostTax), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fillColor: COLOR_SUBTOTAL_BG } },
+            { content: '', colSpan: 2, styles: { fillColor: COLOR_SUBTOTAL_BG } },
+          ]);
+          rowMeta.push(null);
+        }
+      }
+    }
+
+    const grandTotal = subtotalPreTax + totalTax;
+
+    // Excel-style closing row: pre-tax under Total Price, post-tax under Total (incl. Tax).
+    body.push([
+      {
+        content: 'Total Amount',
+        colSpan: 6,
+        styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 9, fillColor: COLOR_TOTAL_BG },
+      },
+      { content: formatNum(subtotalPreTax), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 9, fillColor: COLOR_TOTAL_BG } },
+      { content: '', styles: { fillColor: COLOR_TOTAL_BG } },
+      { content: formatNum(grandTotal), styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 9, fillColor: COLOR_TOTAL_BG } },
+      { content: '', colSpan: 2, styles: { fillColor: COLOR_TOTAL_BG } },
+    ]);
+    rowMeta.push(null);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [[
+        'Sr.',
+        'Description',
+        'Make',
+        'Model',
+        'Qty',
+        'Unit Price',
+        'Total Price',
+        'Tax',
+        'Total (incl. Tax)',
+        'Remarks',
+        'Warranty',
+      ]],
+      body,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [230, 230, 230],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+        fontSize: 7.5,
+        halign: 'center',
+        valign: 'middle',
+        lineColor: COLOR_LINE,
+        lineWidth: 0.25,
+      },
+      bodyStyles: {
+        fontSize: 7.5,
+        textColor: [0, 0, 0],
+        cellPadding: { top: 1.5, right: 1.5, bottom: 1.5, left: 1.5 },
+        valign: 'middle',
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 9 },
+        1: { halign: 'left', cellWidth: DESC_WIDTH, overflow: 'linebreak' },
+        2: { halign: 'center', cellWidth: 20 },
+        3: { halign: 'center', cellWidth: 26 },
+        4: { halign: 'center', cellWidth: 10 },
+        5: { halign: 'right', cellWidth: 22 },
+        6: { halign: 'right', cellWidth: 26 },
+        7: { halign: 'center', cellWidth: 11 },
+        8: { halign: 'right', cellWidth: 28 },
+        9: { halign: 'left', cellWidth: 30, overflow: 'linebreak' },
+        10: { halign: 'center', cellWidth: 16 },
+      },
+      styles: { lineColor: COLOR_LINE, lineWidth: 0.25 },
+      margin: { left: margin, right: margin, bottom: 16 },
+      showHead: 'everyPage',
+      rowPageBreak: 'avoid',
+      didParseCell: (data) => {
+        if (data.section !== 'body') return;
+        const meta = rowMeta[data.row.index];
+        if (meta && data.column.index === 1) {
+          data.cell.styles.minCellHeight = meta.requiredHeight;
+        }
+      },
+      didDrawCell: (data) => {
+        if (data.section !== 'body' || data.column.index !== 1) return;
+        const meta = rowMeta[data.row.index];
+        if (!meta) return; // banner / subtotal / total row — autoTable already drew it
+
+        const cell = data.cell;
+
+        doc.setFontSize(7.5);
+        doc.setTextColor(0, 0, 0);
+
+        const contentX = cell.x + 1.5;
+        let textY = cell.y + 3.4;
+
+        doc.setFont('helvetica', 'bold');
+        meta.descriptionLines.slice(0, meta.nameLineCount).forEach((line) => {
+          if (!line.trim()) return;
+          doc.text(line, contentX, textY);
+          textY += 3.4;
+        });
+
+        doc.setFont('helvetica', 'normal');
+        meta.descriptionLines.slice(meta.nameLineCount).forEach((line) => {
+          if (!line) return;
+          doc.text(line, contentX, textY);
+          textY += 3.4;
+        });
+      },
+    });
+
+    currentY = (doc as any).lastAutoTable.finalY + 8;
+
+    // A discount breakdown only earns its space when something was discounted —
+    // the in-table Total Amount row already covers the no-discount case.
+    if (totalDiscount >= 0.005) {
+      ensureSpace(30);
+      const labelX = rightX - 70;
+      doc.setFontSize(8.5);
+      doc.setFont('helvetica', 'normal');
+
+      doc.text('Sub Total', labelX, currentY);
+      doc.text(formatINR(subtotalPreTax + totalDiscount), rightX, currentY, { align: 'right' });
+      currentY += 5;
+
+      doc.text('Discount', labelX, currentY);
+      doc.text(`- ${formatINR(totalDiscount)}`, rightX, currentY, { align: 'right' });
+      currentY += 5;
+
+      doc.text('Tax', labelX, currentY);
+      doc.text(formatINR(totalTax), rightX, currentY, { align: 'right' });
+      currentY += 6;
+
+      doc.setLineWidth(0.4);
+      doc.line(labelX, currentY, rightX, currentY);
+      currentY += 5;
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Grand Total', labelX, currentY);
+      doc.text(formatINR(grandTotal), rightX, currentY, { align: 'right' });
+      currentY += 10;
+    }
+
+    return { preTax: subtotalPreTax, discount: totalDiscount, tax: totalTax, grandTotal };
+  };
+
+  const optionGroups = groupByOption(quoteData.products, quoteData.options);
+  const multiOption = optionGroups.length > 1;
+
+  const rendered: Array<{ title: string; totals: OptionTotals }> = [];
+  optionGroups.forEach((group, index) => {
+    // Every option after the first starts on a clean page. That is the point of
+    // the layout: one alternative per page, never two prices on the same sheet
+    // where they can be misread as a running bill.
+    if (index > 0) {
       doc.addPage();
       currentY = margin;
     }
-  };
+    const title = multiOption ? `Option ${index + 1} - ${group.option}` : null;
+    drawHeader(title);
+    rendered.push({ title: title || '', totals: renderOptionTable(group.products) });
+  });
 
-  // A discount breakdown only earns its space when something was discounted —
-  // the in-table Total Amount row already covers the no-discount case.
-  if (totalDiscount >= 0.005) {
-    ensureSpace(30);
-    const labelX = rightX - 70;
-    doc.setFontSize(8.5);
-    doc.setFont('helvetica', 'normal');
+  // -------------------------------------------------------- option summary ---
 
-    doc.text('Sub Total', labelX, currentY);
-    doc.text(formatINR(subtotalPreTax + totalDiscount), rightX, currentY, { align: 'right' });
-    currentY += 5;
+  // Side-by-side prices, so the reader isn't left flipping between pages to
+  // compare — and so the "pick one, they don't add up" rule is stated in words
+  // rather than left to be inferred from the layout.
+  if (multiOption) {
+    ensureSpace(30 + rendered.length * 6);
 
-    doc.text('Discount', labelX, currentY);
-    doc.text(`- ${formatINR(totalDiscount)}`, rightX, currentY, { align: 'right' });
-    currentY += 5;
-
-    doc.text('Tax', labelX, currentY);
-    doc.text(formatINR(totalTax), rightX, currentY, { align: 'right' });
-    currentY += 6;
-
+    doc.setDrawColor(...COLOR_LINE);
     doc.setLineWidth(0.4);
-    doc.line(labelX, currentY, rightX, currentY);
-    currentY += 5;
+    doc.line(margin, currentY, rightX, currentY);
+    currentY += 6;
 
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Grand Total', labelX, currentY);
-    doc.text(formatINR(grandTotal), rightX, currentY, { align: 'right' });
-    currentY += 10;
+    doc.setTextColor(0, 0, 0);
+    doc.text('Option Summary', margin, currentY);
+    currentY += 6;
+
+    doc.setFontSize(8.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text(
+      'The options below are alternatives to one another. Only one is to be selected — the prices are not cumulative.',
+      margin,
+      currentY,
+    );
+    currentY += 7;
+
+    const labelX = rightX - 100;
+    rendered.forEach((entry) => {
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text(sanitizePdfText(entry.title), labelX, currentY);
+      doc.text(formatINR(entry.totals.grandTotal), rightX, currentY, { align: 'right' });
+      currentY += 5.5;
+    });
+    doc.setFont('helvetica', 'normal');
+    currentY += 6;
   }
 
   // ----------------------------------------------------------------- terms ---
