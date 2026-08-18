@@ -234,7 +234,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <input type="text" class="outsourced-hsn px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="HSN Code" />
             <input type="number" class="outsourced-tax px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Tax %" min="0" step="0.01" />
             <input type="number" class="outsourced-warranty px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Warranty (months)" min="0" />
-            <input type="text" class="outsourced-uom px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Unit of Measurement (e.g. pcs, box)" />
+            <input type="text" class="outsourced-uom px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all" placeholder="Unit of Measurement (e.g. pcs, box) *" />
             <textarea class="outsourced-description px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all md:col-span-2" rows="2" placeholder="Description (optional)"></textarea>
           </div>
 
@@ -1075,8 +1075,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           outsourcedUom = (item.querySelector('.outsourced-uom') as HTMLInputElement)?.value.trim() || undefined;
           outsourcedDescription = (item.querySelector('.outsourced-description') as HTMLTextAreaElement)?.value.trim() || undefined;
 
-          if (!productName || !quantity || !unitPrice) {
-            showAlert('Please fill in outsourced product name, unit price and quantity', 'error');
+          if (!productName || !quantity || !unitPrice || !outsourcedUom) {
+            showAlert('Please fill in outsourced product name, unit price, quantity and UOM', 'error');
             return;
           }
         } else {
@@ -1303,7 +1303,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // while the per-line data (quantity, price, discount) lives in the
         // junction table. Adding the same product on two lines is legitimate,
         // and sending its id twice here is at best redundant and at worst fails
-        // the whole call, which would leave every line showing "Unnamed Product".
+        // the whole call — which leaves every line on the quote showing
+        // "Unnamed Product", because quote-detail resolves names from the links.
         const productLinkPayload = [...new Set(catalogProductData.map(p => p.productId))]
           .map(id => ({ id }));
 

@@ -304,7 +304,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <input type="text" id="outsourcedHsn" placeholder="HSN Code" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
               <input type="number" id="outsourcedTax" placeholder="Tax %" min="0" step="0.01" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
               <input type="number" id="outsourcedWarranty" placeholder="Warranty (months)" min="0" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
-              <input type="text" id="outsourcedUom" placeholder="UOM (e.g. pcs, box)" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+              <input type="text" id="outsourcedUom" placeholder="UOM (e.g. pcs, box) *" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
               <input type="number" id="outsourcedPrice" placeholder="Unit Price *" min="0" step="0.01" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
               <input type="number" id="outsourcedQty" placeholder="Quantity *" min="1" value="1" class="px-3 py-2.5 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
             </div>
@@ -2061,9 +2061,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const name = nameInput.value.trim();
       const price = parseFloat(priceInput.value);
       const qty = parseInt(qtyInput.value || '1');
+      const uom = uomInput.value.trim();
 
-      if (!name || !price || !qty) {
-        showToast('Please fill in product name, unit price and quantity', 'error');
+      if (!name || !price || !qty || !uom) {
+        showToast('Please fill in product name, unit price, quantity and UOM', 'error');
         return;
       }
 
@@ -2080,7 +2081,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             'Custom HSN': hsnInput.value.trim() || null,
             'Custom Tax': taxInput.value ? parseFloat(taxInput.value) : null,
             'Custom Warranty': warrantyInput.value ? parseInt(warrantyInput.value) : null,
-            'Custom UOM': uomInput.value.trim() || null,
+            'Custom UOM': uom,
             'Custom Description': descInput.value.trim() || null,
           }
         };
