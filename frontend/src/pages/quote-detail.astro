@@ -442,6 +442,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     // Store quote data for PDF generation
     let currentQuoteData: any = null;
 
+    /**
+     * Whether the Section/Option columns could be read for this quote. False
+     * means the lookup errored — the columns may not exist in NocoDB yet — and
+     * the page must not conclude from that silence that the quote has no rooms.
+     */
+    let sectionLookupOk = true;
+
     async function logShare(method: 'email' | 'whatsapp') {
       try {
         const current = currentQuoteFields?.['Shared Via'];
@@ -866,6 +873,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         // want an ungrouped PDF, not a broken quote page.
         const sectionById = new Map<number, string>();
         const optionById = new Map<number, string>();
+        sectionLookupOk = true;
         try {
           const sectionResponse = await fetch(
             `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Section,Option`,
@@ -887,10 +895,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             });
             console.log('[QUOTE DETAIL] Sections fetched:', sectionById.size, 'options:', optionById.size);
           } else {
-            console.info('[QUOTE DETAIL] No Section field yet - room-wise PDF will be ungrouped');
+            sectionLookupOk = false;
+            console.warn(
+              '[QUOTE DETAIL] Could not read Section/Option (HTTP ' + sectionResponse.status + ') - ' +
+              'the Section and Option columns are probably missing from ProductsForQuotes in NocoDB. ' +
+              'Both PDF layouts will be offered and the room-wise one will print ungrouped.',
+              await sectionResponse.text(),
+            );
           }
         } catch (error) {
-          console.info('[QUOTE DETAIL] Section lookup skipped:', error);
+          sectionLookupOk = false;
+          console.warn('[QUOTE DETAIL] Section lookup failed:', error);
         }
 
         // Step 3: Merge catalog products with junction data. Junction records are the
@@ -1558,12 +1573,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
      */
     function applyPdfButtonVisibility() {
       const roomWise = isRoomWiseQuote();
+      // A quote whose Section/Option columns could not be read is not a quote
+      // without rooms — we simply don't know. Hiding the room-wise buttons on a
+      // guess would leave no way to produce that PDF at all, so an unreadable
+      // lookup falls back to offering both layouts, as the page did before.
+      const unknown = !sectionLookupOk;
       const show = (id: string, visible: boolean) =>
         document.getElementById(id)?.classList.toggle('hidden', !visible);
       show('previewPdfBtn', !roomWise);
       show('downloadPdfBtn', !roomWise);
-      show('previewSectionedPdfBtn', roomWise);
-      show('downloadSectionedPdfBtn', roomWise);
+      show('previewSectionedPdfBtn', roomWise || unknown);
+      show('downloadSectionedPdfBtn', roomWise || unknown);
     }
 
     /**
