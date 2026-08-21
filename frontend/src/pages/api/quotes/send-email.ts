@@ -1,6 +1,10 @@
 import type { APIRoute } from 'astro';
 import { Resend } from 'resend';
 import { generatePdfBuffer, type QuoteData } from '../../../lib/pdf-generator';
+import {
+  generateSectionedPdfBuffer,
+  type SectionedQuoteData,
+} from '../../../lib/pdf-generator-sectioned';
 import { signPdfBuffer } from '../../../lib/pdf-signer';
 
 export const prerender = false;
@@ -10,12 +14,21 @@ interface SendEmailBody extends QuoteData {
   emailSubject: string;
   note?: string;
   senderEmail?: string;
+  /**
+   * Attach the floor/room-grouped PDF instead of the flat one. Set by the quote
+   * page for room-wise quotes, where the flat layout throws away the very
+   * structure the quote was built around. Absent means the standard PDF, so
+   * every existing caller keeps the document it has always sent.
+   */
+  sectioned?: boolean;
+  /** Only read when `sectioned`; mirrors /api/quotes/pdf-sectioned. */
+  roomSubtotals?: boolean;
 }
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body: SendEmailBody = await request.json();
-    const { toEmail, emailSubject, note, senderEmail, ...quoteData } = body;
+    const { toEmail, emailSubject, note, senderEmail, sectioned, roomSubtotals, ...quoteData } = body;
 
     if (!toEmail) {
       return new Response(JSON.stringify({ error: 'toEmail is required' }), {
@@ -34,7 +47,11 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const rawPdf = generatePdfBuffer(quoteData as QuoteData);
+    const rawPdf = sectioned
+      ? generateSectionedPdfBuffer(quoteData as unknown as SectionedQuoteData, {
+          roomSubtotals: roomSubtotals !== false, // default on, same as the download route
+        })
+      : generatePdfBuffer(quoteData as QuoteData);
     const pdfBuffer = await signPdfBuffer(rawPdf, {
       companyName:
         quoteData.logo === 'grove'
@@ -63,7 +80,7 @@ export const POST: APIRoute = async ({ request }) => {
       html: htmlBody,
       attachments: [
         {
-          filename: `quote-${quoteData.id}.pdf`,
+          filename: `quote-${quoteData.id}${sectioned ? '-room-wise' : ''}.pdf`,
           content: pdfBuffer,
         },
       ],

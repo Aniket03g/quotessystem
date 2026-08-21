@@ -115,7 +115,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
           </button>
-          <button id="downloadSectionedPdfBtn" class="inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors" title="Download room-wise PDF (grouped by floor and room)">
+          <button id="previewSectionedPdfBtn" class="hidden inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors" title="Preview room-wise PDF (grouped by floor and room)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+          </button>
+          <button id="downloadSectionedPdfBtn" class="inline-flex items-center justify-center p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors" title="Download room-wise PDF (grouped by floor and room)">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1M9 13h1m4 0h1M9 17h1m4 0h1"></path>
             </svg>
@@ -131,8 +137,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </span>
         </div>
         <div>
-          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">SUB TOTAL</p>
+          <p id="quoteTotalLabel" class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">SUB TOTAL</p>
           <p id="quoteTotal" class="text-xl font-bold text-slate-900">₹0</p>
+          <!--
+            One figure per priced alternative, filled in for room-wise quotes.
+            A two-option quote has two prices and the customer buys one of them,
+            so showing only the first reads as the quote's price when it isn't.
+          -->
+          <div id="quoteTotalOptions" class="hidden mt-2 space-y-1"></div>
         </div>
         <div>
           <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">VALID UNTIL</p>
@@ -257,6 +269,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <label class="block text-sm font-bold text-slate-800">Add Product</label>
               <p class="text-xs text-slate-500">Search catalog or add an outsourced product</p>
             </div>
+          </div>
+          <!--
+            Destination picker. A room-wise quote's line items only mean anything
+            once they sit under a floor/room (and, when the quote prices
+            alternatives, under one option) — so on those quotes the product is
+            not added until the user says where it goes. Rendered from JS because
+            the floors and rooms come from the quote itself; hidden entirely on
+            an ordinary quote, which has nowhere to put a product but the list.
+          -->
+          <div id="addDestination" class="hidden mb-4 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50/50 p-4">
+            <p class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-3">Where should this go?</p>
+            <div id="addDestinationFields" class="space-y-3"></div>
           </div>
           <div class="mb-3">
             <button type="button" id="toggleOutsourcedBtn" class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 underline underline-offset-2">
@@ -1184,40 +1208,525 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
+    // ---------------------------------------------------------- room-wise ---
+    // A room-wise quote carries its structure on the line items: `Section`
+    // ("1st Floor > Meeting Room 4 PAX") and `Option` ("Wired Solution"). The
+    // PDF groups by option → floor → room; the page has to read the same way or
+    // it disagrees with the document the customer is holding. Everything below
+    // deliberately mirrors pdf-generator-sectioned.ts rule for rule.
+
+    /** Which option tab is on screen. Null on a quote with no options. */
+    let activeOptionKey: string | null = null;
+
+    /** Banner for lines nobody gave a floor or room. */
+    const UNGROUPED_LABEL = 'Other Items';
+
+    /** Split "1st Floor > Meeting Room 4 PAX"; any tail past the first ">" is the room. */
+    function splitSection(section: any): { floor: string | null; room: string | null } {
+      const parts = String(section || '').split('>').map(s => s.trim()).filter(Boolean);
+      if (!parts.length) return { floor: null, room: null };
+      return { floor: parts[0], room: parts.slice(1).join(' - ') || null };
+    }
+
+    /**
+     * Split line items into alternatives. The quote's own declared order wins —
+     * an option set up but not yet priced owns no rows to be inferred from — and
+     * a line carrying an option the quote never declared is still shown rather
+     * than silently dropped. Lines with no option belong to the first option,
+     * the same choice the PDF makes for shared cabling and installation.
+     */
+    function buildOptionGroups(): Array<{ option: string | null; products: any[] }> {
+      const declared: string[] = ((currentQuoteData?.options || []) as any[])
+        .map((o: any) => String(o).trim())
+        .filter(Boolean);
+      const names: string[] = [];
+      const push = (n: string) => { if (n && !names.includes(n)) names.push(n); };
+      declared.forEach(push);
+      currentProducts.forEach((p: any) => push(String(p.option || '').trim()));
+
+      if (!names.length) return [{ option: null, products: currentProducts }];
+
+      const groups = names.map(option => ({ option, products: [] as any[] }));
+      const orphans: any[] = [];
+      currentProducts.forEach((p: any) => {
+        const label = String(p.option || '').trim();
+        const group = label ? groups.find(g => g.option === label) : undefined;
+        if (group) group.products.push(p);
+        else orphans.push(p);
+      });
+      if (orphans.length) groups[0].products.push(...orphans);
+
+      return groups.filter(g => g.products.length > 0 || declared.includes(g.option as string));
+    }
+
+    /**
+     * Floor → room buckets in the order lines were added. Unsectioned lines are
+     * pooled into a single trailing group: left in place, a later row re-joins
+     * the floor an earlier row opened and the loose row reads as part of the
+     * last room instead of belonging to nothing.
+     */
+    function groupByFloorRoom(items: any[]) {
+      const floors: Array<{ floor: string | null; rooms: Array<{ room: string | null; items: any[] }> }> = [];
+      for (const item of items) {
+        const { floor, room } = splitSection(item.section);
+        let floorGroup = floors.find(f => f.floor === floor);
+        if (!floorGroup) { floorGroup = { floor, rooms: [] }; floors.push(floorGroup); }
+        let roomGroup = floorGroup.rooms.find(r => r.room === room);
+        if (!roomGroup) { roomGroup = { room, items: [] }; floorGroup.rooms.push(roomGroup); }
+        roomGroup.items.push(item);
+      }
+      const loose = floors.findIndex(f => f.floor === null);
+      if (loose !== -1 && loose !== floors.length - 1) floors.push(floors.splice(loose, 1)[0]);
+      return floors;
+    }
+
+    /** Saved line total for one product. Same maths as the PDF and calculateTotal(). */
+    function lineTotalOf(product: any): number {
+      const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
+      if (customPrice === null) return 0;
+      const quantity = Number(product.quantity) || 1;
+      const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
+      const discount = Number(product.discount) || 0;
+      const taxRate = Number(product.tax) || 0;
+      const subtotal = customPrice * quantity;
+      const discountAmount = discountRs !== null ? discountRs : subtotal * (discount / 100);
+      const afterDiscount = subtotal - discountAmount;
+      return afterDiscount + afterDiscount * (taxRate / 100);
+    }
+
+    const formatMoney = (n: number) =>
+      '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const escapeHtml = (s: any) => String(s ?? '')
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    /** The rows currently on screen: one option's worth, or everything. */
+    function visibleProducts(): any[] {
+      const groups = buildOptionGroups();
+      if (groups.length === 1 && groups[0].option === null) return currentProducts;
+      return (groups.find(g => g.option === activeOptionKey) || groups[0]).products;
+    }
+
+    /**
+     * The header's SUB TOTAL for a quote with priced alternatives. The saved
+     * Total Amount is option 1's price by design (see calculateTotal), so on a
+     * two-option quote the one figure in the header is only half the answer.
+     * Every option is listed instead, and picking one here drives the same
+     * switch the option tabs below do — the header and the table always agree.
+     *
+     * Left alone on an ordinary quote, which keeps the saved figure it has
+     * always shown.
+     */
+    function renderHeaderTotals() {
+      const label = document.getElementById('quoteTotalLabel');
+      const totalEl = document.getElementById('quoteTotal');
+      const list = document.getElementById('quoteTotalOptions');
+      if (!label || !totalEl || !list) return;
+
+      const groups = buildOptionGroups();
+      if (groups.length === 1 && groups[0].option === null) {
+        label.textContent = 'SUB TOTAL';
+        list.classList.add('hidden');
+        list.innerHTML = '';
+        return;
+      }
+
+      // Whole rupees, the way this header has always shown the figure — the
+      // paise live in the table below.
+      const roundMoney = (n: number) =>
+        '₹' + Math.round(n).toLocaleString('en-IN');
+      const optionTotal = (group: { products: any[] }) =>
+        group.products.reduce((sum: number, p: any) => sum + lineTotalOf(p), 0);
+
+      const active = groups.find(g => g.option === activeOptionKey) || groups[0];
+      label.textContent = 'SUB TOTAL';
+      totalEl.textContent = roundMoney(optionTotal(active));
+
+      list.classList.remove('hidden');
+      list.innerHTML = groups.map((group, i) => {
+        const total = optionTotal(group);
+        const isActive = group.option === active.option;
+        return `
+          <button type="button" data-option="${escapeHtml(group.option)}"
+            class="header-option-total flex w-full items-baseline justify-between gap-2 rounded-md px-2 py-1 text-left transition-colors ${
+              isActive ? 'bg-indigo-50 ring-1 ring-indigo-200' : 'hover:bg-slate-50'
+            }"
+            aria-pressed="${isActive}">
+            <span class="truncate text-[11px] font-semibold ${isActive ? 'text-indigo-800' : 'text-slate-500'}">${i + 1}. ${escapeHtml(group.option)}</span>
+            <span class="shrink-0 text-xs font-bold tabular-nums ${isActive ? 'text-indigo-900' : 'text-slate-600'}">${roundMoney(total)}</span>
+          </button>`;
+      }).join('') +
+        `<p class="px-2 pt-0.5 text-[10px] leading-snug text-slate-400">Alternatives &middot; only one is bought. Option 1 is the saved quote total.</p>`;
+
+      list.querySelectorAll('.header-option-total').forEach(button => {
+        button.addEventListener('click', () => {
+          const key = (button as HTMLElement).getAttribute('data-option');
+          if (key === activeOptionKey) return;
+          activeOptionKey = key;
+          // renderProducts() redraws the table, the option tabs and, at its end,
+          // this block — so the two stay in step from a single switch.
+          renderProducts();
+        });
+      });
+    }
+
+    // ------------------------------------------------- add-product target ---
+    // A room-wise quote is read floor by floor: a line item with no section is
+    // homeless — it lands in "Other Items" at the bottom of the page and of the
+    // PDF. So on those quotes adding a product asks where it goes first, and
+    // writes Section/Option along with the junction row.
+
+    /** Sentinel for the "new floor/room" entry in the destination selects. */
+    const DEST_NEW = '__new__';
+
+    /** Kept across re-renders so adding five things to one room isn't five trips through the selects. */
+    let destinationDraft = { option: '', floor: '', newFloor: '', room: '', newRoom: '' };
+
+    /**
+     * Whether this quote is read room by room. Same test renderProducts() uses
+     * to pick its layout: any line placed in a section, or any priced
+     * alternative. Drives the destination picker and the header's PDF buttons.
+     */
+    function isRoomWiseQuote(): boolean {
+      if ((currentQuoteData?.options || []).length) return true;
+      return currentProducts.some((p: any) => String(p.section || '').trim() || String(p.option || '').trim());
+    }
+
+    /**
+     * Floors already used anywhere in the quote, with the rooms under each.
+     * Pooled across options on purpose — the same rooms are usually quoted both
+     * ways, so a room opened under "Wired" is a valid target under "Wireless".
+     */
+    function knownFloors(): Array<{ floor: string; rooms: string[] }> {
+      const floors: Array<{ floor: string; rooms: string[] }> = [];
+      currentProducts.forEach((p: any) => {
+        const { floor, room } = splitSection(p.section);
+        if (!floor) return;
+        let entry = floors.find(f => f.floor === floor);
+        if (!entry) { entry = { floor, rooms: [] }; floors.push(entry); }
+        if (room && !entry.rooms.includes(room)) entry.rooms.push(room);
+      });
+      return floors;
+    }
+
+    /** Option names in print order; empty on a quote with no alternatives. */
+    function knownOptions(): string[] {
+      return buildOptionGroups().map(g => g.option).filter(Boolean) as string[];
+    }
+
+    /** Draw the picker from the quote's own floors, rooms and options. */
+    function renderAddDestination() {
+      const wrap = document.getElementById('addDestination') as HTMLDivElement;
+      const fields = document.getElementById('addDestinationFields') as HTMLDivElement;
+      if (!wrap || !fields) return;
+      if (!isEditMode || !isRoomWiseQuote()) { wrap.classList.add('hidden'); return; }
+      wrap.classList.remove('hidden');
+
+      const options = knownOptions();
+      const floors = knownFloors();
+
+      // A draft can go stale between renders — the room it pointed at may have
+      // had its last row deleted, or the user may have switched option tabs.
+      if (options.length && !options.includes(destinationDraft.option)) {
+        destinationDraft.option = activeOptionKey && options.includes(activeOptionKey) ? activeOptionKey : options[0];
+      }
+      if (destinationDraft.floor !== DEST_NEW && destinationDraft.floor && !floors.some(f => f.floor === destinationDraft.floor)) {
+        destinationDraft.floor = '';
+        destinationDraft.room = '';
+      }
+      const floorEntry = floors.find(f => f.floor === destinationDraft.floor);
+      const rooms = floorEntry ? floorEntry.rooms : [];
+      if (destinationDraft.room !== DEST_NEW && destinationDraft.room && !rooms.includes(destinationDraft.room)) {
+        destinationDraft.room = '';
+      }
+      // A brand-new floor has no rooms to pick from, so its room field is a
+      // free-text one from the start rather than a select with nothing in it.
+      const floorIsNew = destinationDraft.floor === DEST_NEW;
+      const roomIsNew = floorIsNew || destinationDraft.room === DEST_NEW;
+
+      const selectClass = 'w-full px-3 py-2.5 bg-white border-2 border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500';
+      const inputClass = 'w-full px-3 py-2.5 bg-white border-2 border-emerald-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500';
+      const labelClass = 'block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5';
+      const opt = (value: string, label: string, selected: boolean) =>
+        `<option value="${escapeHtml(value)}"${selected ? ' selected' : ''}>${escapeHtml(label)}</option>`;
+
+      const optionField = !options.length ? '' : `
+        <div>
+          <label class="${labelClass}" for="destOption">Option</label>
+          <select id="destOption" class="${selectClass}">
+            ${options.map(o => opt(o, o, o === destinationDraft.option)).join('')}
+          </select>
+        </div>`;
+
+      const floorField = `
+        <div>
+          <label class="${labelClass}" for="destFloor">Floor</label>
+          <select id="destFloor" class="${selectClass}">
+            ${opt('', 'Select a floor...', !destinationDraft.floor)}
+            ${floors.map(f => opt(f.floor, f.floor, f.floor === destinationDraft.floor)).join('')}
+            ${opt(DEST_NEW, '+ New floor', floorIsNew)}
+          </select>
+          ${floorIsNew ? `<input type="text" id="destNewFloor" placeholder="New floor name, e.g. 3rd Floor" value="${escapeHtml(destinationDraft.newFloor)}" class="mt-2 ${inputClass}" />` : ''}
+        </div>`;
+
+      const roomField = `
+        <div>
+          <label class="${labelClass}" for="destRoom">Room</label>
+          ${floorIsNew ? '' : `
+          <select id="destRoom" class="${selectClass}">
+            ${opt('', 'No room (floor level)', !destinationDraft.room)}
+            ${rooms.map(r => opt(r, r, r === destinationDraft.room)).join('')}
+            ${opt(DEST_NEW, '+ New room', destinationDraft.room === DEST_NEW)}
+          </select>`}
+          ${roomIsNew ? `<input type="text" id="destNewRoom" placeholder="${floorIsNew ? 'Room name (optional)' : 'New room name, e.g. Boardroom 12 PAX'}" value="${escapeHtml(destinationDraft.newRoom)}" class="${floorIsNew ? '' : 'mt-2 '}${inputClass}" />` : ''}
+        </div>`;
+
+      fields.innerHTML = `<div class="grid gap-3 ${optionField ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}">${optionField}${floorField}${roomField}</div>`;
+
+      document.getElementById('destOption')?.addEventListener('change', (e) => {
+        destinationDraft.option = (e.target as HTMLSelectElement).value;
+      });
+      document.getElementById('destFloor')?.addEventListener('change', (e) => {
+        destinationDraft.floor = (e.target as HTMLSelectElement).value;
+        destinationDraft.room = '';
+        destinationDraft.newRoom = '';
+        renderAddDestination();
+        (document.getElementById('destNewFloor') as HTMLInputElement | null)?.focus();
+      });
+      document.getElementById('destRoom')?.addEventListener('change', (e) => {
+        destinationDraft.room = (e.target as HTMLSelectElement).value;
+        renderAddDestination();
+        (document.getElementById('destNewRoom') as HTMLInputElement | null)?.focus();
+      });
+      document.getElementById('destNewFloor')?.addEventListener('input', (e) => {
+        destinationDraft.newFloor = (e.target as HTMLInputElement).value;
+      });
+      document.getElementById('destNewRoom')?.addEventListener('input', (e) => {
+        destinationDraft.newRoom = (e.target as HTMLInputElement).value;
+      });
+    }
+
+    /**
+     * The Section/Option fields for a product about to be added, or null if the
+     * user hasn't said where it goes. Returns empty fields on an ordinary quote,
+     * which has nowhere to put a product but the list.
+     */
+    function takeAddDestination(): { Section?: string; Option?: string } | null {
+      if (!isRoomWiseQuote()) return {};
+
+      const floor = (destinationDraft.floor === DEST_NEW ? destinationDraft.newFloor : destinationDraft.floor).trim();
+      if (!floor) {
+        showToast('Choose the floor this product belongs to', 'error');
+        (document.getElementById('destNewFloor') || document.getElementById('destFloor'))?.focus();
+        return null;
+      }
+      const room = (roomIsFreeText() ? destinationDraft.newRoom : destinationDraft.room).trim();
+      if (destinationDraft.room === DEST_NEW && !room) {
+        showToast('Name the new room, or pick "No room (floor level)"', 'error');
+        (document.getElementById('destNewRoom') as HTMLInputElement | null)?.focus();
+        return null;
+      }
+
+      const options = knownOptions();
+      if (options.length && !destinationDraft.option) {
+        showToast('Choose which option this product belongs to', 'error');
+        return null;
+      }
+
+      // Fold the typed names back into the draft: once the row is saved they are
+      // ordinary floors and rooms, and the next product should find them listed.
+      destinationDraft.floor = floor;
+      destinationDraft.room = room;
+      destinationDraft.newFloor = '';
+      destinationDraft.newRoom = '';
+
+      const fields: { Section?: string; Option?: string } = { Section: room ? `${floor} > ${room}` : floor };
+      if (options.length) fields.Option = destinationDraft.option;
+      return fields;
+    }
+
+    /** Whether the room is being typed rather than picked. */
+    function roomIsFreeText(): boolean {
+      return destinationDraft.floor === DEST_NEW || destinationDraft.room === DEST_NEW;
+    }
+
+    /**
+     * A room-wise quote gets the room-wise PDF buttons and nothing else. The
+     * plain PDF prints the line items as one flat list with the floors and rooms
+     * thrown away — on a quote built room by room that document is simply wrong,
+     * so it isn't offered. Ordinary quotes keep the plain buttons only.
+     */
+    function applyPdfButtonVisibility() {
+      const roomWise = isRoomWiseQuote();
+      const show = (id: string, visible: boolean) =>
+        document.getElementById(id)?.classList.toggle('hidden', !visible);
+      show('previewPdfBtn', !roomWise);
+      show('downloadPdfBtn', !roomWise);
+      show('previewSectionedPdfBtn', roomWise);
+      show('downloadSectionedPdfBtn', roomWise);
+    }
+
     /**
      * Render products table based on edit mode
      * Shows products from ProductsForQuotes junction with custom prices
      */
     function renderProducts() {
       const productsContainer = document.getElementById('productsContainer') as HTMLDivElement;
-      
+
+      // Both read the line items, so they are refreshed from here — a delete that
+      // empties the last room changes where a product may be added, and a quote
+      // that has just become room-wise changes which PDF buttons make sense.
+      applyPdfButtonVisibility();
+      renderAddDestination();
+      renderHeaderTotals();
+
       if (currentProducts.length === 0) {
         productsContainer.innerHTML = '<p class="text-sm text-slate-500">No products linked to this quote</p>';
         return;
       }
 
-      const actionColumn = isEditMode ? '<th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>' : '';
-      
+      // Lay the rows out option → floor → room, the way the room-wise PDF prints
+      // them. Only the active option is put in the DOM: every line-item handler
+      // below keys off `tr[data-junction-id]`, so rows that aren't on screen must
+      // not be there to be counted.
+      const optionGroups = buildOptionGroups();
+      const hasOptions = !(optionGroups.length === 1 && optionGroups[0].option === null);
+      if (hasOptions && !optionGroups.some(g => g.option === activeOptionKey)) {
+        activeOptionKey = optionGroups[0].option;
+      }
+      const shown = visibleProducts();
+      const floors = groupByFloorRoom(shown);
+      // No Section anywhere means an ordinary quote — one null floor group, and a
+      // lone "Other Items" banner over the whole table would be pure noise.
+      const hasSections = floors.some(f => f.floor !== null || f.rooms.some(r => r.room !== null));
+
+      // Room-wise quotes get the compact layout. A room-wise quote is read room
+      // by room, and eleven columns of which five are identity means the prices
+      // sit off the right edge behind a scrollbar — so Brand/Model/HSN/Warranty
+      // fold into a second line under the product name. Ordinary quotes are left
+      // on the wide layout they have always had.
+      const roomWise = hasSections || hasOptions;
+      const colCount = (roomWise ? 6 : 10) + (isEditMode ? 1 : 0);
+
+      // Flattened so the row template below stays a single map, with banners
+      // interleaved. `index` is the zebra counter over visible product rows only.
+      // The floor/room keys let updateGrandTotal() refresh each banner's subtotal
+      // from the rows underneath it while someone is typing in edit mode.
+      const rowPlan: any[] = [];
+      let visibleIndex = 0;
+      if (!hasSections) {
+        shown.forEach((product: any) => rowPlan.push({ kind: 'item', product, index: visibleIndex++ }));
+      } else {
+        floors.forEach((floorGroup, fi) => {
+          const floorKey = `f${fi}`;
+          rowPlan.push({
+            kind: 'floor',
+            key: floorKey,
+            label: floorGroup.floor || UNGROUPED_LABEL,
+            unplaced: floorGroup.floor === null,
+            rooms: floorGroup.rooms.filter(r => r.room).length,
+            count: floorGroup.rooms.reduce((n, r) => n + r.items.length, 0),
+          });
+          floorGroup.rooms.forEach((roomGroup, ri) => {
+            const roomKey = `${floorKey}r${ri}`;
+            if (roomGroup.room) {
+              rowPlan.push({ kind: 'room', key: roomKey, label: roomGroup.room, count: roomGroup.items.length });
+            }
+            roomGroup.items.forEach((product: any) =>
+              rowPlan.push({ kind: 'item', product, index: visibleIndex++, floorKey, roomKey: roomGroup.room ? roomKey : '' }));
+          });
+        });
+      }
+
+      const optionTabs = !hasOptions ? '' : `
+        <div class="mb-6">
+          <div class="flex items-center gap-2 mb-2.5">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Priced alternatives</span>
+            <span class="flex-1 h-px bg-slate-200"></span>
+            <span class="text-xs text-slate-500">Only one is bought &middot; the quote's saved total is Option 1</span>
+          </div>
+          <div class="grid gap-3 ${optionGroups.length > 2 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}">
+            ${optionGroups.map((group, i) => {
+              const optionTotal = group.products.reduce((sum: number, p: any) => sum + lineTotalOf(p), 0);
+              const active = group.option === activeOptionKey;
+              return `
+                <button type="button" class="option-tab group relative text-left rounded-xl border p-4 transition-all ${
+                  active
+                    ? 'border-indigo-500 bg-indigo-50/70 ring-2 ring-indigo-500/20 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                }" data-option="${escapeHtml(group.option)}" aria-pressed="${active}">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-5 h-5 rounded text-[11px] font-bold ${active ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}">${i + 1}</span>
+                        <span class="truncate text-sm font-semibold ${active ? 'text-indigo-900' : 'text-slate-700'}">${escapeHtml(group.option)}</span>
+                      </div>
+                      <div class="mt-2 text-lg font-bold tabular-nums ${active ? 'text-indigo-900' : 'text-slate-800'}">${formatMoney(optionTotal)}</div>
+                      <div class="text-xs ${active ? 'text-indigo-600' : 'text-slate-500'}">${group.products.length} line item${group.products.length === 1 ? '' : 's'}${i === 0 ? ' &middot; saved as quote total' : ''}</div>
+                    </div>
+                    ${active ? `
+                      <svg class="w-5 h-5 shrink-0 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 111.4-1.4l3.3 3.3 6.8-6.8a1 1 0 011.4 0z" clip-rule="evenodd"/>
+                      </svg>` : ''}
+                  </div>
+                </button>`;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      const th = (label: string, align = 'left', extra = '') =>
+        `<th class="px-4 py-3 text-${align} text-[11px] font-bold text-slate-500 uppercase tracking-wider ${extra}">${label}</th>`;
+      const headerCells = roomWise
+        ? [th('Item'), th('Qty', 'center'), th('Unit Price', 'right'), th('Discount', 'center'), th('Tax', 'center'), th('Line Total', 'right')]
+        : [th('Product'), th('Brand'), th('Model No'), th('HSN Code'), th('Warranty (months)', 'center'),
+           th('Qty', 'center'), th('Unit Price', 'right'), th('Discount %', 'center'), th('Tax %', 'center'), th('Line Total', 'right')];
+      if (isEditMode) headerCells.push(th('', 'right'));
+
       productsContainer.innerHTML = `
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-slate-100 border-b-2 border-slate-300">
-              <tr>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Product</th>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Brand</th>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">Model No</th>
-                <th class="px-4 py-3.5 text-left text-xs font-bold text-slate-700 uppercase tracking-wider">HSN Code</th>
-                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Warranty (months)</th>
-                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Qty</th>
-                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Unit Price</th>
-                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Discount %</th>
-                <th class="px-4 py-3.5 text-center text-xs font-bold text-slate-700 uppercase tracking-wider">Tax %</th>
-                <th class="px-4 py-3.5 text-right text-xs font-bold text-slate-700 uppercase tracking-wider">Line Total</th>
-                ${actionColumn}
-              </tr>
+        ${optionTabs}
+        <div class="overflow-x-auto rounded-xl border border-slate-200">
+          <table class="w-full border-collapse">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>${headerCells.join('')}</tr>
             </thead>
-            <tbody class="divide-y divide-slate-200">
-              ${currentProducts.map((product: any) => {
+            <tbody>
+              ${rowPlan.map((entry: any) => {
+                if (entry.kind === 'floor') {
+                  // Floors are the loudest thing in the table on purpose — they
+                  // are how someone finds their way around a 100-line quote.
+                  const icon = entry.unplaced
+                    ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5 19h14a2 2 0 001.8-2.9l-7-12a2 2 0 00-3.6 0l-7 12A2 2 0 005 19z"/>'
+                    : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>';
+                  return `
+                    <tr class="bg-slate-800 text-white">
+                      <td colspan="${colCount}" class="px-4 py-2.5">
+                        <div class="flex items-center gap-2.5">
+                          <svg class="w-4 h-4 shrink-0 ${entry.unplaced ? 'text-amber-300' : 'text-slate-300'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">${icon}</svg>
+                          <span class="text-xs font-bold uppercase tracking-wider">${escapeHtml(entry.label)}</span>
+                          <span class="text-[11px] text-slate-300">${entry.rooms ? `${entry.rooms} room${entry.rooms === 1 ? '' : 's'} &middot; ` : ''}${entry.count} item${entry.count === 1 ? '' : 's'}</span>
+                          <span class="flex-1"></span>
+                          <span class="text-sm font-bold tabular-nums group-total" data-group-key="${entry.key}">&mdash;</span>
+                        </div>
+                      </td>
+                    </tr>`;
+                }
+                if (entry.kind === 'room') {
+                  return `
+                    <tr class="bg-slate-100/80 border-y border-slate-200">
+                      <td colspan="${colCount}" class="px-4 py-2">
+                        <div class="flex items-center gap-2.5">
+                          <span class="w-1 h-4 rounded-full bg-indigo-400 shrink-0"></span>
+                          <span class="text-xs font-semibold text-slate-700">${escapeHtml(entry.label)}</span>
+                          <span class="text-[11px] text-slate-500">${entry.count} item${entry.count === 1 ? '' : 's'}</span>
+                          <span class="flex-1"></span>
+                          <span class="text-xs font-semibold text-slate-600 tabular-nums group-total" data-group-key="${entry.key}">&mdash;</span>
+                        </div>
+                      </td>
+                    </tr>`;
+                }
+
+                const product = entry.product;
                 const name = product.productName || 'Unnamed Product';
                 const brand = product.brand || '-';
                 const productCode = product.productCode || '-';
@@ -1246,7 +1755,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                       data-junction-id="${junctionId}" 
                       ${!junctionId ? 'disabled title="No junction record"' : ''} />
                   </td>
-                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-center">${quantity}</td>`;
+                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-center tabular-nums">${quantity}</td>`;
                 
                 const priceCell = isEditMode ? `
                   <td class="px-4 py-3.5 text-right">
@@ -1256,7 +1765,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                       placeholder="Set price" 
                       ${!junctionId ? 'disabled title="No junction record"' : ''} />
                   </td>
-                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-right">${customPrice !== null && customPrice !== undefined ? '₹' + Number(customPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '<span class="text-slate-400">No price set</span>'}</td>`;
+                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-right tabular-nums">${customPrice !== null && customPrice !== undefined ? '₹' + Number(customPrice).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '<span class="text-slate-400">No price set</span>'}</td>`;
                 
                 const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
                 const discountMode = discountRs !== null ? 'rupees' : 'percent';
@@ -1286,7 +1795,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                       ${!junctionId ? 'disabled title="No junction record"' : ''} />
                     `}
                   </td>
-                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-900 text-center">${discountDisplay}</td>`;
+                ` : `<td class="px-4 py-3.5 text-sm font-medium text-slate-700 text-center tabular-nums">${discountDisplay}</td>`;
                 
                 const actionCell = isEditMode ? `
                   <td class="px-4 py-3">
@@ -1298,20 +1807,46 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                   </td>
                 ` : '';
                 
-                const rowIndex = currentProducts.indexOf(product);
-                const rowClass = rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+                // Compact layout: everything that identifies the product collapses
+                // into one cell — name on top, the specs that used to own four
+                // columns as a muted second line. Nothing is dropped, and the
+                // money columns come back onto the screen.
+                const meta = roomWise
+                  ? [
+                      product.brand ? `<span class="font-medium text-slate-600">${escapeHtml(product.brand)}</span>` : '',
+                      product.productCode ? escapeHtml(product.productCode) : '',
+                      product.hsnCode ? `HSN ${escapeHtml(product.hsnCode)}` : '',
+                      product.warranty != null ? `${escapeHtml(product.warranty)} mo warranty` : '',
+                      product.uom ? escapeHtml(product.uom) : '',
+                    ].filter(Boolean)
+                  : [];
+
+                const identityCells = roomWise ? `
+                  <td class="px-4 py-3">
+                    <div class="text-sm font-semibold text-slate-900 leading-snug">${escapeHtml(name)}${product.isOutsourced ? ' <span class="ml-1.5 align-middle inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">Outsourced</span>' : ''}</div>
+                    ${meta.length ? `<div class="mt-0.5 text-xs text-slate-400 leading-snug">${meta.join('<span class="mx-1.5 text-slate-300">&middot;</span>')}</div>` : ''}
+                  </td>
+                ` : `
+                  <td class="px-4 py-3.5 text-sm font-medium text-slate-900">${name}</td>
+                  <td class="px-4 py-3.5 text-sm text-slate-600">${brand}</td>
+                  <td class="px-4 py-3.5 text-sm text-slate-600">${productCode}</td>
+                  <td class="px-4 py-3.5 text-sm text-slate-600">${code}</td>
+                  <td class="px-4 py-3.5 text-sm text-slate-600 text-center">${warranty}</td>
+                `;
+
+                // Zebra striping fights the floor/room banners for the reader's
+                // eye, so the compact layout uses hairlines between rows instead.
+                const rowClass = roomWise
+                  ? 'bg-white border-b border-slate-100'
+                  : (entry.index % 2 === 0 ? 'bg-white' : 'bg-slate-50');
                 return `
-                  <tr data-junction-id="${junctionId}" class="${rowClass} hover:bg-blue-50 transition-colors">
-                    <td class="px-4 py-3.5 text-sm font-medium text-slate-900">${name}</td>
-                    <td class="px-4 py-3.5 text-sm text-slate-600">${brand}</td>
-                    <td class="px-4 py-3.5 text-sm text-slate-600">${productCode}</td>
-                    <td class="px-4 py-3.5 text-sm text-slate-600">${code}</td>
-                    <td class="px-4 py-3.5 text-sm text-slate-600 text-center">${warranty}</td>
+                  <tr data-junction-id="${junctionId}" data-floor-key="${entry.floorKey || ''}" data-room-key="${entry.roomKey || ''}" class="${rowClass} hover:bg-indigo-50/50 transition-colors">
+                    ${identityCells}
                     ${qtyCell}
                     ${priceCell}
                     ${discountCell}
-                    <td class="px-4 py-3.5 text-sm font-medium text-slate-600 text-center">${taxRate}%</td>
-                    <td class="px-4 py-3.5 text-sm font-bold text-slate-900 text-right line-total-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td class="px-4 py-3.5 text-sm text-slate-500 text-center tabular-nums">${taxRate}%</td>
+                    <td class="px-4 py-3.5 text-sm font-bold text-slate-900 text-right tabular-nums line-total-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     ${actionCell}
                   </tr>
                 `;
@@ -1319,16 +1854,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </tbody>
           </table>
         </div>
-        <div class="mt-8 flex justify-end">
-          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl px-8 py-6 border-2 border-blue-200 shadow-sm">
-            <div class="text-sm font-semibold text-slate-600 mb-2 uppercase tracking-wide">Grand Total (after discount & tax)</div>
-            <div id="grandTotal" class="text-4xl font-bold text-blue-900">₹0.00</div>
+        <div class="mt-6 flex justify-end">
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl px-8 py-5 border border-blue-200 shadow-sm text-right">
+            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider">${hasOptions ? escapeHtml(activeOptionKey) : 'Grand Total'}</div>
+            <div id="grandTotal" class="mt-1 text-4xl font-bold text-blue-900 tabular-nums">₹0.00</div>
+            <div class="mt-1 text-xs text-slate-500">after discount &amp; tax${hasOptions ? ' &middot; this option only' : ''}</div>
           </div>
         </div>
       `;
-      
+
       // Update grand total
       updateGrandTotal();
+
+      // Option tabs. A re-render is the whole switch: the row plan is rebuilt
+      // from the new active option and every handler below is re-attached with it.
+      document.querySelectorAll('.option-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          const key = (tab as HTMLElement).getAttribute('data-option');
+          if (key === activeOptionKey) return;
+          activeOptionKey = key;
+          renderProducts();
+        });
+      });
 
       // Attach event handlers in edit mode
       if (isEditMode) {
@@ -1480,9 +2027,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     function updateGrandTotal() {
       const grandTotalEl = document.getElementById('grandTotal');
       if (!grandTotalEl) return;
-      
+
+      // Floor and room subtotals are rebuilt from the same pass that builds the
+      // grand total, so they stay honest while someone is typing in edit mode.
+      const groupSums = new Map<string, number>();
+      const addToGroups = (row: Element | null, amount: number) => {
+        if (!row) return;
+        for (const attr of ['data-floor-key', 'data-room-key']) {
+          const key = row.getAttribute(attr);
+          if (key) groupSums.set(key, (groupSums.get(key) || 0) + amount);
+        }
+      };
+
       let total = 0;
-      
+
       if (isEditMode) {
         // In edit mode, read from input fields for real-time updates
         document.querySelectorAll('tr[data-junction-id]').forEach(row => {
@@ -1507,29 +2065,25 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             const lineTotal = afterDiscount + taxAmount;
 
             total += lineTotal;
+            addToGroups(row, lineTotal);
           }
         });
       } else {
-        // In non-edit mode, calculate from currentProducts array
-        total = currentProducts.reduce((sum, product) => {
-          const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
-          if (customPrice === null) return sum;
-
-          const quantity = Number(product.quantity) || 1;
-          const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
-          const discount = Number(product.discount) || 0;
-          const taxRate = Number(product.tax) || 0;
-
-          const subtotal = customPrice * quantity;
-          const discountAmount = discountRs !== null ? discountRs : subtotal * (discount / 100);
-          const afterDiscount = subtotal - discountAmount;
-          const taxAmount = afterDiscount * (taxRate / 100);
-          const lineTotal = afterDiscount + taxAmount;
-
-          return sum + lineTotal;
-        }, 0);
+        // Non-edit mode reads the saved values. Scoped to the option on screen —
+        // the edit branch above gets that for free, since only the active
+        // option's rows are ever in the DOM.
+        visibleProducts().forEach(product => {
+          const lineTotal = lineTotalOf(product);
+          total += lineTotal;
+          addToGroups(document.querySelector(`tr[data-junction-id="${product.junctionId}"]`), lineTotal);
+        });
       }
-      
+
+      document.querySelectorAll('.group-total').forEach(el => {
+        const key = el.getAttribute('data-group-key') || '';
+        el.textContent = formatMoney(groupSums.get(key) || 0);
+      });
+
       grandTotalEl.textContent = '₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
@@ -1570,28 +2124,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     }
 
     /**
-     * Calculate total amount from current products including discount and tax
-     * Formula: Sum of ((Unit Price * Quantity - Discount) * (1 + Tax%/100))
-     * Only includes products with custom prices set
+     * Calculate the quote's Total Amount from the current products, including
+     * discount and tax. Only products with a custom price set count.
+     *
+     * On a quote with options this is the FIRST option's total, not the sum of
+     * all of them — the same rule create-room-quote.astro applies when it writes
+     * the quote. The alternatives are never both bought, so pooling them would
+     * roughly double every pipeline figure that reads this field. Without this,
+     * editing one line on a two-option quote would quietly rewrite Total Amount
+     * to the pooled figure.
      */
     function calculateTotal(): number {
-      return currentProducts.reduce((sum, product) => {
-        const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
-        if (customPrice === null) return sum;
-
-        const quantity = Number(product.quantity) || 1;
-        const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
-        const discount = Number(product.discount) || 0;
-        const taxRate = Number(product.tax) || 0;
-
-        const subtotal = customPrice * quantity;
-        const discountAmount = discountRs !== null ? discountRs : subtotal * (discount / 100);
-        const afterDiscount = subtotal - discountAmount;
-        const taxAmount = afterDiscount * (taxRate / 100);
-        const total = afterDiscount + taxAmount;
-
-        return sum + total;
-      }, 0);
+      const groups = buildOptionGroups();
+      const scope = groups[0].option === null ? currentProducts : groups[0].products;
+      return scope.reduce((sum, product) => sum + lineTotalOf(product), 0);
     }
 
     /**
@@ -1959,9 +2505,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
      * Creates junction record with custom price (defaults to catalog price)
      */
     async function linkProduct(productId: string) {
+      // Asked before anything is written: on a room-wise quote a line with no
+      // Section is homeless, and the link below is not worth undoing.
+      const destination = takeAddDestination();
+      if (!destination) return;
+
       try {
-        console.log(`[ADD PRODUCT] Adding product ${productId} to quote ${quoteId}`);
-        
+        console.log(`[ADD PRODUCT] Adding product ${productId} to quote ${quoteId}`, destination);
+
         // Get the catalog price from selectedNewProduct
         const catalogPrice = selectedNewProduct?.price ? parseFloat(selectedNewProduct.price) : 0;
         
@@ -1999,7 +2550,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             'Quotes': parseInt(quoteId!),
             'Products': parseInt(productId),
             'Quantity': 1,
-            'Custom Unit Price': catalogPrice
+            'Custom Unit Price': catalogPrice,
+            ...destination
           }
         };
 
@@ -2030,6 +2582,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         const junctionResult = await safeJsonParse(junctionResponse);
         console.log('[ADD PRODUCT] Junction record created:', junctionResult);
+
+        // Follow the product to where it landed, otherwise adding to the option
+        // that isn't on screen looks like nothing happened.
+        if (destination.Option) activeOptionKey = destination.Option;
+        if (destination.Section) showToast(`Added to ${destination.Section}`, 'success');
 
         // Clear selection
         selectedNewProduct = null;
@@ -2079,6 +2636,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return;
       }
 
+      const destination = takeAddDestination();
+      if (!destination) return;
+
       try {
         const junctionPayload = {
           fields: {
@@ -2094,6 +2654,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             'Custom Warranty': warrantyInput.value ? parseInt(warrantyInput.value) : null,
             'Custom UOM': uom,
             'Custom Description': descInput.value.trim() || null,
+            ...destination
           }
         };
 
@@ -2122,11 +2683,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         qtyInput.value = '1';
         descInput.value = '';
 
+        if (destination.Option) activeOptionKey = destination.Option;
+
         await loadQuoteDetails();
         const newTotal = calculateTotal();
         await updateQuote({ "Total Amount": newTotal });
 
-        showToast('Outsourced product added', 'success');
+        showToast(destination.Section ? `Outsourced product added to ${destination.Section}` : 'Outsourced product added', 'success');
       } catch (error) {
         console.error('Error adding outsourced product:', error);
         showToast('Failed to add outsourced product. Please try again.', 'error');
@@ -2437,7 +3000,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
-    async function generateSectionedPDF() {
+    async function generateSectionedPDF(preview: boolean = false) {
       if (!currentQuoteData) {
         showToast('Quote data not loaded', 'error');
         return;
@@ -2469,6 +3032,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
+        if (preview) {
+          // Left for the new tab to release — revoking here races the load.
+          window.open(url, '_blank');
+          return;
+        }
         const a = document.createElement('a');
         a.href = url;
         a.download = `quote-${quoteId}-room-wise.pdf`;
@@ -2485,6 +3053,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     document.getElementById('previewPdfBtn')?.addEventListener('click', () => openPdfTermsModal(true));
     document.getElementById('downloadPdfBtn')?.addEventListener('click', () => openPdfTermsModal(false));
+    document.getElementById('previewSectionedPdfBtn')?.addEventListener('click', () => generateSectionedPDF(true));
     document.getElementById('downloadSectionedPdfBtn')?.addEventListener('click', () => generateSectionedPDF());
     document.getElementById('changeTermsBtn')?.addEventListener('click', () => openChangeTermsModal());
 
@@ -2503,6 +3072,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       subjectInput.value = `Quotation: ${currentQuoteData.subject}`;
       (document.getElementById('emailToInput') as HTMLInputElement).value = '';
       (document.getElementById('emailNoteInput') as HTMLTextAreaElement).value = '';
+      const hint = document.querySelector('#emailAttachmentHint span');
+      if (hint) {
+        hint.textContent = isRoomWiseQuote()
+          ? 'Attaches the room-wise PDF, grouped by floor and room'
+          : 'Attaches the standard quote PDF';
+      }
       document.getElementById('sendEmailModal')!.classList.remove('hidden');
     });
 
@@ -2534,6 +3109,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           emailSubject: emailSubject || `Quotation: ${currentQuoteData.subject}`,
           note,
           senderEmail: localStorage.getItem('user_email') || undefined,
+          // Send the customer the same document the page offers to download.
+          // On a room-wise quote the flat PDF drops the floors and rooms the
+          // quote was built around, so it is the wrong thing to attach.
+          sectioned: isRoomWiseQuote(),
         };
 
         const response = await fetch('/api/quotes/send-email', {
@@ -3331,6 +3910,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-md text-sm resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           ></textarea>
         </div>
+        <!-- Which of the two layouts is going out, filled in when the modal opens. -->
+        <p id="emailAttachmentHint" class="flex items-center gap-2 text-xs text-slate-500">
+          <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+          </svg>
+          <span></span>
+        </p>
       </div>
       <div class="flex justify-end gap-3 mt-6">
         <button id="sendEmailCancel" class="px-4 py-2 text-sm text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors">Cancel</button>

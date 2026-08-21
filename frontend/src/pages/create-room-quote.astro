@@ -407,6 +407,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         Request ₹ Discount from Admin
       </button>
       <button
+        type="button"
+        id="previewRoomPdfBtn"
+        class="px-6 py-2.5 bg-white border border-slate-300 text-slate-700 text-sm font-medium rounded-md hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Preview PDF
+      </button>
+      <button
         type="submit"
         id="submitBtn"
         class="px-6 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1436,6 +1443,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     let quoteOptions: string[] = [];
     let activeOptionIndex = 0;
 
+    /**
+     * Options that have already been copied into. Copying appends, so a second
+     * click lays another full set of rooms (or items) on top of the first — and
+     * the rows look identical, so it isn't obvious until the PDF prints double.
+     * The offer is therefore made once per option and withdrawn after it's taken.
+     * Keyed by name, which means rename and remove have to keep it in step.
+     */
+    const optionsCopiedInto = new Set<string>();
+
     const optionTabs = document.getElementById('optionTabs') as HTMLElement;
     const optionHint = document.getElementById('optionHint') as HTMLElement;
 
@@ -1486,7 +1502,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const section = itemSection(item);
         if (section && !sections.includes(section)) sections.push(section);
       }
+      // Rooms the target already has are left alone — addOption() seeds the new
+      // option with this same layout, so copying again would double every room.
+      const existing = new Set(
+        allProductItems().filter((item) => itemOption(item) === toOption).map((item) => itemSection(item)),
+      );
       for (const section of sections) {
+        if (existing.has(section)) continue;
         const row = createBlankProductItem();
         productsContainer.appendChild(row);
         setupProductSearch(row);
@@ -1494,17 +1516,28 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         setItemSection(row, section);
         setItemOption(row, toOption);
       }
+      // What the source had, not what was added: a target that already holds
+      // every room has been copied into successfully, not left empty-handed.
       return sections.length;
     }
 
     /** Full copy — same rooms, same products, same prices, ready to be edited. */
     function copyEverything(fromOption: string, toOption: string) {
       const sources = allProductItems().filter((item) => itemOption(item) === fromOption);
-      for (const source of sources) {
+      const clones = sources.map((source) => {
         const clone = duplicateProductItem(source);
         setItemOption(clone, toOption);
-        productsContainer.appendChild(clone);
+        return clone;
+      });
+      if (clones.length) {
+        // The blank rows addOption() seeded are about to be superseded by the
+        // real thing; left in place they read as a second, empty copy of every
+        // room. Only untouched rows go — anything priced is the user's work.
+        for (const item of allProductItems()) {
+          if (itemOption(item) === toOption && isEmptyRow(item as HTMLElement)) item.remove();
+        }
       }
+      for (const clone of clones) productsContainer.appendChild(clone);
       return sources.length;
     }
 
@@ -1536,6 +1569,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const gone = quoteOptions[index];
       if (!gone) return;
       quoteOptions.splice(index, 1);
+      optionsCopiedInto.delete(gone);
       const fallback = quoteOptions[0] || '';
       for (const item of allProductItems()) {
         if (itemOption(item) === gone) setItemOption(item, fallback);
@@ -1544,6 +1578,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       // room-wise quote so the PDF prints without any option banners.
       if (quoteOptions.length === 1) {
         quoteOptions = [];
+        optionsCopiedInto.clear();
         for (const item of allProductItems()) setItemOption(item, '');
       }
       activeOptionIndex = Math.min(activeOptionIndex, Math.max(quoteOptions.length - 1, 0));
@@ -1559,6 +1594,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       for (const item of allProductItems()) {
         if (itemOption(item) === previous) setItemOption(item, unique);
       }
+      // Renaming an option must not hand it back a copy it has already taken.
+      if (optionsCopiedInto.delete(previous)) optionsCopiedInto.add(unique);
     }
 
     /** Inline rename on the tab — same no-modal, no-window.prompt rule as rooms. */
@@ -1660,19 +1697,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       );
       optionTabs.appendChild(add);
 
-      // Copying only earns a place once there is a first option to copy from.
-      if (activeOptionIndex > 0) {
-        for (const [act, text] of [
-          ['copy-rooms', 'Copy rooms from Option 1'],
-          ['copy-all', 'Copy all items from Option 1'],
-        ] as Array<[string, string]>) {
-          const button = makeButton(
-            text,
-            'option-copy px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors',
-          );
-          button.dataset.act = act;
-          optionTabs.appendChild(button);
-        }
+      // Copying only earns a place once there is a first option to copy from,
+      // and only until this option has taken the offer — see optionsCopiedInto.
+      // One button, not two: adding an option already seeds it with option 1's
+      // rooms, and a full copy brings those same rooms along with the items, so
+      // a rooms-only button had nothing left to offer.
+      if (activeOptionIndex > 0 && !optionsCopiedInto.has(activeOption())) {
+        const button = makeButton(
+          'Copy all items from Option 1',
+          'option-copy px-3 py-1.5 text-xs font-semibold text-slate-600 border border-slate-200 rounded-md hover:bg-slate-50 transition-colors',
+        );
+        button.dataset.act = 'copy-all';
+        optionTabs.appendChild(button);
       }
 
       optionHint.textContent =
@@ -1692,8 +1728,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const from = quoteOptions[0];
         const to = activeOption();
         if (!from || !to || from === to) return;
-        const added =
-          copy.dataset.act === 'copy-all' ? copyEverything(from, to) : copyRoomLayout(from, to);
+        const added = copyEverything(from, to);
+        // Only a copy that actually landed spends the offer — an empty Option 1
+        // has nothing to give, and the user should be able to try again.
+        if (added) optionsCopiedInto.add(to);
         renderRooms();
         if (!added) showAlert(`${from} has nothing to copy yet.`, 'error');
         return;
@@ -1721,6 +1759,129 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     // or later hand one number to two customers.
     const nextQuoteNumber = (company: string) =>
       getNextQuoteNumber(company, { apiBaseUrl: API_BASE_URL, token: token! });
+
+    // ------------------------------------------------------- pdf preview ---
+    // The room-wise layout is the whole point of this page, and until now the
+    // first sight of it was after the quote had been created. This renders the
+    // form exactly as it stands — nothing is saved, no quote number is issued —
+    // through the same route the quote page uses, so the preview and the real
+    // document cannot drift.
+
+    /** Read a row's field by class, trimmed; '' when the input isn't there. */
+    function rowValue(item: Element, className: string): string {
+      const el = item.querySelector(`.${className}`) as HTMLInputElement | HTMLTextAreaElement | null;
+      return (el?.value || '').trim();
+    }
+
+    /** The form's line items in the shape pdf-generator-sectioned expects. */
+    function collectPreviewProducts() {
+      const products: any[] = [];
+      for (const item of allProductItems()) {
+        // Same rule as submit: a row nobody has filled in is a room waiting for
+        // a product, not an error, and it has nothing to print.
+        if (isEmptyRow(item as HTMLElement)) continue;
+
+        const outsourced = rowValue(item, 'product-is-outsourced') === 'true';
+        const mode = rowValue(item, 'product-discount-mode') || 'percent';
+        const discountRaw = parseFloat(rowValue(item, 'product-discount') || '0') || 0;
+        const warrantyRaw = outsourced
+          ? rowValue(item, 'outsourced-warranty')
+          : rowValue(item, 'product-warranty');
+
+        products.push({
+          name: outsourced ? rowValue(item, 'outsourced-name') : rowValue(item, 'product-name'),
+          description: outsourced ? rowValue(item, 'outsourced-description') : rowValue(item, 'product-description'),
+          make: outsourced ? rowValue(item, 'outsourced-brand') : rowValue(item, 'product-brand'),
+          model: outsourced
+            ? rowValue(item, 'outsourced-model')
+            : rowValue(item, 'product-model') || rowValue(item, 'product-code'),
+          quantity: parseInt(rowValue(item, 'product-quantity') || '0') || 0,
+          price: parseFloat(rowValue(item, 'product-custom-price') || '0') || 0,
+          // The generator takes a percentage or a rupee figure, never both.
+          discount: mode === 'percent' ? discountRaw : 0,
+          discountRs: mode === 'rupees' ? discountRaw : null,
+          // Catalog tax arrives as text ("GST-18%") and is parsed downstream;
+          // an outsourced row already holds a plain number.
+          tax: outsourced ? undefined : rowValue(item, 'product-tax'),
+          taxPercent: outsourced ? parseFloat(rowValue(item, 'outsourced-tax') || '0') || 0 : undefined,
+          warranty: warrantyRaw ? parseInt(warrantyRaw) : null,
+          uom: outsourced ? rowValue(item, 'outsourced-uom') : '',
+          section: itemSection(item),
+          option: itemOption(item),
+        });
+      }
+      return products;
+    }
+
+    async function previewRoomPdf() {
+      const products = collectPreviewProducts();
+      if (!products.length) {
+        showAlert('Add at least one product to preview the PDF', 'error');
+        return;
+      }
+
+      const accountName = accountSearch.value.trim();
+      if (!accountName) {
+        showAlert('Please select an account first', 'error');
+        return;
+      }
+
+      const issuingCompany = (document.getElementById('issuingCompany') as HTMLSelectElement).value;
+      const previewBtn = document.getElementById('previewRoomPdfBtn') as HTMLButtonElement;
+      previewBtn.disabled = true;
+      previewBtn.textContent = 'Preparing...';
+
+      try {
+        const response = await fetch('/api/quotes/pdf-sectioned', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: 0,
+            subject: accountName,
+            date: (document.getElementById('quoteDate') as HTMLInputElement).value ||
+              new Date().toISOString().split('T')[0],
+            validUntil: (document.getElementById('validUntil') as HTMLInputElement).value || '',
+            version: '1.0',
+            // Numbers are issued on save from a shared sequence — a preview must
+            // never draw one, or a discarded draft burns a customer's number.
+            quoteNumber: '',
+            logo: issuingCompany === 'Grove Systems' ? 'grove' : 'greenocare',
+            endUser: (document.getElementById('endUser') as HTMLInputElement).value.trim(),
+            endUserLocation: (document.getElementById('endUserLocation') as HTMLInputElement).value.trim(),
+            // Print order, which the rows cannot tell us on their own.
+            options: optionsInUse() ? [...quoteOptions] : [],
+            // The terms the quote page last saved — the same ones this quote
+            // will print with unless they're changed after it's created.
+            deliveryTerms: localStorage.getItem('pdfDeliveryTerms') || '',
+            paymentTerms: localStorage.getItem('pdfPaymentTerms') || '',
+            extraTerms: localStorage.getItem('pdfExtraTerms') || '',
+            account: {
+              name: accountName,
+              street: billingStreetInput.value.trim(),
+              city: billingCityInput.value.trim(),
+            },
+            products,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error('[ROOM PDF PREVIEW] Failed:', response.status, await response.text());
+          showAlert('Could not generate the preview. Please try again.', 'error');
+          return;
+        }
+
+        // Left for the new tab to release — revoking here races the load.
+        window.open(window.URL.createObjectURL(await response.blob()), '_blank');
+      } catch (error) {
+        console.error('[ROOM PDF PREVIEW] Error:', error);
+        showAlert('Could not generate the preview. Please try again.', 'error');
+      } finally {
+        previewBtn.disabled = false;
+        previewBtn.textContent = 'Preview PDF';
+      }
+    }
+
+    document.getElementById('previewRoomPdfBtn')?.addEventListener('click', previewRoomPdf);
 
     // Form submission (same logic as modal)
     createQuoteForm.addEventListener('submit', async (e) => {

@@ -418,13 +418,18 @@ export function generateSectionedPdfBuffer(
       currentY += bannerH + 3;
     }
 
-    // Metadata grid, mirroring the Excel's bordered header box: three rows, two
-    // label/value pairs each.
+    // Metadata grid, mirroring the Excel's bordered header box: label/value pairs
+    // in two columns. The left column answers "who is this for", so the end user
+    // sits directly under the client it was bought through.
     const metaLeft: Array<[string, string]> = [
       ['Client Name', quoteData.clientName || quoteData.account.name],
       ['Location', quoteData.location || [quoteData.account.city, quoteData.account.state].filter(Boolean).join(', ')],
-      ['Submitted By', quoteData.submittedBy || '-'],
     ];
+    // Both optional and usually blank — pushed only when filled, so a quote with
+    // no end user keeps the compact three-row box it has always had.
+    if (quoteData.endUser) metaLeft.push(['End User', quoteData.endUser]);
+    if (quoteData.endUserLocation) metaLeft.push(['End User Location', quoteData.endUserLocation]);
+    metaLeft.push(['Submitted By', quoteData.submittedBy || '-']);
     const metaRight: Array<[string, string]> = [
       ['Approved by', quoteData.approvedBy || '-'],
       ['Date', quoteData.date],
