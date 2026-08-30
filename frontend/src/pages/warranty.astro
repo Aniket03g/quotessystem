@@ -1,0 +1,528 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Warranty & AMC" currentPage="warranty">
+  <!-- Page Header -->
+  <div class="mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold text-slate-800">Warranty &amp; AMC</h1>
+        <p class="text-sm text-slate-500 mt-0.5">Cover currently tracked, soonest to expire first</p>
+      </div>
+
+      <!-- TEMPORARY test control — remove with reminder_test_endpoint.go -->
+      <div id="testReminderBox" class="hidden items-center gap-3">
+        <span id="testReminderStatus" class="text-sm text-slate-500"></span>
+        <button id="testReminderBtn"
+          class="inline-flex items-center gap-2 px-4 py-2 border border-dashed border-amber-400 bg-amber-50 text-amber-800 text-sm font-medium rounded-md hover:bg-amber-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+          Send test reminder to me
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary tiles (click to filter) -->
+  <div id="summaryTiles" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+    <button data-band="lapsed" class="tile text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-red-300 transition-colors">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lapsed</div>
+      <div class="mt-1 text-2xl font-semibold text-red-600" id="tileLapsed">–</div>
+      <div class="text-xs text-slate-500 mt-0.5">cover already ended</div>
+    </button>
+    <button data-band="due" class="tile text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-amber-300 transition-colors">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Expiring soon</div>
+      <div class="mt-1 text-2xl font-semibold text-amber-600" id="tileDue">–</div>
+      <div class="text-xs text-slate-500 mt-0.5">within 60 days</div>
+    </button>
+    <button data-band="active" class="tile text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 transition-colors">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active</div>
+      <div class="mt-1 text-2xl font-semibold text-emerald-600" id="tileActive">–</div>
+      <div class="text-xs text-slate-500 mt-0.5">more than 60 days left</div>
+    </button>
+    <div class="bg-white rounded-xl border border-slate-200 p-4">
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Assets covered</div>
+      <div class="mt-1 text-2xl font-semibold text-slate-800" id="tileAssets">–</div>
+      <div class="text-xs text-slate-500 mt-0.5" id="tileValue">&nbsp;</div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Bar -->
+  <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+    <div class="flex flex-col lg:flex-row gap-3">
+      <div class="flex-1 relative">
+        <svg class="absolute left-3 top-3 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="Search by customer, location, invoice no, model or serial..."
+          class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          autocomplete="off"
+        />
+      </div>
+
+      <select id="bandFilter" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[170px]">
+        <option value="">All cover</option>
+        <option value="lapsed">Lapsed</option>
+        <option value="due">Expiring in 60 days</option>
+        <option value="active">Active</option>
+      </select>
+
+      <select id="sourceFilter" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[190px]">
+        <option value="">Any expiry source</option>
+        <option value="ams">AMS registered (exact)</option>
+        <option value="computed">Computed (may be early)</option>
+      </select>
+
+      <select id="sortBy" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[180px]">
+        <option value="expiry-asc">Expiry: soonest first</option>
+        <option value="expiry-desc">Expiry: latest first</option>
+        <option value="value-desc">Value: high → low</option>
+        <option value="customer-asc">Customer A → Z</option>
+      </select>
+
+      <button id="resetFilters" class="px-4 py-2.5 text-sm text-slate-600 border border-slate-200 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap">
+        Reset
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2 mt-3">
+      <span id="searchStatus" class="text-sm text-slate-600"></span>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div id="loading" class="hidden py-12 text-center">
+      <svg class="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm text-slate-600">Loading cover records...</p>
+    </div>
+
+    <div id="error" class="hidden mx-6 my-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-sm text-red-800" id="errorText"></p>
+      </div>
+    </div>
+
+    <!-- Mobile cards -->
+    <div id="warrantyMobileList" class="hidden divide-y divide-slate-100"></div>
+
+    <!-- Desktop table -->
+    <div id="warrantyTable" class="hidden overflow-x-auto">
+      <table class="w-full table-fixed">
+        <colgroup>
+          <col class="w-10" />
+          <col class="w-[24%]" />
+          <col class="w-[11%]" />
+          <col class="w-[13%]" />
+          <col class="w-[14%]" />
+          <col class="w-[9%]" />
+          <col class="w-[12%]" />
+          <col class="w-[13%]" />
+        </colgroup>
+        <thead class="bg-slate-50 border-b border-slate-200">
+          <tr>
+            <th class="px-3 py-3"></th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">CUSTOMER</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">LOCATION</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">EXPIRES</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">ASSETS</th>
+            <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">VALUE</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">EXPIRY SOURCE</th>
+          </tr>
+        </thead>
+        <tbody id="warrantyBody" class="divide-y divide-slate-200"></tbody>
+      </table>
+    </div>
+
+    <div id="emptyState" class="hidden py-12 text-center">
+      <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+      </svg>
+      <p class="text-slate-600 font-medium mb-1">No cover records found</p>
+      <p class="text-sm text-slate-500">Try adjusting your search or filters</p>
+    </div>
+  </div>
+
+  <script>
+    import { getToken, logout, safeJsonParse } from '../lib/api';
+    import { requireAdmin, isAdmin } from '../utils/jwt';
+
+    // Admin-only for now, matching the nav link: the backfilled rows have no
+    // "Assigned To", so a rep's ownership-scoped read would return an empty
+    // table. Drop this once capture-on-Accepted starts assigning owners.
+    requireAdmin();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8082`;
+      const token = getToken();
+
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
+
+      // Matches WARRANTY_REMINDER_LEAD_DAYS in the Go scheduler, so what the page
+      // calls "expiring soon" is exactly what generates a reminder email.
+      const LEAD_DAYS = 60;
+
+      const loadingDiv = document.getElementById('loading') as HTMLDivElement;
+      const errorDiv = document.getElementById('error') as HTMLDivElement;
+      const warrantyTable = document.getElementById('warrantyTable') as HTMLDivElement;
+      const warrantyMobileList = document.getElementById('warrantyMobileList') as HTMLDivElement;
+      const warrantyBody = document.getElementById('warrantyBody') as HTMLTableSectionElement;
+      const emptyState = document.getElementById('emptyState') as HTMLDivElement;
+      const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+      const searchStatus = document.getElementById('searchStatus') as HTMLSpanElement;
+      const bandFilter = document.getElementById('bandFilter') as HTMLSelectElement;
+      const sourceFilter = document.getElementById('sourceFilter') as HTMLSelectElement;
+      const sortBy = document.getElementById('sortBy') as HTMLSelectElement;
+      const resetBtn = document.getElementById('resetFilters') as HTMLButtonElement;
+
+      let allRecords: any[] = [];
+      const expanded = new Set<string>();
+
+      // Dashboard panels deep-link in as /warranty?band=lapsed|due|active.
+      const initialBand = new URLSearchParams(window.location.search).get('band') || '';
+      if (['lapsed', 'due', 'active'].includes(initialBand)) {
+        bandFilter.value = initialBand;
+      }
+
+      const ESCAPES: Record<string, string> = {
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      };
+      const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]);
+
+      const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const TODAY = startOfDay(new Date());
+
+      function daysLeft(iso: string): number | null {
+        if (!iso) return null;
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return null;
+        return Math.round((startOfDay(d).getTime() - TODAY.getTime()) / 86400000);
+      }
+
+      function bandOf(days: number | null): string {
+        if (days === null) return 'active';
+        if (days < 0) return 'lapsed';
+        if (days <= LEAD_DAYS) return 'due';
+        return 'active';
+      }
+
+      function fmtDate(iso: string): string {
+        if (!iso) return '—';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return esc(iso);
+        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+
+      function fmtMoney(v: any): string {
+        const n = parseFloat(String(v ?? ''));
+        if (!isFinite(n) || n === 0) return '—';
+        return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      }
+
+      function statusCell(days: number | null): string {
+        const base = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
+        if (days === null) return `<span class="${base} bg-slate-100 text-slate-700">No date</span>`;
+        if (days < 0) return `<span class="${base} bg-red-100 text-red-800">Lapsed ${-days}d ago</span>`;
+        if (days === 0) return `<span class="${base} bg-red-100 text-red-800">Expires today</span>`;
+        if (days <= LEAD_DAYS) return `<span class="${base} bg-amber-100 text-amber-800">${days}d left</span>`;
+        return `<span class="${base} bg-emerald-100 text-emerald-800">${days}d left</span>`;
+      }
+
+      // 13 of the 18 backfilled rows have no Yealink AMS registration date, so their
+      // expiry is invoice + 2 years and can be months early. Say so on the row rather
+      // than presenting a guess as a fact.
+      function sourceCell(src: string): string {
+        const base = 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border';
+        if (String(src).toLowerCase() === 'ams') {
+          return `<span class="${base} bg-emerald-50 text-emerald-700 border-emerald-200" title="Expiry taken from the Yealink AMS registration date">AMS registered</span>`;
+        }
+        return `<span class="${base} bg-slate-50 text-slate-600 border-slate-200" title="No AMS registration date on file — expiry is invoice + 2 years and may be up to 6 months early">Computed</span>`;
+      }
+
+      /** "MODEL serial; MODEL serial" -> one chip per asset. */
+      function assetChips(assets: string): string {
+        const parts = String(assets || '').split(';').map((s) => s.trim()).filter(Boolean);
+        if (!parts.length) return '<span class="text-sm text-slate-400 italic">No serials recorded</span>';
+        return parts.map((p) =>
+          `<span class="inline-block px-2 py-1 rounded bg-white border border-slate-200 text-xs font-mono text-slate-700">${esc(p)}</span>`
+        ).join(' ');
+      }
+
+      function detailPanel(f: any, days: number | null): string {
+        const reminded = f['Last Reminded']
+          ? `Reminder sent ${fmtDate(f['Last Reminded'])}`
+          : (days !== null && days <= LEAD_DAYS ? 'No reminder sent yet' : '');
+        return `
+          <div class="px-4 py-4 bg-slate-50 border-t border-slate-200">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+              <div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice No</div>
+                <div class="text-sm text-slate-800 mt-0.5">${esc(f['Invoice No'] || '—')}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice Date</div>
+                <div class="text-sm text-slate-800 mt-0.5">${fmtDate(f['Invoice Date'])}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Assigned To</div>
+                <div class="text-sm text-slate-800 mt-0.5">${esc(f['Assigned To'] || 'Unassigned')}</div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reminder</div>
+                <div class="text-sm text-slate-800 mt-0.5">${esc(reminded || '—')}</div>
+              </div>
+            </div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Serial numbers (${esc(f['Asset Count'] ?? 0)})
+            </div>
+            <div class="flex flex-wrap gap-1.5">${assetChips(f['Assets'])}</div>
+          </div>
+        `;
+      }
+
+      function applyFilters() {
+        const search = searchInput.value.toLowerCase().trim();
+        const band = bandFilter.value;
+        const source = sourceFilter.value;
+        const sort = sortBy.value || 'expiry-asc';
+
+        let filtered = allRecords.filter((record) => {
+          const f = record.fields || {};
+          if (search) {
+            const hay = [f['Customer Name'], f['Location'], f['Invoice No'], f['Assets'], f['Title']]
+              .map((v) => String(v ?? '').toLowerCase()).join(' ');
+            if (!hay.includes(search)) return false;
+          }
+          if (band && bandOf(daysLeft(f['Expiry Date'])) !== band) return false;
+          if (source && String(f['Expiry Source'] ?? '').toLowerCase() !== source) return false;
+          return true;
+        });
+
+        filtered = [...filtered].sort((a, b) => {
+          const af = a.fields || {}, bf = b.fields || {};
+          switch (sort) {
+            case 'expiry-desc':  return String(bf['Expiry Date'] || '').localeCompare(String(af['Expiry Date'] || ''));
+            case 'value-desc':   return (parseFloat(bf['Value']) || 0) - (parseFloat(af['Value']) || 0);
+            case 'customer-asc': return String(af['Customer Name'] || '').localeCompare(String(bf['Customer Name'] || ''));
+            default:             return String(af['Expiry Date'] || '').localeCompare(String(bf['Expiry Date'] || ''));
+          }
+        });
+
+        renderSummary();
+        renderTable(filtered);
+      }
+
+      function renderSummary() {
+        let lapsed = 0, due = 0, active = 0, assets = 0, value = 0;
+        for (const r of allRecords) {
+          const f = r.fields || {};
+          const band = bandOf(daysLeft(f['Expiry Date']));
+          if (band === 'lapsed') lapsed++;
+          else if (band === 'due') due++;
+          else active++;
+          assets += parseInt(String(f['Asset Count'] ?? '0')) || 0;
+          value += parseFloat(String(f['Value'] ?? '0')) || 0;
+        }
+        (document.getElementById('tileLapsed') as HTMLElement).textContent = String(lapsed);
+        (document.getElementById('tileDue') as HTMLElement).textContent = String(due);
+        (document.getElementById('tileActive') as HTMLElement).textContent = String(active);
+        (document.getElementById('tileAssets') as HTMLElement).textContent = String(assets);
+        (document.getElementById('tileValue') as HTMLElement).textContent =
+          value > 0 ? `${fmtMoney(value)} invoiced` : ' ';
+      }
+
+      function renderTable(records: any[]) {
+        const isFiltered = searchInput.value || bandFilter.value || sourceFilter.value;
+        searchStatus.textContent = isFiltered
+          ? `Showing ${records.length} of ${allRecords.length} record(s)`
+          : `${records.length} record(s)`;
+
+        if (records.length === 0) {
+          warrantyTable.classList.add('hidden');
+          warrantyMobileList.classList.add('hidden');
+          emptyState.classList.remove('hidden');
+          return;
+        }
+        emptyState.classList.add('hidden');
+
+        warrantyBody.innerHTML = records.map((record) => {
+          const f = record.fields || {};
+          const id = String(record.id);
+          const days = daysLeft(f['Expiry Date']);
+          const isOpen = expanded.has(id);
+          const accent = days === null ? 'border-l-4 border-l-transparent'
+            : days < 0 ? 'border-l-4 border-l-red-400'
+            : days <= LEAD_DAYS ? 'border-l-4 border-l-amber-400'
+            : 'border-l-4 border-l-transparent';
+
+          return `
+            <tr data-row-id="${esc(id)}" class="row-toggle cursor-pointer transition-colors hover:bg-slate-50 ${accent}">
+              <td class="px-3 py-4 text-slate-400">
+                <svg class="w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </td>
+              <td class="px-4 py-4 text-sm font-medium text-slate-900 truncate max-w-0">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</td>
+              <td class="px-4 py-4 text-sm text-slate-600 truncate max-w-0">${esc(f['Location'] || '—')}</td>
+              <td class="px-4 py-4 text-sm text-slate-700 whitespace-nowrap">${fmtDate(f['Expiry Date'])}</td>
+              <td class="px-4 py-4 whitespace-nowrap">${statusCell(days)}</td>
+              <td class="px-4 py-4 text-sm text-slate-600">${esc(f['Asset Count'] ?? 0)}</td>
+              <td class="px-4 py-4 text-sm text-slate-700 text-right whitespace-nowrap">${fmtMoney(f['Value'])}</td>
+              <td class="px-4 py-4 whitespace-nowrap">${sourceCell(f['Expiry Source'])}</td>
+            </tr>
+            <tr data-detail-for="${esc(id)}" class="${isOpen ? '' : 'hidden'}">
+              <td colspan="8" class="p-0">${detailPanel(f, days)}</td>
+            </tr>
+          `;
+        }).join('');
+
+        warrantyMobileList.innerHTML = records.map((record) => {
+          const f = record.fields || {};
+          const id = String(record.id);
+          const days = daysLeft(f['Expiry Date']);
+          const isOpen = expanded.has(id);
+          return `
+            <div>
+              <div data-row-id="${esc(id)}" class="row-toggle p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                <div class="flex items-start justify-between gap-2 mb-1">
+                  <div class="text-sm font-semibold text-slate-900 flex-1 min-w-0">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</div>
+                  ${statusCell(days)}
+                </div>
+                <div class="text-xs text-slate-500 mb-1">
+                  ${esc(f['Location'] || '')}${f['Location'] ? ' · ' : ''}expires ${fmtDate(f['Expiry Date'])}
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-sm text-slate-700">${esc(f['Asset Count'] ?? 0)} asset(s)</span>
+                  <span class="text-sm text-slate-500">${fmtMoney(f['Value'])}</span>
+                  ${sourceCell(f['Expiry Source'])}
+                </div>
+              </div>
+              <div data-detail-for="${esc(id)}" class="${isOpen ? '' : 'hidden'}">${detailPanel(f, days)}</div>
+            </div>
+          `;
+        }).join('');
+
+        document.querySelectorAll<HTMLElement>('.row-toggle').forEach((el) => {
+          el.addEventListener('click', () => {
+            const id = el.dataset.rowId || '';
+            if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+            document.querySelectorAll<HTMLElement>(`[data-detail-for="${CSS.escape(id)}"]`)
+              .forEach((d) => d.classList.toggle('hidden'));
+            el.querySelector('svg')?.classList.toggle('rotate-90');
+          });
+        });
+
+        warrantyTable.classList.remove('hidden');
+        warrantyMobileList.classList.remove('hidden');
+      }
+
+      async function loadRecords() {
+        try {
+          loadingDiv.classList.remove('hidden');
+          warrantyTable.classList.add('hidden');
+          warrantyMobileList.classList.add('hidden');
+          emptyState.classList.add('hidden');
+          errorDiv.classList.add('hidden');
+          searchStatus.textContent = '';
+
+          const response = await fetch(`${API_BASE_URL}/proxy/warranty_reminders/records`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+
+          if (response.status === 401) { logout(); return; }
+          if (!response.ok) throw new Error(`Failed to load cover records (HTTP ${response.status})`);
+
+          const data = await safeJsonParse(response);
+          allRecords = data.records || [];
+
+          loadingDiv.classList.add('hidden');
+          applyFilters();
+        } catch (error) {
+          loadingDiv.classList.add('hidden');
+          (document.getElementById('errorText') as HTMLElement).textContent =
+            error instanceof Error ? error.message : 'Failed to load cover records';
+          errorDiv.classList.remove('hidden');
+        }
+      }
+
+      document.querySelectorAll<HTMLButtonElement>('#summaryTiles .tile').forEach((tile) => {
+        tile.addEventListener('click', () => {
+          const band = tile.dataset.band || '';
+          bandFilter.value = bandFilter.value === band ? '' : band;
+          applyFilters();
+        });
+      });
+
+      // TEMPORARY: super-admin-only trigger that mails the real reminder for the
+      // next due row to the caller alone, without stamping "Last Reminded".
+      // Remove with proxy/reminder_test_endpoint.go.
+      const testBox = document.getElementById('testReminderBox') as HTMLDivElement;
+      const testBtn = document.getElementById('testReminderBtn') as HTMLButtonElement;
+      const testStatus = document.getElementById('testReminderStatus') as HTMLSpanElement;
+
+      // isAdmin() reads the JWT, the same source requireAdmin() uses above, so
+      // the button cannot disagree with the page's own guard.
+      if (isAdmin() && testBox && testBtn) {
+        testBox.classList.remove('hidden');
+        testBox.classList.add('flex');
+
+        testBtn.addEventListener('click', async () => {
+          testBtn.disabled = true;
+          testStatus.className = 'text-sm text-slate-500';
+          testStatus.textContent = 'Sending...';
+          try {
+            const res = await fetch(`${API_BASE_URL}/api/admin/warranty-reminder-test`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` },
+            });
+            const data = await safeJsonParse(res);
+            if (!res.ok || data?.error) throw new Error(data?.error || `HTTP ${res.status}`);
+            testStatus.className = 'text-sm text-emerald-700';
+            testStatus.textContent = `Sent "${data.row}" to ${data.to}`;
+          } catch (error) {
+            testStatus.className = 'text-sm text-red-700';
+            testStatus.textContent = error instanceof Error ? error.message : 'Failed to send';
+          } finally {
+            testBtn.disabled = false;
+          }
+        });
+      }
+
+      searchInput.addEventListener('input', applyFilters);
+      bandFilter.addEventListener('change', applyFilters);
+      sourceFilter.addEventListener('change', applyFilters);
+      sortBy.addEventListener('change', applyFilters);
+
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        bandFilter.value = '';
+        sourceFilter.value = '';
+        sortBy.value = 'expiry-asc';
+        applyFilters();
+      });
+
+      loadRecords();
+    });
+  </script>
+
+  <style>
+    @media (min-width: 1024px) { #warrantyMobileList { display: none !important; } }
+    @media (max-width: 1023px) { #warrantyTable { display: none !important; } }
+  </style>
+</AdminLayout>

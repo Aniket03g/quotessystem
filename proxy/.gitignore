@@ -26,3 +26,6 @@ go.work
 *.swp
 *.swo
 *~
+
+# Local backups of .env taken before a config change.
+.env.bak*

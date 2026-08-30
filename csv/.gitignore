@@ -1,0 +1,14 @@
+# Source spreadsheets and generated import artefacts stay local. They carry
+# customer lists and dealer pricing, and this repo is public.
+*.xlsx
+~$*
+import_products_plan.json
+import_products_failed.json
+
+# AMC model-matching artefacts: a full product-catalogue dump and the resolved
+# contract/asset linkage. Both carry pricing and customer names.
+AMC/_products*.json
+AMC/_amc_connection.json
+
+# The import review lists customer names against invoice numbers.
+AMC/_warranty_import_review.csv

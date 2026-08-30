@@ -50,3 +50,12 @@ tables:
     operations: [read, create, update, delete, link]
     owner_fields: ["Lead Created By", "Assigned to"]
 
+  # Warranty expiry reminders, backfilled from the Yealink AMC sheet.
+  # "Assigned To" is deliberately left empty on the backfilled rows: admins and
+  # super admins bypass owner filtering, so they see the whole list, while a
+  # non-admin sees nothing until a row is explicitly assigned to them.
+  warranty_reminders:
+    name: "Warranty Reminders"
+    operations: [read, create, update, delete]
+    owner_fields: ["Assigned To"]
+

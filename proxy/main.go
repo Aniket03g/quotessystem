@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/sessions"
@@ -17,6 +18,7 @@ import (
 	"github.com/grove/generic-proxy/internal/logger"
 	"github.com/grove/generic-proxy/internal/middleware"
 	"github.com/grove/generic-proxy/internal/proxy"
+	"github.com/grove/generic-proxy/internal/reminders"
 	"github.com/grove/generic-proxy/internal/utils"
 	"github.com/markbates/goth/gothic"
 )
@@ -168,6 +170,33 @@ func main() {
 		log.Println("[STARTUP WARN] NOCODB_BASE_ID not set - MetaCache disabled")
 	}
 
+	// Warranty reminders: one email to admins two months before cover ends.
+	// Defaults to dry-run — set WARRANTY_REMINDERS=on to actually send.
+	var warrantyScheduler *reminders.Scheduler
+	if metaCache != nil {
+		leadDays := 60
+		if v := os.Getenv("WARRANTY_REMINDER_LEAD_DAYS"); v != "" {
+			if n, err := strconv.Atoi(v); err == nil && n > 0 {
+				leadDays = n
+			}
+		}
+		from := os.Getenv("EMAIL_FROM_ADMIN")
+		if from == "" {
+			from = os.Getenv("EMAIL_FROM")
+		}
+		warrantyScheduler = reminders.New(reminders.Config{
+			NocoDBURL: nocoDBURL,
+			BaseID:    cfg.NocoDBBaseID,
+			Token:     cfg.NocoDBToken,
+			LeadDays:  leadDays,
+			Mode:      reminders.ParseMode(os.Getenv("WARRANTY_REMINDERS")),
+			ResendKey: os.Getenv("RESEND_API_KEY"),
+			From:      from,
+			AppURL:    os.Getenv("APP_BASE_URL"),
+		}, metaCache, database)
+		warrantyScheduler.Start()
+	}
+
 	// Create proxy handler
 	proxyHandler := proxy.NewProxyHandler(nocoDBURL, cfg.NocoDBToken, metaCache)
 
@@ -261,6 +290,12 @@ func main() {
 	// Protected super-admin announcements audit log (GET list / POST record)
 	mux.Handle("/api/admin/announcements", middleware.AuthMiddleware(cfg.JWTSecret)(
 		http.HandlerFunc(adminHandler.Announcements),
+	))
+
+	// TEMPORARY test trigger for the warranty reminder email — see
+	// reminder_test_endpoint.go. Remove this line with that file.
+	mux.Handle("/api/admin/warranty-reminder-test", middleware.AuthMiddleware(cfg.JWTSecret)(
+		warrantyReminderTestHandler(warrantyScheduler),
 	))
 
 	// Protected secure ping endpoint (example)
