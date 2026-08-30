@@ -26,19 +26,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <p class="text-sm text-slate-600">Total Users</p>
       </div>
 
-      <!-- System Status Card -->
-      <div class="bg-white rounded-xl border border-slate-200 p-6">
+      <!-- Cover Expiring Card -->
+      <a href="/warranty?band=due" class="block bg-white rounded-xl border border-slate-200 p-6 hover:border-amber-400 transition-colors">
         <div class="flex items-center justify-between mb-4">
-          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
             </svg>
           </div>
-          <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded">Online</span>
+          <span class="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">60 days</span>
         </div>
-        <h3 class="text-2xl font-bold text-slate-800 mb-1">Healthy</h3>
-        <p class="text-sm text-slate-600">System Status</p>
-      </div>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalExpiring">-</h3>
+        <p class="text-sm text-slate-600">Cover Expiring Soon</p>
+      </a>
 
       <!-- Quotes Card -->
       <div class="bg-white rounded-xl border border-slate-200 p-6">
@@ -49,7 +49,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             </svg>
           </div>
         </div>
-        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalQuotes">56</h3>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalQuotes">-</h3>
         <p class="text-sm text-slate-600">Total Quotes</p>
       </div>
 
@@ -62,8 +62,55 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             </svg>
           </div>
         </div>
-        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalProducts">1441</h3>
+        <h3 class="text-2xl font-bold text-slate-800 mb-1" id="totalProducts">-</h3>
         <p class="text-sm text-slate-600">Total Products</p>
+      </div>
+    </div>
+
+    <!-- Donut panels -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-800">Lead Pipeline</h2>
+            <p class="text-sm text-slate-500">Every lead by stage</p>
+          </div>
+          <a href="/leads" class="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap">All leads →</a>
+        </div>
+        <div id="leadsDonut" class="py-10 text-center text-sm text-slate-500">Loading leads...</div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-800">Warranty &amp; AMC Cover</h2>
+            <p class="text-sm text-slate-500">Renewal runway across all records</p>
+          </div>
+          <a href="/warranty" class="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap">Register →</a>
+        </div>
+        <div id="coverDonut" class="py-10 text-center text-sm text-slate-500">Loading cover...</div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-800">Catalogue Health</h2>
+            <p class="text-sm text-slate-500">Active vs inactive products</p>
+          </div>
+          <a href="/products" class="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap">Products →</a>
+        </div>
+        <div id="catalogueDonut" class="py-10 text-center text-sm text-slate-500">Loading...</div>
+      </div>
+
+      <div class="bg-white rounded-xl border border-slate-200 p-6">
+        <div class="flex items-start justify-between mb-2">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-800">Top Brands</h2>
+            <p class="text-sm text-slate-500">Products held per brand</p>
+          </div>
+          <a href="/products" class="text-sm text-blue-600 hover:text-blue-700 font-medium whitespace-nowrap">Products →</a>
+        </div>
+        <div id="brandDonut" class="py-10 text-center text-sm text-slate-500">Loading...</div>
       </div>
     </div>
 
@@ -106,39 +153,383 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             <p class="text-sm text-slate-500">View product catalog</p>
           </div>
         </a>
+
+        <a href="/warranty" class="flex items-center gap-3 p-4 border border-slate-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 transition-all group">
+          <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
+            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-medium text-slate-800 group-hover:text-emerald-700">Warranty &amp; AMC</h3>
+            <p class="text-sm text-slate-500">Track renewals</p>
+          </div>
+        </a>
       </div>
     </div>
   </div>
 
   <script>
-    import { fetchQuotesCount, fetchProductsCount, listUsers } from '../../lib/api';
+    import { getToken, safeJsonParse, listUsers, fetchQuotesCount } from '../../lib/api';
     import { requireAdmin } from '../../utils/jwt';
 
     // Require admin access for dashboard
     requireAdmin();
 
-    // Load dashboard stats
-    async function loadStats() {
+    const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+      `${window.location.protocol}//${window.location.hostname}:8082`;
+
+    // Same 60-day boundary the Go reminder scheduler uses, so "expiring soon"
+    // here means exactly "an email has gone out or is about to".
+    const LEAD_DAYS = 60;
+
+    const ESCAPES: Record<string, string> = {
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    };
+    const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]);
+
+    const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const TODAY = startOfDay(new Date());
+
+    function daysLeft(iso: string): number | null {
+      if (!iso) return null;
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return null;
+      return Math.round((startOfDay(d).getTime() - TODAY.getTime()) / 86400000);
+    }
+
+    async function fetchRows(table: string): Promise<any[]> {
+      const token = getToken();
+      const res = await fetch(`${API_BASE_URL}/proxy/${table}/records`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error(`${table}: HTTP ${res.status}`);
+      const data = await safeJsonParse(res);
+      return data.records || [];
+    }
+
+    function panelError(el: HTMLElement | null, message: string) {
+      if (el) el.innerHTML = `<p class="py-6 text-center text-sm text-slate-500">${esc(message)}</p>`;
+    }
+
+    type Segment = { label: string; value: number; colour: string; note?: string; href?: string };
+
+    // Geometry follows the reference donut: segments run contiguously and the
+    // round caps of neighbours overlap, which is what produces the notched look
+    // between colours. No gap is subtracted — doing that is what made the
+    // earlier version read as a set of detached bars.
+    const SIZE = 200;
+    const STROKE = 24;
+    const RADIUS = SIZE / 2 - STROKE / 2;
+    const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+    /**
+     * Donut with the total in the middle and a colour-keyed legend below.
+     * Segments with a zero value are dropped from the ring but kept in the
+     * legend, so the categories on screen stay stable as the data moves.
+     */
+    function donut(centreLabel: string, segments: Segment[]): string {
+      const total = segments.reduce((n, s) => n + s.value, 0);
+      const half = SIZE / 2;
+
+      let cursor = 0;
+      const arcs = segments.map((s, i) => {
+        if (s.value <= 0 || total <= 0) return '';
+        const len = (s.value / total) * CIRCUMFERENCE;
+        const arc = `<circle class="donut-arc"
+            data-dash="${len.toFixed(2)} ${CIRCUMFERENCE.toFixed(2)}"
+            cx="${half}" cy="${half}" r="${RADIUS}" fill="none" stroke="${s.colour}"
+            stroke-width="${STROKE}" stroke-linecap="round"
+            stroke-dasharray="0 ${CIRCUMFERENCE.toFixed(2)}"
+            stroke-dashoffset="${(-cursor).toFixed(2)}"
+            style="--draw-delay:${i * 70}ms"></circle>`;
+        cursor += len;
+        return arc;
+      }).join('');
+
+      const legend = segments.map((s, i) => {
+        const pct = total > 0 ? Math.round((s.value / total) * 100) : 0;
+        const row = `
+          <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${s.colour}"></span>
+          <span class="flex-1 min-w-0 text-sm font-medium text-slate-700 truncate">${esc(s.label)}</span>
+          ${s.note ? `<span class="hidden sm:inline text-xs text-slate-400 flex-shrink-0 tabular-nums">${esc(s.note)}</span>` : ''}
+          <span class="text-sm font-semibold text-slate-800 flex-shrink-0 tabular-nums w-10 text-right">${s.value}</span>`;
+        const cls = 'donut-key flex items-center gap-3 py-2.5 px-2 -mx-2 rounded-lg'
+          + (s.href ? ' cursor-pointer' : '');
+        const data = `data-seg="${i}" data-label="${esc(s.label)}" data-value="${s.value}" data-pct="${pct}"`;
+        return s.href
+          ? `<a href="${s.href}" ${data} class="${cls}" style="--draw-delay:${400 + i * 60}ms">${row}</a>`
+          : `<div ${data} class="${cls}" style="--draw-delay:${400 + i * 60}ms">${row}</div>`;
+      }).join('');
+
+      return `
+        <div class="flex justify-center py-3">
+          <div class="relative w-56 h-56">
+            <svg viewBox="0 0 ${SIZE} ${SIZE}" class="w-full h-full overflow-visible">
+              <circle cx="${half}" cy="${half}" r="${RADIUS}" fill="none" stroke="#eef2f6" stroke-width="${STROKE}"></circle>
+              <g transform="rotate(-90 ${half} ${half})">${arcs}</g>
+            </svg>
+            <div class="donut-centre absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-10 text-center">
+              <span class="centre-label text-xs font-medium text-slate-400 truncate max-w-full">${esc(centreLabel)}</span>
+              <span class="centre-value text-4xl font-bold text-slate-800 leading-none mt-1 tabular-nums">${total}</span>
+              <span class="centre-pct text-sm font-medium text-slate-400 mt-1 tabular-nums opacity-0">&nbsp;</span>
+            </div>
+          </div>
+        </div>
+        <div class="donut-legend border-t border-slate-100 mt-2 pt-1">${legend}</div>
+      `;
+    }
+
+    /**
+     * Draws the ring in on load. After that the ring is inert: only the legend
+     * rows respond to the cursor, and all they do is swap the centre readout.
+     */
+    function wireDonut(panel: HTMLElement | null) {
+      if (!panel) return;
+      const arcs = Array.from(panel.querySelectorAll<SVGCircleElement>('.donut-arc'));
+      const keys = Array.from(panel.querySelectorAll<HTMLElement>('.donut-key'));
+      const centre = panel.querySelector<HTMLElement>('.donut-centre');
+      const labelEl = centre?.querySelector<HTMLElement>('.centre-label');
+      const valueEl = centre?.querySelector<HTMLElement>('.centre-value');
+      const pctEl = centre?.querySelector<HTMLElement>('.centre-pct');
+      const restLabel = labelEl?.textContent ?? '';
+      const restValue = valueEl?.textContent ?? '';
+
+      requestAnimationFrame(() => {
+        for (const arc of arcs) arc.setAttribute('stroke-dasharray', arc.dataset.dash || '');
+        for (const key of keys) key.classList.add('donut-key-in');
+      });
+
+      // The ring itself never reacts to the cursor — only the legend rows below
+      // do, and all they change is the readout in the middle.
+      const focus = (seg: string | null) => {
+        for (const key of keys) {
+          key.classList.toggle('is-active', seg !== null && key.dataset.seg === seg);
+        }
+
+        const key = seg === null ? null : keys.find((k) => k.dataset.seg === seg);
+        if (!labelEl || !valueEl || !pctEl || !centre) return;
+        labelEl.textContent = key ? (key.dataset.label || '') : restLabel;
+        valueEl.textContent = key ? (key.dataset.value || '') : restValue;
+        pctEl.textContent = key ? `${key.dataset.pct}%` : '\u00a0';
+        pctEl.style.opacity = key ? '1' : '0';
+        // Restart the animation: drop the class, force a reflow, re-add it.
+        centre.classList.remove('is-swapping');
+        void centre.offsetWidth;
+        centre.classList.add('is-swapping');
+      };
+
+      for (const key of keys) {
+        key.addEventListener('mouseenter', () => focus(key.dataset.seg || null));
+      }
+      // Reset on leaving the list as a whole, not each row: row-to-row moves
+      // would otherwise flash the total in between.
+      panel.querySelector('.donut-legend')?.addEventListener('mouseleave', () => focus(null));
+    }
+
+    async function loadCounts() {
       try {
-        // Fetch users count
-        const usersResponse = await listUsers();
-        const usersEl = document.getElementById('totalUsers');
-        if (usersEl) usersEl.textContent = usersResponse.total.toString();
-
-        // Fetch quotes count using count API
-        const quotesCount = await fetchQuotesCount();
-        const quotesEl = document.getElementById('totalQuotes');
-        if (quotesEl) quotesEl.textContent = quotesCount.toString();
-
-        // Fetch products count using count API
-        const productsCount = await fetchProductsCount();
-        const productsEl = document.getElementById('totalProducts');
-        if (productsEl) productsEl.textContent = productsCount.toString();
+        const users = await listUsers();
+        const el = document.getElementById('totalUsers');
+        if (el) el.textContent = String(users.total);
       } catch (error) {
-        console.error('Failed to load stats:', error);
+        console.error('Failed to load user count:', error);
+      }
+      // The quotes tile used to be filled by the pipeline panel; with that panel
+      // gone, take the figure from the count endpoint instead of pulling every
+      // quote row just to length it.
+      try {
+        const quotes = await fetchQuotesCount();
+        const el = document.getElementById('totalQuotes');
+        if (el) el.textContent = String(quotes);
+      } catch (error) {
+        console.error('Failed to load quote count:', error);
       }
     }
 
-    loadStats();
+    // The seven lead statuses offered on /leads, in pipeline order. Anything
+    // unrecognised falls into New so the segments still add up to the total.
+    const LEAD_STAGES = [
+      { label: 'New',           colour: '#94a3b8' },
+      { label: 'Contacted',     colour: '#38bdf8' },
+      { label: 'Qualified',     colour: '#3b82f6' },
+      { label: 'Proposal Sent', colour: '#8b5cf6' },
+      { label: 'Negotiation',   colour: '#f59e0b' },
+      { label: 'Converted',     colour: '#10b981' },
+      { label: 'Lost',          colour: '#ef4444' },
+    ];
+
+    async function loadLeads() {
+      const panel = document.getElementById('leadsDonut');
+      try {
+        const leads = await fetchRows('leads');
+        if (!panel) return;
+
+        const counts: Record<string, number> = {};
+        for (const stage of LEAD_STAGES) counts[stage.label] = 0;
+
+        for (const lead of leads) {
+          const status = String(lead.fields?.['Status'] ?? '').trim();
+          const stage = LEAD_STAGES.find((s) => s.label.toLowerCase() === status.toLowerCase());
+          counts[stage ? stage.label : 'New']++;
+        }
+
+        panel.innerHTML = donut('Total Leads', LEAD_STAGES.map((stage) => ({
+          label: stage.label,
+          value: counts[stage.label],
+          colour: stage.colour,
+          href: '/leads',
+        })));
+        wireDonut(panel);
+      } catch (error) {
+        console.error('Failed to load leads:', error);
+        panelError(panel, 'Could not load leads.');
+      }
+    }
+
+    async function loadCover() {
+      const panel = document.getElementById('coverDonut');
+      try {
+        const rows = await fetchRows('warranty_reminders');
+
+        const buckets: Record<string, any[]> = { lapsed: [], due: [], active: [] };
+        for (const r of rows) {
+          const days = daysLeft(r.fields?.['Expiry Date']);
+          if (days !== null && days < 0) buckets.lapsed.push(r);
+          else if (days !== null && days <= LEAD_DAYS) buckets.due.push(r);
+          else buckets.active.push(r);
+        }
+
+        const expiringEl = document.getElementById('totalExpiring');
+        if (expiringEl) expiringEl.textContent = String(buckets.due.length);
+        if (!panel) return;
+
+        const assetsIn = (items: any[]) =>
+          items.reduce((n, r) => n + (parseInt(String(r.fields?.['Asset Count'] ?? '0')) || 0), 0);
+
+        panel.innerHTML = donut('Cover Records', [
+          { label: 'Lapsed',        value: buckets.lapsed.length, colour: '#ef4444',
+            note: `${assetsIn(buckets.lapsed)} assets`, href: '/warranty?band=lapsed' },
+          { label: 'Expiring soon', value: buckets.due.length,    colour: '#f59e0b',
+            note: `${assetsIn(buckets.due)} assets`,    href: '/warranty?band=due' },
+          { label: 'Active',        value: buckets.active.length, colour: '#10b981',
+            note: `${assetsIn(buckets.active)} assets`, href: '/warranty?band=active' },
+        ]);
+        wireDonut(panel);
+      } catch (error) {
+        console.error('Failed to load cover:', error);
+        panelError(panel, 'Could not load warranty records — is the proxy running with warranty_reminders enabled?');
+      }
+    }
+
+    const BRAND_COLOURS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
+
+    async function loadCatalogue() {
+      const healthPanel = document.getElementById('catalogueDonut');
+      const brandPanel = document.getElementById('brandDonut');
+      try {
+        const products = await fetchRows('products');
+        const totalEl = document.getElementById('totalProducts');
+        if (totalEl) totalEl.textContent = String(products.length);
+
+        let active = 0, inactive = 0;
+        const brands: Record<string, number> = {};
+        for (const p of products) {
+          const f = p.fields || {};
+          if (String(f['Product Status'] ?? '').toLowerCase() === 'inactive') inactive++; else active++;
+          const brand = String(f['Brand'] ?? '').trim();
+          if (brand) brands[brand] = (brands[brand] || 0) + 1;
+        }
+
+        if (healthPanel) {
+          healthPanel.innerHTML = donut('Total Products', [
+            { label: 'Active',   value: active,   colour: '#10b981', note: 'quotable' },
+            { label: 'Inactive', value: inactive, colour: '#cbd5e1', note: 'hidden from quotes' },
+          ]);
+          wireDonut(healthPanel);
+        }
+
+        if (brandPanel) {
+          const ranked = Object.entries(brands).sort((a, b) => b[1] - a[1]);
+          if (!ranked.length) {
+            brandPanel.innerHTML = '<p class="py-6 text-center text-sm text-slate-500">No brand data.</p>';
+          } else {
+            // A catalogue this wide would make an unreadable ring, so everything
+            // past the top five is rolled into one "Other brands" segment.
+            const top = ranked.slice(0, 5);
+            const restCount = ranked.slice(5).reduce((n, [, c]) => n + c, 0);
+            const segments: Segment[] = top.map(([name, count], i) => ({
+              label: name, value: count, colour: BRAND_COLOURS[i],
+            }));
+            if (restCount > 0) {
+              segments.push({
+                label: 'Other brands', value: restCount, colour: '#cbd5e1',
+                note: `${ranked.length - 5} more`,
+              });
+            }
+            brandPanel.innerHTML = donut('Branded Products', segments);
+            wireDonut(brandPanel);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load catalogue:', error);
+        panelError(healthPanel, 'Could not load products.');
+        panelError(brandPanel, 'Could not load products.');
+      }
+    }
+
+    // Each panel loads and fails independently — one dead table must not blank
+    // the whole dashboard.
+    loadCounts();
+    loadLeads();
+    loadCover();
+    loadCatalogue();
   </script>
+
+  <style>
+    /* The ring only ever animates once, on load. It does not respond to the
+       cursor at all — the legend below is the sole hover target. The staggered
+       entrance delay is scoped to stroke-dasharray via a custom property; a
+       bare transition-delay would apply to every property in the list. */
+    .donut-arc {
+      pointer-events: none;
+      transition: stroke-dasharray 1000ms cubic-bezier(0.16, 1, 0.3, 1) var(--draw-delay, 0ms);
+    }
+
+    .donut-key {
+      opacity: 0;
+      transform: translateX(-12px);
+      transition:
+        opacity 400ms ease-out var(--draw-delay, 0ms),
+        transform 400ms ease-out var(--draw-delay, 0ms),
+        background-color 120ms ease;
+    }
+
+    .donut-key-in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .donut-key.is-active {
+      background-color: #f8fafc;
+    }
+
+    @keyframes centrePop {
+      from { opacity: 0; transform: scale(0.94); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    .donut-centre.is-swapping .centre-label,
+    .donut-centre.is-swapping .centre-value,
+    .donut-centre.is-swapping .centre-pct {
+      animation: centrePop 180ms ease-out;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .donut-arc, .donut-key,
+      .donut-centre.is-swapping .centre-label,
+      .donut-centre.is-swapping .centre-value,
+      .donut-centre.is-swapping .centre-pct { animation: none; }
+    }
+  </style>
 </AdminLayout>
