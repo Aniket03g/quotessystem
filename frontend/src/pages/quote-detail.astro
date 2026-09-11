@@ -115,6 +115,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
           </button>
+          <button id="downloadExcelBtn" class="inline-flex items-center justify-center p-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors" title="Download Excel">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </button>
           <button id="previewSectionedPdfBtn" class="hidden inline-flex items-center justify-center p-2 bg-white border border-slate-300 text-slate-700 rounded-md hover:bg-slate-50 transition-colors" title="Preview room-wise PDF (grouped by floor and room)">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -1582,6 +1587,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         document.getElementById(id)?.classList.toggle('hidden', !visible);
       show('previewPdfBtn', !roomWise);
       show('downloadPdfBtn', !roomWise);
+      // The workbook is the flat quote's line items, so it follows the plain
+      // PDF: offered on an ordinary quote, withheld on a room-wise one where a
+      // flat list of items would throw the floors and rooms away.
+      show('downloadExcelBtn', !roomWise);
       show('previewSectionedPdfBtn', roomWise || unknown);
       show('downloadSectionedPdfBtn', roomWise || unknown);
     }
@@ -3071,6 +3080,55 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
     }
 
+    /**
+     * The same quote as a workbook. It posts the identical payload the PDF uses,
+     * and takes the terms already saved on this browser rather than opening the
+     * terms modal — the spreadsheet is a working copy, so it is one click, and
+     * the terms are still edited in the one place they always were.
+     */
+    async function generateExcel() {
+      if (!currentQuoteData) {
+        showToast('Quote data not loaded', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/quotes/excel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...currentQuoteData,
+            deliveryTerms: savedDeliveryTerms || '',
+            paymentTerms: savedPaymentTerms || '',
+            extraTerms: savedExtraTerms || '',
+          }),
+        });
+
+        if (!response.ok) {
+          const detail = await response.text();
+          console.error('[EXCEL] Failed:', response.status, detail);
+          showToast('Failed to generate Excel', 'error');
+          return;
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `quote-${quoteId}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        // Delayed so Chrome can still read the blob behind the Save As dialog.
+        setTimeout(() => window.URL.revokeObjectURL(url), 60000);
+        showToast('Excel downloaded', 'success');
+      } catch (error) {
+        console.error('[EXCEL] Error:', error);
+        showToast('Failed to generate Excel. Please try again.', 'error');
+      }
+    }
+
+    document.getElementById('downloadExcelBtn')?.addEventListener('click', () => generateExcel());
     document.getElementById('previewPdfBtn')?.addEventListener('click', () => openPdfTermsModal(true));
     document.getElementById('downloadPdfBtn')?.addEventListener('click', () => openPdfTermsModal(false));
     document.getElementById('previewSectionedPdfBtn')?.addEventListener('click', () => generateSectionedPDF(true));
