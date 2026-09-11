@@ -202,6 +202,7 @@ function buildRow(block, lines, amsCell, label) {
     srNo: cell(p, C.SR).replace(/\.0$/, ''),
     fields: {
       'Title': `${customer || 'Unknown customer'} — ${primary}${extra}`,
+      'Partner': cell(p, C.PARTNER),
       'Customer Name': customer,
       'Location': cell(p, C.LOCATION),
       'Invoice No': invoice,

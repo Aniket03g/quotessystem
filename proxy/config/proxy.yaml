@@ -59,3 +59,11 @@ tables:
     operations: [read, create, update, delete]
     owner_fields: ["Assigned To"]
 
+  # One row per covered serial. Cover runs per asset, not per invoice: an invoice
+  # can mix 1/3/5-year terms, so the parent row's "Expiry Date" is only the
+  # soonest of these and is written by the app, never typed.
+  warranty_assets:
+    name: "Warranty Assets"
+    operations: [read, create, update, delete]
+    owner_fields: ["Assigned To"]
+

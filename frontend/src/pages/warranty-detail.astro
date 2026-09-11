@@ -1,0 +1,1018 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Cover Details" currentPage="warranty">
+  <div class="max-w-6xl mx-auto">
+    <!-- Back Button -->
+    <div class="mb-5">
+      <a id="backLink" href="/warranty" class="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to Warranty &amp; AMC
+      </a>
+    </div>
+
+    <!-- Loading State -->
+    <div id="pageLoading" class="py-20 text-center">
+      <svg class="animate-spin w-8 h-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm text-slate-500">Loading cover record...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="pageError" class="hidden p-5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm"></div>
+
+    <!-- Page Content -->
+    <div id="pageContent" class="hidden space-y-5">
+
+      <!-- Header Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="bg-gradient-to-br from-emerald-50 via-slate-50 to-white px-8 py-7 border-b border-slate-200">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+            <div class="flex items-start gap-4 min-w-0">
+              <div id="headerIcon" class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 flex-shrink-0">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+              </div>
+              <div class="min-w-0">
+                <h1 id="detailCustomer" class="text-2xl font-semibold text-slate-800 leading-tight break-words"></h1>
+                <p id="detailLocation" class="text-sm text-slate-500 mt-1"></p>
+                <p id="detailPartner" class="hidden text-sm text-slate-600 mt-1">
+                  <span class="text-slate-400">Partner</span>
+                  <span id="detailPartnerName" class="font-medium"></span>
+                </p>
+                <div class="flex flex-wrap items-center gap-2 mt-3" id="detailBadges"></div>
+              </div>
+            </div>
+
+            <div class="sm:text-right flex-shrink-0">
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Next expiry</div>
+              <div id="detailExpiry" class="text-xl font-semibold text-slate-800 mt-0.5 whitespace-nowrap"></div>
+              <div id="detailCountdown" class="text-sm text-slate-500 mt-0.5"></div>
+              <div id="detailNextWhat" class="text-xs text-slate-400 mt-0.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cover mix: cover runs per product, so the invoice as a whole has no
+             single timeline. Each product draws its own in the table below. -->
+        <div class="px-8 py-5">
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Cover across this invoice</div>
+          <div id="coverMix" class="flex flex-wrap gap-2"></div>
+          <div id="coverBar" class="mt-3 flex h-2.5 rounded-full overflow-hidden bg-slate-100"></div>
+        </div>
+      </div>
+
+      <!-- Computed-expiry advisory -->
+      <div id="computedNotice" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-xl">
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
+          </svg>
+          <p class="text-sm text-amber-800">
+            <span id="computedCount"></span> on this invoice have a <strong>computed</strong> expiry
+            — invoice date plus the recorded term, with no Yealink AMS registration date on file.
+            Registration always follows invoicing, so the real expiry is typically 3–6 months later
+            than the date shown. Confirm against the AMS portal before quoting a renewal.
+          </p>
+        </div>
+      </div>
+
+      <!-- Invoice & ownership -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Invoice</h2>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-5 px-6 py-5">
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Partner</div>
+            <div id="fPartner" class="text-sm text-slate-800 mt-1 break-words"></div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice No</div>
+            <div id="fInvoiceNo" class="text-sm text-slate-800 mt-1 font-medium break-words"></div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice Date</div>
+            <div id="fInvoiceDate" class="text-sm text-slate-800 mt-1"></div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoiced Value</div>
+            <div id="fValue" class="text-sm text-slate-800 mt-1"></div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Assigned To</div>
+            <div id="fAssigned" class="text-sm text-slate-800 mt-1 break-words"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reminder -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Renewal reminder</h2>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 px-6 py-5">
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Next reminder due</div>
+            <div id="fReminderDue" class="text-sm text-slate-800 mt-1"></div>
+            <div class="text-xs text-slate-400 mt-0.5">60 days before the next expiry</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Reminded</div>
+            <div id="fLastReminded" class="text-sm text-slate-800 mt-1"></div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Cover Status</div>
+            <div id="fStatus" class="text-sm text-slate-800 mt-1"></div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Expiry Source</div>
+            <div id="fSource" class="text-sm text-slate-800 mt-1"></div>
+          </div>
+        </div>
+        <p class="px-6 pb-5 -mt-2 text-xs text-slate-400">
+          Products sharing an expiry date are reminded together in a single email.
+        </p>
+      </div>
+
+      <!-- Assets -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">
+            Covered products <span id="assetCount" class="text-slate-400 font-normal normal-case"></span>
+          </h2>
+          <div class="flex items-center gap-2">
+            <button id="copySerials" class="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap">
+              Copy serials
+            </button>
+            <button id="editAssets" class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
+              Edit products
+            </button>
+            <button id="addAsset" class="hidden px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 bg-white rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
+              + Add product
+            </button>
+            <button id="cancelAssets" class="hidden px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">
+              Cancel
+            </button>
+            <button id="saveAssets" class="hidden px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap disabled:opacity-50">
+              Save changes
+            </button>
+          </div>
+        </div>
+
+        <div id="editHint" class="hidden px-6 py-3 bg-blue-50 border-b border-blue-100 text-xs text-blue-800">
+          Set a <strong>term</strong> and the end date follows the start date. Type an end date
+          directly and it is kept exactly as entered, marked <em>manual</em>. The invoice's next
+          expiry is worked out from these rows when you save.
+        </div>
+
+        <div id="saveError" class="hidden px-6 py-3 bg-red-50 border-b border-red-100 text-sm text-red-800"></div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr id="assetHead"></tr>
+            </thead>
+            <tbody id="assetBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    import { getToken, logout, safeJsonParse } from '../lib/api';
+    import { requireAdmin } from '../utils/jwt';
+
+    // Same gate as /warranty: the backfilled rows carry no "Assigned To", so a
+    // rep's ownership-scoped read would find nothing here. Drop it with the
+    // list page's, once capture-on-Accepted starts assigning owners.
+    requireAdmin();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8082`;
+      const token = getToken();
+
+      if (!token) {
+        window.location.href = '/login';
+        return;
+      }
+
+      // Mirrors WARRANTY_REMINDER_LEAD_DAYS in the Go scheduler and LEAD_DAYS on
+      // the list page, so all three agree on what "expiring soon" means.
+      const LEAD_DAYS = 60;
+
+      const CLOSED = new Set(['renewed', 'replaced']);
+      const STATUSES = ['Active', 'Renewal Quoted', 'Renewed', 'Lapsed', 'Replaced'];
+
+      const pageLoading = document.getElementById('pageLoading') as HTMLDivElement;
+      const pageError = document.getElementById('pageError') as HTMLDivElement;
+      const pageContent = document.getElementById('pageContent') as HTMLDivElement;
+
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id') || '';
+      // Carry the list's band filter back so "Back" returns to the same view.
+      const band = params.get('band') || '';
+      if (band) {
+        (document.getElementById('backLink') as HTMLAnchorElement).href =
+          `/warranty?band=${encodeURIComponent(band)}`;
+      }
+
+      const ESCAPES: Record<string, string> = {
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      };
+      const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]);
+
+      const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const TODAY = startOfDay(new Date());
+
+      function toDate(iso: string): Date | null {
+        if (!iso) return null;
+        const d = new Date(iso);
+        return isNaN(d.getTime()) ? null : startOfDay(d);
+      }
+
+      function daysBetween(from: Date, to: Date): number {
+        return Math.round((to.getTime() - from.getTime()) / 86400000);
+      }
+
+      /** yyyy-mm-dd, the only shape NocoDB Date columns accept. */
+      function isoOf(d: Date): string {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+
+      /** Whatever a Date column returns, reduced to yyyy-mm-dd for <input type=date>. */
+      const dateInputValue = (v: any) => (v ? String(v).slice(0, 10) : '');
+
+      function fmtDate(iso: string): string {
+        const d = toDate(iso);
+        if (!d) return iso ? String(iso) : '—';
+        return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      }
+
+      function fmtMoney(v: any): string {
+        const n = parseFloat(String(v ?? ''));
+        if (!isFinite(n) || n === 0) return '—';
+        return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+      }
+
+      const set = (elId: string, val: string) => {
+        const el = document.getElementById(elId);
+        if (el) el.textContent = val || '—';
+      };
+
+      function showError(msg: string) {
+        pageLoading.classList.add('hidden');
+        pageContent.classList.add('hidden');
+        pageError.textContent = msg;
+        pageError.classList.remove('hidden');
+      }
+
+      /**
+       * Add whole years to a date, clamping 29 Feb to 28 Feb rather than rolling
+       * into March — a warranty must not appear to end in a different month than
+       * the day it started.
+       */
+      function addYears(iso: string, years: number): string | null {
+        const d = toDate(iso);
+        if (!d || !isFinite(years)) return null;
+        const whole = Math.trunc(years);
+        const months = Math.round((years - whole) * 12);
+        const out = new Date(d.getFullYear() + whole, d.getMonth() + months, d.getDate());
+        if (out.getDate() !== d.getDate()) out.setDate(0);
+        return isoOf(out);
+      }
+
+      /** Whole-year term between two dates, or null when it is not a round one. */
+      function termBetween(startIso: string, endIso: string): number | null {
+        for (const y of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) {
+          if (addYears(startIso, y) === dateInputValue(endIso)) return y;
+        }
+        return null;
+      }
+
+      // --- per-product cover state -------------------------------------------
+
+      type Band = 'lapsed' | 'due' | 'active' | 'closed' | 'unknown';
+
+      const BANDS: Record<string, { label: string; text: string; bg: string; bar: string }> = {
+        lapsed:  { label: 'Lapsed',        text: 'text-red-800',     bg: 'bg-red-100',     bar: 'bg-red-500' },
+        due:     { label: 'Expiring soon', text: 'text-amber-800',   bg: 'bg-amber-100',   bar: 'bg-amber-500' },
+        active:  { label: 'Active',        text: 'text-emerald-800', bg: 'bg-emerald-100', bar: 'bg-emerald-500' },
+        closed:  { label: 'Closed',        text: 'text-slate-700',   bg: 'bg-slate-100',   bar: 'bg-slate-400' },
+        unknown: { label: 'No end date',   text: 'text-slate-700',   bg: 'bg-slate-100',   bar: 'bg-slate-300' },
+      };
+
+      /**
+       * Which band a single product sits in. Renewed and Replaced products are
+       * "closed": their old end date has stopped meaning anything, so they must
+       * not drag the invoice's next-expiry date backwards.
+       */
+      function bandOf(a: any): Band {
+        if (CLOSED.has(String(a['Status'] ?? '').toLowerCase())) return 'closed';
+        const end = toDate(a['End Date']);
+        if (!end) return 'unknown';
+        const d = daysBetween(TODAY, end);
+        return d < 0 ? 'lapsed' : d <= LEAD_DAYS ? 'due' : 'active';
+      }
+
+      function daysLabel(a: any): string {
+        const end = toDate(a['End Date']);
+        if (!end) return '—';
+        const d = daysBetween(TODAY, end);
+        return d < 0 ? `${-d}d ago` : d === 0 ? 'today' : `${d}d left`;
+      }
+
+      /** The soonest end date still in force, which is what the invoice expires on. */
+      function nextExpiry(list: any[]): { iso: string; assets: any[] } | null {
+        const live = list.filter((a) => bandOf(a) !== 'closed' && a['End Date']);
+        if (!live.length) return null;
+        const soonest = live
+          .map((a) => dateInputValue(a['End Date']))
+          .sort()[0];
+        return { iso: soonest, assets: live.filter((a) => dateInputValue(a['End Date']) === soonest) };
+      }
+
+      let parent: any = null;
+      let assets: any[] = [];      // as loaded — the baseline a Cancel returns to
+      let draft: any[] = [];       // what the editor is working on
+      let editing = false;
+      let removed: any[] = [];     // ids deleted in this editing session
+      let serialsForCopy: string[] = [];
+
+      // --- HSN lookup ---------------------------------------------------------
+      // A product row stores a free-text model, so HSN/SAC comes from the
+      // Products catalogue. The sheet's models are written loosely ("MSpeakerII"
+      // for "MSpeaker II", "A30" for "A30-010"), so matching runs in tiers and a
+      // code is only shown when exactly one HSN can be reached — the same rule
+      // csv/AMC/_match-models.mjs uses. Nothing is guessed.
+
+      const normModel = (s: any) => String(s ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      /**
+       * A `like` prefix for the catalogue query. Separators differ between the
+       * sheet and the catalogue, so only the leading alphanumeric run is used,
+       * capped at 3 characters — which also guarantees the value is safe to
+       * interpolate into NocoDB's `where` expression.
+       */
+      function likePrefix(model: string): string {
+        const run = String(model).match(/^[A-Za-z0-9]+/);
+        return run ? run[0].slice(0, 3) : '';
+      }
+
+      /** model -> HSN, or null when no single code can be reached. */
+      function resolveHsn(models: string[], catalogue: any[]) {
+        const byModel = new Map<string, any[]>();
+        for (const p of catalogue) {
+          const key = normModel(p['Model No']);
+          if (!key) continue;
+          if (!byModel.has(key)) byModel.set(key, []);
+          byModel.get(key)!.push(p);
+        }
+        const keys = [...byModel.keys()];
+
+        const out = new Map<string, { hsn: string; via: string } | null>();
+        for (const model of models) {
+          const key = normModel(model);
+          if (!key) { out.set(model, null); continue; }
+
+          let hits = byModel.get(key) || null;
+          let via = '';
+          if (!hits) {
+            // The catalogue often carries a longer variant of the same model
+            // ("VCH51" on the invoice is "VCH51 Pro Package" in the catalogue).
+            const matches = keys.filter((k) => k.startsWith(key)).flatMap((k) => byModel.get(k)!);
+            if (matches.length) {
+              hits = matches;
+              via = matches[0]['Model No'];
+            }
+          }
+          if (!hits) { out.set(model, null); continue; }
+
+          const codes = new Set(hits.map((p) => String(p['HSN/SAC Code'] ?? '').trim()).filter(Boolean));
+          // Several catalogue variants are fine as long as they agree on the code.
+          out.set(model, codes.size === 1 ? { hsn: [...codes][0], via } : null);
+        }
+        return out;
+      }
+
+      async function fillHsn(models: string[]) {
+        const prefixes = [...new Set(models.map(likePrefix).filter(Boolean))];
+        if (!prefixes.length) { markHsnUnresolved(); return; }
+
+        try {
+          const where = prefixes.map((p) => `(Model No,like,${p}%)`).join('~or');
+          const res = await fetch(
+            `${API_BASE_URL}/proxy/products/records?where=${encodeURIComponent(where)}` +
+            `&limit=500&fields=Model No,HSN/SAC Code`,
+            { headers: { 'Authorization': `Bearer ${token}` } },
+          );
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await safeJsonParse(res);
+          const catalogue = data.records || data.list || [];
+          const resolved = resolveHsn(models, catalogue);
+
+          document.querySelectorAll<HTMLElement>('[data-hsn-for]').forEach((cell) => {
+            // A row that carries its own stored HSN has already been filled in.
+            if (cell.dataset.hsnFixed === '1') return;
+            const hit = resolved.get(cell.dataset.hsnFor || '');
+            if (hit) {
+              cell.textContent = hit.hsn;
+              cell.className = 'px-4 py-3 text-sm font-mono text-slate-700';
+              if (hit.via) {
+                cell.classList.add('underline', 'decoration-dotted', 'decoration-slate-300');
+                cell.title = `Taken from catalogue model "${hit.via}"`;
+              }
+            } else {
+              cell.textContent = '—';
+              cell.title = 'No single catalogue product matches this model';
+            }
+          });
+        } catch {
+          markHsnUnresolved();
+        }
+      }
+
+      function markHsnUnresolved() {
+        document.querySelectorAll<HTMLElement>('[data-hsn-for]').forEach((cell) => {
+          if (cell.dataset.hsnFixed === '1') return;
+          cell.textContent = '—';
+          cell.title = 'Could not reach the product catalogue to look up HSN/SAC';
+        });
+      }
+
+      // --- rendering ----------------------------------------------------------
+
+      const TH = 'px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider';
+
+      function renderHead() {
+        const head = document.getElementById('assetHead') as HTMLTableRowElement;
+        head.innerHTML = editing
+          ? `<th class="${TH} w-10">#</th>
+             <th class="${TH}">Model</th>
+             <th class="${TH}">Serial Number</th>
+             <th class="${TH} w-40">Starts</th>
+             <th class="${TH} w-32">Term (yrs)</th>
+             <th class="${TH} w-40">Ends</th>
+             <th class="${TH} w-40">Status</th>
+             <th class="${TH} w-12"></th>`
+          : `<th class="${TH} w-10">#</th>
+             <th class="${TH} w-28">HSN/SAC</th>
+             <th class="${TH}">Model</th>
+             <th class="${TH}">Serial Number</th>
+             <th class="${TH} w-64">Cover period</th>
+             <th class="${TH} w-20">Term</th>
+             <th class="${TH} w-36">Status</th>`;
+      }
+
+      /** One product's own cover bar — the invoice as a whole no longer has one. */
+      function coverCell(a: any): string {
+        const start = toDate(a['Start Date']);
+        const end = toDate(a['End Date']);
+        const b = bandOf(a);
+        const style = BANDS[b];
+
+        if (!start || !end || end.getTime() <= start.getTime()) {
+          return `<td class="px-4 py-3 text-xs text-slate-400">${end ? fmtDate(a['End Date']) : 'No dates on file'}</td>`;
+        }
+
+        const total = daysBetween(start, end);
+        const used = Math.max(0, Math.min(total, daysBetween(start, TODAY)));
+        const pct = Math.round((used / total) * 100);
+
+        return `
+          <td class="px-4 py-3">
+            <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+              <span>${esc(fmtDate(a['Start Date']))}</span>
+              <span class="font-medium text-slate-700">${esc(fmtDate(a['End Date']))}</span>
+            </div>
+            <div class="relative h-1.5 rounded-full bg-slate-100 overflow-hidden">
+              <div class="absolute inset-y-0 left-0 rounded-full ${style.bar}" style="width:${pct}%"></div>
+            </div>
+            <div class="text-[11px] ${style.text} mt-1">${esc(daysLabel(a))}</div>
+          </td>`;
+      }
+
+      function sourceBadge(a: any): string {
+        const src = String(a['Expiry Source'] ?? '').toLowerCase();
+        if (src === 'ams') {
+          return `<span class="ml-1 text-[10px] text-emerald-700" title="Expiry taken from the Yealink AMS registration date">AMS</span>`;
+        }
+        if (src === 'manual') {
+          return `<span class="ml-1 text-[10px] text-blue-700" title="End date entered by hand">manual</span>`;
+        }
+        return `<span class="ml-1 text-[10px] text-slate-400" title="End date worked out from the start date and term">computed</span>`;
+      }
+
+      function renderView() {
+        const body = document.getElementById('assetBody') as HTMLTableSectionElement;
+        if (!assets.length) {
+          body.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500">No products recorded on this record</td></tr>';
+          return;
+        }
+
+        body.innerHTML = assets.map((a, i) => {
+          const b = bandOf(a);
+          const style = BANDS[b];
+          const stored = String(a['HSN/SAC'] ?? '').trim();
+          const term = a['Term Years'];
+          return `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-3 text-sm text-slate-400">${i + 1}</td>
+              <td class="px-4 py-3 text-sm ${stored ? 'font-mono text-slate-700' : 'text-slate-300'}"
+                  data-hsn-for="${esc(a['Model'])}" ${stored ? 'data-hsn-fixed="1"' : ''}>${stored ? esc(stored) : '…'}</td>
+              <td class="px-4 py-3 text-sm text-slate-800">${esc(a['Model']) || '<span class="text-slate-400 italic">(unnamed)</span>'}</td>
+              <td class="px-4 py-3 text-sm font-mono text-slate-700">${a['Serial Number'] ? esc(a['Serial Number']) : '<span class="font-sans text-slate-400 italic">not recorded</span>'}</td>
+              ${coverCell(a)}
+              <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">${term ? `${esc(term)}y` : '—'}${sourceBadge(a)}</td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}">${esc(a['Status'] || style.label)}</span>
+              </td>
+            </tr>`;
+        }).join('');
+
+        const models = [...new Set(assets.filter((a) => !String(a['HSN/SAC'] ?? '').trim()).map((a) => a['Model']).filter(Boolean))];
+        if (models.length) fillHsn(models);
+      }
+
+      const INPUT = 'w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent';
+
+      /** Terms we sell. An odd legacy term still gets an option so editing keeps it. */
+      const TERMS = [1, 2, 3];
+
+      function termOptions(value: any): string {
+        const v = value === null || value === undefined || value === '' ? '' : String(Number(value));
+        const years = TERMS.map(String);
+        if (v !== '' && !years.includes(v)) years.push(v);
+        const label = (y: string) => `${y} ${Number(y) === 1 ? 'year' : 'years'}`;
+        return `<option value=""${v === '' ? ' selected' : ''}>—</option>` +
+          years.map((y) => `<option value="${y}"${y === v ? ' selected' : ''}>${label(y)}</option>`).join('');
+      }
+
+      function renderEdit() {
+        const body = document.getElementById('assetBody') as HTMLTableSectionElement;
+        if (!draft.length) {
+          body.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500">No products yet — use “Add product”.</td></tr>';
+          return;
+        }
+
+        body.innerHTML = draft.map((a, i) => `
+          <tr data-row="${i}">
+            <td class="px-4 py-2 text-sm text-slate-400">${i + 1}</td>
+            <td class="px-4 py-2"><input class="${INPUT}" data-f="Model" value="${esc(a['Model'])}" placeholder="Model"></td>
+            <td class="px-4 py-2"><input class="${INPUT} font-mono" data-f="Serial Number" value="${esc(a['Serial Number'])}" placeholder="Serial"></td>
+            <td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="Start Date" value="${esc(dateInputValue(a['Start Date']))}"></td>
+            <td class="px-4 py-2"><select class="${INPUT}" data-f="Term Years">${termOptions(a['Term Years'])}</select></td>
+            <td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="End Date" value="${esc(dateInputValue(a['End Date']))}"></td>
+            <td class="px-4 py-2">
+              <select class="${INPUT}" data-f="Status">
+                ${STATUSES.map((s) => `<option value="${s}" ${String(a['Status'] || 'Active') === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </td>
+            <td class="px-4 py-2 text-center">
+              <button type="button" data-remove="${i}" class="text-slate-400 hover:text-red-600 transition-colors" title="Remove this product">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </td>
+          </tr>`).join('');
+      }
+
+      function renderAssets() {
+        renderHead();
+        if (editing) renderEdit(); else renderView();
+        set('assetCount', (editing ? draft : assets).length ? `(${(editing ? draft : assets).length})` : '');
+      }
+
+      /** Header, cover mix, reminder panel — everything derived from the products. */
+      function renderSummary() {
+        const f = parent.fields || {};
+        const next = nextExpiry(assets);
+        const nextDate = next ? toDate(next.iso) : null;
+        const days = nextDate ? daysBetween(TODAY, nextDate) : null;
+
+        document.title = `${f['Customer Name'] || f['Title'] || 'Cover'} — Warranty & AMC`;
+
+        set('detailCustomer', f['Customer Name'] || f['Title'] || 'Unknown customer');
+        const locEl = document.getElementById('detailLocation') as HTMLElement;
+        locEl.textContent = f['Location'] || '';
+        locEl.classList.toggle('hidden', !f['Location']);
+
+        // Every backfilled row came through KDDI, but the column is per-row, so
+        // the line is shown only when the record actually carries a partner.
+        const partner = String(f['Partner'] ?? '').trim();
+        document.getElementById('detailPartner')!.classList.toggle('hidden', !partner);
+        set('detailPartnerName', partner);
+
+        // Counts by band, which is also what the list page's tiles count.
+        const counts: Record<string, number> = { lapsed: 0, due: 0, active: 0, closed: 0, unknown: 0 };
+        for (const a of assets) counts[bandOf(a)]++;
+
+        const pill = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
+        const badges: string[] = [];
+        if (days === null) badges.push(`<span class="${pill} bg-slate-100 text-slate-700">No expiry date</span>`);
+        else if (days < 0) badges.push(`<span class="${pill} bg-red-100 text-red-800">Lapsed ${-days} days ago</span>`);
+        else if (days === 0) badges.push(`<span class="${pill} bg-red-100 text-red-800">Expires today</span>`);
+        else if (days <= LEAD_DAYS) badges.push(`<span class="${pill} bg-amber-100 text-amber-800">${days} days left</span>`);
+        else badges.push(`<span class="${pill} bg-emerald-100 text-emerald-800">${days} days left</span>`);
+
+        // An invoice can mix AMS-registered and computed products, so the source
+        // is only claimed when every product on it agrees.
+        const sources = new Set(assets.map((a) => String(a['Expiry Source'] ?? 'computed').toLowerCase()));
+        const soleSource = sources.size === 1 ? [...sources][0] : '';
+        badges.push(
+          soleSource === 'ams'
+            ? `<span class="${pill} bg-emerald-50 text-emerald-700 border border-emerald-200" title="Every product's expiry comes from the Yealink AMS registration date">AMS registered</span>`
+            : soleSource === 'manual'
+            ? `<span class="${pill} bg-blue-50 text-blue-700 border border-blue-200" title="Every end date on this invoice was entered by hand">Manual expiry</span>`
+            : soleSource === 'computed'
+            ? `<span class="${pill} bg-slate-50 text-slate-600 border border-slate-200" title="No AMS registration date on file — expiry is the start date plus the recorded term">Computed expiry</span>`
+            : `<span class="${pill} bg-slate-50 text-slate-600 border border-slate-200" title="Products on this invoice do not share one expiry source">Mixed sources</span>`,
+        );
+        if (f['Status']) {
+          badges.push(`<span class="${pill} bg-blue-50 text-blue-700 border border-blue-200">${esc(f['Status'])}</span>`);
+        }
+        (document.getElementById('detailBadges') as HTMLElement).innerHTML = badges.join('');
+
+        // Recolour the header icon to match the urgency the status badge states.
+        const icon = document.getElementById('headerIcon') as HTMLElement;
+        icon.className = 'w-14 h-14 bg-gradient-to-br rounded-xl flex items-center justify-center shadow-lg flex-shrink-0';
+        icon.classList.add(...(days === null ? ['from-slate-400', 'to-slate-500', 'shadow-slate-500/25']
+          : days < 0 ? ['from-red-500', 'to-red-600', 'shadow-red-500/25']
+          : days <= LEAD_DAYS ? ['from-amber-500', 'to-amber-600', 'shadow-amber-500/25']
+          : ['from-emerald-500', 'to-emerald-600', 'shadow-emerald-500/25']));
+
+        set('detailExpiry', next ? fmtDate(next.iso) : '—');
+        set('detailCountdown', days === null ? 'no date on file'
+          : days < 0 ? `${-days} days ago` : days === 0 ? 'today' : `in ${days} days`);
+        set('detailNextWhat', next
+          ? (next.assets.length === assets.length
+              ? `all ${assets.length} products`
+              : `${next.assets.length} of ${assets.length} products`)
+          : '');
+
+        // Cover mix — the per-invoice timeline was replaced by this, because a
+        // mixed-term invoice has several cover periods running at once.
+        const mix = document.getElementById('coverMix') as HTMLElement;
+        const bar = document.getElementById('coverBar') as HTMLElement;
+        const order: Band[] = ['lapsed', 'due', 'active', 'closed', 'unknown'];
+        const shown = order.filter((b) => counts[b] > 0);
+        mix.innerHTML = shown.length
+          ? shown.map((b) => `
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${BANDS[b].bg} ${BANDS[b].text}">
+                <span class="w-1.5 h-1.5 rounded-full ${BANDS[b].bar}"></span>
+                ${counts[b]} ${esc(BANDS[b].label.toLowerCase())}
+              </span>`).join('')
+          : '<span class="text-xs text-slate-400">No products recorded</span>';
+        bar.innerHTML = assets.length
+          ? shown.map((b) => `<div class="${BANDS[b].bar}" style="width:${(counts[b] / assets.length) * 100}%"></div>`).join('')
+          : '';
+
+        const computed = assets.filter((a) => String(a['Expiry Source'] ?? 'computed').toLowerCase() === 'computed').length;
+        document.getElementById('computedNotice')!.classList.toggle('hidden', computed === 0);
+        set('computedCount', computed === assets.length
+          ? `All ${computed} products`
+          : `${computed} of ${assets.length} products`);
+
+        // Invoice
+        set('fPartner', partner);
+        set('fInvoiceNo', f['Invoice No']);
+        set('fInvoiceDate', fmtDate(f['Invoice Date']));
+        set('fValue', fmtMoney(f['Value']));
+        set('fAssigned', f['Assigned To'] || 'Unassigned');
+
+        // Reminder — driven by the next product to expire, not by the invoice.
+        set('fReminderDue', nextDate
+          ? fmtDate(isoOf(new Date(nextDate.getTime() - LEAD_DAYS * 86400000)))
+          : '—');
+        set('fLastReminded', f['Last Reminded']
+          ? fmtDate(f['Last Reminded'])
+          : (days !== null && days <= LEAD_DAYS ? 'Not sent yet' : 'Not due yet'));
+        set('fStatus', f['Status']);
+        set('fSource', soleSource === 'ams' ? 'Yealink AMS registration'
+          : soleSource === 'manual' ? 'Entered by hand'
+          : soleSource === 'computed' ? 'Computed (start date + term)'
+          : 'Mixed across products');
+
+        serialsForCopy = assets.map((a) => a['Serial Number']).filter(Boolean);
+        (document.getElementById('copySerials') as HTMLButtonElement)
+          .classList.toggle('hidden', serialsForCopy.length === 0 || editing);
+      }
+
+      // --- editing ------------------------------------------------------------
+
+      const btnEdit = document.getElementById('editAssets') as HTMLButtonElement;
+      const btnAdd = document.getElementById('addAsset') as HTMLButtonElement;
+      const btnCancel = document.getElementById('cancelAssets') as HTMLButtonElement;
+      const btnSave = document.getElementById('saveAssets') as HTMLButtonElement;
+      const editHint = document.getElementById('editHint') as HTMLElement;
+      const saveError = document.getElementById('saveError') as HTMLElement;
+
+      function setEditing(on: boolean) {
+        editing = on;
+        btnEdit.classList.toggle('hidden', on);
+        btnAdd.classList.toggle('hidden', !on);
+        btnCancel.classList.toggle('hidden', !on);
+        btnSave.classList.toggle('hidden', !on);
+        editHint.classList.toggle('hidden', !on);
+        saveError.classList.add('hidden');
+        renderAssets();
+        renderSummary();
+      }
+
+      btnEdit.addEventListener('click', () => {
+        draft = assets.map((a) => ({ ...a }));
+        removed = [];
+        setEditing(true);
+      });
+
+      btnCancel.addEventListener('click', () => {
+        draft = [];
+        removed = [];
+        setEditing(false);
+      });
+
+      btnAdd.addEventListener('click', () => {
+        const f = parent.fields || {};
+        // A new product inherits the invoice's own dates, which is right far more
+        // often than a blank row and is what the existing products all did.
+        const start = dateInputValue(f['Invoice Date']);
+        draft.push({
+          Id: null,
+          'Model': '',
+          'Serial Number': '',
+          'Start Date': start,
+          'Term Years': 2,
+          'End Date': start ? addYears(start, 2) : '',
+          'Expiry Source': 'computed',
+          'Status': 'Active',
+        });
+        renderAssets();
+        const rows = document.querySelectorAll('#assetBody tr');
+        (rows[rows.length - 1]?.querySelector('input') as HTMLInputElement)?.focus();
+      });
+
+      const body = document.getElementById('assetBody') as HTMLTableSectionElement;
+
+      body.addEventListener('click', (e) => {
+        const btn = (e.target as HTMLElement).closest('[data-remove]') as HTMLElement | null;
+        if (!btn || !editing) return;
+        const i = Number(btn.dataset.remove);
+        const row = draft[i];
+        if (row?.Id) removed.push(row);
+        draft.splice(i, 1);
+        renderAssets();
+      });
+
+      /**
+       * Term and end date are two views of the same fact, so editing either one
+       * updates the other. Typing an end date directly wins outright and is kept
+       * as "manual" — otherwise a later recompute would silently move it.
+       */
+      body.addEventListener('input', (e) => {
+        if (!editing) return;
+        const input = e.target as HTMLInputElement;
+        const field = input.dataset.f;
+        const tr = input.closest('tr') as HTMLTableRowElement | null;
+        if (!field || !tr) return;
+
+        const row = draft[Number(tr.dataset.row)];
+        if (!row) return;
+
+        if (field === 'Term Years') {
+          row['Term Years'] = input.value === '' ? null : Number(input.value);
+        } else {
+          row[field] = input.value;
+        }
+
+        const endInput = tr.querySelector('[data-f="End Date"]') as HTMLInputElement;
+
+        if (field === 'End Date') {
+          row['Expiry Source'] = 'manual';
+          // Keep the term honest: show it when the typed date happens to be a
+          // round number of years, blank it when it is not.
+          const term = termBetween(dateInputValue(row['Start Date']), input.value);
+          row['Term Years'] = term;
+          const termSel = tr.querySelector('[data-f="Term Years"]') as HTMLSelectElement;
+          termSel.innerHTML = termOptions(term);
+          return;
+        }
+
+        if (field === 'Start Date' || field === 'Term Years') {
+          const years = row['Term Years'];
+          if (row['Start Date'] && years !== null && years !== undefined && years !== '') {
+            const end = addYears(dateInputValue(row['Start Date']), Number(years));
+            if (end) {
+              row['End Date'] = end;
+              endInput.value = end;
+              // An AMS date is a portal fact; recomputing from a term replaces it.
+              if (String(row['Expiry Source'] ?? '') !== 'manual') row['Expiry Source'] = 'computed';
+            }
+          }
+        }
+      });
+
+      body.addEventListener('change', (e) => {
+        if (!editing) return;
+        const sel = e.target as HTMLSelectElement;
+        if (sel.tagName !== 'SELECT' || sel.dataset.f !== 'Status') return;
+        const tr = sel.closest('tr') as HTMLTableRowElement;
+        const row = draft[Number(tr.dataset.row)];
+        if (row) row['Status'] = sel.value;
+      });
+
+      /** Fields the asset table owns; anything else on the row is left alone. */
+      const EDITABLE = ['Model', 'Serial Number', 'Start Date', 'Term Years', 'End Date', 'Expiry Source', 'Status'];
+
+      function changed(before: any, after: any): boolean {
+        return EDITABLE.some((k) => {
+          const a = k.endsWith('Date') ? dateInputValue(before?.[k]) : (before?.[k] ?? '');
+          const b = k.endsWith('Date') ? dateInputValue(after?.[k]) : (after?.[k] ?? '');
+          return String(a ?? '') !== String(b ?? '');
+        });
+      }
+
+      function fieldsOf(row: any) {
+        const f = parent.fields || {};
+        return {
+          'Title': [row['Model'], row['Serial Number']].filter(Boolean).join(' ') || '(unnamed asset)',
+          'Warranty Id': Number(id),
+          'Invoice No': f['Invoice No'] || '',
+          'Customer Name': f['Customer Name'] || '',
+          'Model': row['Model'] || '',
+          'Serial Number': row['Serial Number'] || '',
+          'Start Date': dateInputValue(row['Start Date']) || null,
+          'Term Years': row['Term Years'] === '' || row['Term Years'] === undefined ? null : row['Term Years'],
+          'End Date': dateInputValue(row['End Date']) || null,
+          'Expiry Source': row['Expiry Source'] || 'computed',
+          'Status': row['Status'] || 'Active',
+          'Assigned To': f['Assigned To'] || null,
+        };
+      }
+
+      async function send(method: string, path: string, body: any) {
+        const res = await fetch(`${API_BASE_URL}${path}`, {
+          method,
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (res.status === 401) { logout(); throw new Error('Session expired'); }
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`${method} ${path} failed (HTTP ${res.status}) ${text.slice(0, 200)}`);
+        }
+        return res;
+      }
+
+      btnSave.addEventListener('click', async () => {
+        saveError.classList.add('hidden');
+
+        const blank = draft.findIndex((r) => !String(r['Model'] ?? '').trim() && !String(r['Serial Number'] ?? '').trim());
+        if (blank >= 0) {
+          saveError.textContent = `Row ${blank + 1} has neither a model nor a serial number. Fill one in, or remove the row.`;
+          saveError.classList.remove('hidden');
+          return;
+        }
+
+        btnSave.disabled = true;
+        btnSave.textContent = 'Saving...';
+
+        try {
+          const byId = new Map(assets.map((a) => [a.Id, a]));
+
+          for (const row of draft) {
+            if (!row.Id) {
+              await send('POST', '/proxy/warranty_assets/records', { fields: fieldsOf(row) });
+            } else if (changed(byId.get(row.Id), row)) {
+              // NocoDB v3 has no PATCH /records/{id} either; the id rides in the body.
+              await send('PATCH', '/proxy/warranty_assets/records', { id: row.Id, fields: fieldsOf(row) });
+            }
+          }
+          for (const row of removed) {
+            // NocoDB v3 has no DELETE /records/{id}; the id goes in the body.
+            await send('DELETE', '/proxy/warranty_assets/records', { id: row.Id });
+          }
+
+          await loadAssets();
+          await syncParent();
+
+          draft = [];
+          removed = [];
+          setEditing(false);
+        } catch (err) {
+          saveError.textContent = err instanceof Error ? err.message : 'Could not save the changes.';
+          saveError.classList.remove('hidden');
+        } finally {
+          btnSave.disabled = false;
+          btnSave.textContent = 'Save changes';
+        }
+      });
+
+      /**
+       * Push what the products now say back onto the parent row. The parent's
+       * Expiry Date is the soonest end date still in force — the scheduler, the
+       * list page and the dashboard all still read it, so it is written here
+       * rather than left to drift. "Assets" is kept as a readable mirror because
+       * the reminder email renders it.
+       */
+      async function syncParent() {
+        const next = nextExpiry(assets);
+        const sources = new Set(assets.map((a) => String(a['Expiry Source'] ?? 'computed').toLowerCase()));
+        // The parent's own select only knows ams and computed, and its expiry is
+        // literally the soonest product's, so it inherits that product's source.
+        const leadSource = next?.assets[0]
+          ? String(next.assets[0]['Expiry Source'] ?? 'computed').toLowerCase()
+          : [...sources][0] || 'computed';
+
+        const fields: Record<string, any> = {
+          'Expiry Date': next ? next.iso : null,
+          'Asset Count': assets.length,
+          'Assets': assets.map((a) => [a['Model'], a['Serial Number']].filter(Boolean).join(' ')).join('; '),
+          'Expiry Source': leadSource === 'ams' ? 'ams' : 'computed',
+        };
+
+        await send('PATCH', '/proxy/warranty_reminders/records', { id: Number(id), fields });
+        parent.fields = { ...parent.fields, ...fields };
+        renderSummary();
+      }
+
+      const copyBtn = document.getElementById('copySerials') as HTMLButtonElement;
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(serialsForCopy.join('\n'));
+          copyBtn.textContent = `Copied ${serialsForCopy.length}`;
+        } catch {
+          copyBtn.textContent = 'Copy failed';
+        }
+        setTimeout(() => { copyBtn.textContent = 'Copy serials'; }, 1500);
+      });
+
+      // --- loading ------------------------------------------------------------
+
+      async function loadAssets() {
+        const where = `(Warranty Id,eq,${Number(id)})`;
+        const res = await fetch(
+          `${API_BASE_URL}/proxy/warranty_assets/records?where=${encodeURIComponent(where)}&limit=1000`,
+          { headers: { 'Authorization': `Bearer ${token}` } },
+        );
+        if (res.status === 401) { logout(); return; }
+        if (!res.ok) throw new Error(`Failed to load covered products (HTTP ${res.status})`);
+        const data = await safeJsonParse(res);
+        const rows = data.records || data.list || [];
+        // The proxy returns either bare rows or {fields}, depending on the route.
+        assets = rows.map((r: any) => (r.fields ? { Id: r.Id ?? r.id ?? r.fields.Id, ...r.fields } : r));
+        // Soonest first, so the row that drives the invoice's expiry is at the top.
+        assets.sort((a, b) => String(dateInputValue(a['End Date'])).localeCompare(String(dateInputValue(b['End Date']))));
+      }
+
+      async function loadRecord() {
+        if (!id) {
+          showError('No cover record specified. Open this page from the Warranty & AMC list.');
+          return;
+        }
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/proxy/warranty_reminders/records/${encodeURIComponent(id)}`,
+            { headers: { 'Authorization': `Bearer ${token}` } },
+          );
+          if (res.status === 401) { logout(); return; }
+          if (res.status === 403 || res.status === 404) {
+            showError('That cover record was not found, or you do not have access to it.');
+            return;
+          }
+          if (!res.ok) throw new Error(`Failed to load cover record (HTTP ${res.status})`);
+
+          const data = await safeJsonParse(res);
+          // By-id reads pass straight through to NocoDB, which returns the row
+          // itself; fall back to a list shape in case that ever changes.
+          const record = data?.fields ? data : (data?.records?.[0] || null);
+          if (!record) {
+            showError('That cover record was not found.');
+            return;
+          }
+          parent = record;
+
+          await loadAssets();
+          renderSummary();
+          renderAssets();
+
+          pageLoading.classList.add('hidden');
+          pageContent.classList.remove('hidden');
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'Failed to load cover record');
+        }
+      }
+
+      loadRecord();
+    });
+  </script>
+</AdminLayout>

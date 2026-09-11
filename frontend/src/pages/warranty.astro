@@ -30,20 +30,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     <button data-band="lapsed" class="tile text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-red-300 transition-colors">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lapsed</div>
       <div class="mt-1 text-2xl font-semibold text-red-600" id="tileLapsed">–</div>
-      <div class="text-xs text-slate-500 mt-0.5">cover already ended</div>
+      <div class="text-xs text-slate-500 mt-0.5">products already out of cover</div>
     </button>
     <button data-band="due" class="tile text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-amber-300 transition-colors">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Expiring soon</div>
       <div class="mt-1 text-2xl font-semibold text-amber-600" id="tileDue">–</div>
-      <div class="text-xs text-slate-500 mt-0.5">within 60 days</div>
+      <div class="text-xs text-slate-500 mt-0.5">products within 60 days</div>
     </button>
     <button data-band="active" class="tile text-left bg-white rounded-xl border border-slate-200 p-4 hover:border-emerald-300 transition-colors">
       <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active</div>
       <div class="mt-1 text-2xl font-semibold text-emerald-600" id="tileActive">–</div>
-      <div class="text-xs text-slate-500 mt-0.5">more than 60 days left</div>
+      <div class="text-xs text-slate-500 mt-0.5">products with 60+ days left</div>
     </button>
     <div class="bg-white rounded-xl border border-slate-200 p-4">
-      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Assets covered</div>
+      <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Products covered</div>
       <div class="mt-1 text-2xl font-semibold text-slate-800" id="tileAssets">–</div>
       <div class="text-xs text-slate-500 mt-0.5" id="tileValue">&nbsp;</div>
     </div>
@@ -76,6 +76,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <option value="">Any expiry source</option>
         <option value="ams">AMS registered (exact)</option>
         <option value="computed">Computed (may be early)</option>
+        <option value="manual">Entered by hand</option>
       </select>
 
       <select id="sortBy" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[180px]">
@@ -135,9 +136,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <th class="px-3 py-3"></th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">CUSTOMER</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">LOCATION</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">EXPIRES</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">NEXT EXPIRY</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">STATUS</th>
-            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">ASSETS</th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">PRODUCTS</th>
             <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">VALUE</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">EXPIRY SOURCE</th>
           </tr>
@@ -192,7 +193,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const resetBtn = document.getElementById('resetFilters') as HTMLButtonElement;
 
       let allRecords: any[] = [];
-      const expanded = new Set<string>();
+      // Warranty Id -> what its product rows add up to. Cover runs per product,
+      // so nothing on this page reads the parent's own Expiry Date directly.
+      let rollups = new Map<string, any>();
+
+      const CLOSED = new Set(['renewed', 'replaced']);
 
       // Dashboard panels deep-link in as /warranty?band=lapsed|due|active.
       const initialBand = new URLSearchParams(window.location.search).get('band') || '';
@@ -222,6 +227,46 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return 'active';
       }
 
+      /**
+       * Roll a record's product rows up into the one shape this page renders:
+       * the next date to expire, how many products sit in each band, and whether
+       * they agree on where their expiry came from.
+       *
+       * "Renewed" and "Replaced" products are excluded from the next-expiry date
+       * — their old end date has stopped meaning anything and would otherwise
+       * hold the whole invoice in the lapsed band forever.
+       */
+      function rollupOf(id: string, assets: any[]) {
+        const counts: Record<string, number> = { lapsed: 0, due: 0, active: 0, closed: 0 };
+        const sources = new Set<string>();
+        let next: string | null = null;
+
+        for (const a of assets) {
+          sources.add(String(a['Expiry Source'] ?? 'computed').toLowerCase());
+          const end = a['End Date'] ? String(a['End Date']).slice(0, 10) : '';
+          if (CLOSED.has(String(a['Status'] ?? '').toLowerCase())) { counts.closed++; continue; }
+          counts[bandOf(daysLeft(end))]++;
+          if (end && (next === null || end < next)) next = end;
+        }
+        return { id, assets, counts, sources, next, total: assets.length };
+      }
+
+      /** Falls back to the parent row while a record has no product rows yet. */
+      function rollupFor(record: any) {
+        const hit = rollups.get(String(record.id));
+        if (hit) return hit;
+        const f = record.fields || {};
+        const end = f['Expiry Date'] ? String(f['Expiry Date']).slice(0, 10) : '';
+        const counts: Record<string, number> = { lapsed: 0, due: 0, active: 0, closed: 0 };
+        const n = parseInt(String(f['Asset Count'] ?? '0')) || 0;
+        counts[bandOf(daysLeft(end))] = n;
+        return {
+          id: String(record.id), assets: [], counts,
+          sources: new Set([String(f['Expiry Source'] ?? 'computed').toLowerCase()]),
+          next: end || null, total: n,
+        };
+      }
+
       function fmtDate(iso: string): string {
         if (!iso) return '—';
         const d = new Date(iso);
@@ -244,56 +289,45 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return `<span class="${base} bg-emerald-100 text-emerald-800">${days}d left</span>`;
       }
 
-      // 13 of the 18 backfilled rows have no Yealink AMS registration date, so their
-      // expiry is invoice + 2 years and can be months early. Say so on the row rather
-      // than presenting a guess as a fact.
-      function sourceCell(src: string): string {
+      // Most backfilled products have no Yealink AMS registration date, so their
+      // expiry is the invoice date plus the recorded term and can be months early.
+      // Say so on the row rather than presenting a guess as a fact — and say
+      // "Mixed" rather than picking a side when the products disagree.
+      function sourceCell(sources: Set<string>): string {
         const base = 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border';
-        if (String(src).toLowerCase() === 'ams') {
+        if (sources.size > 1) {
+          return `<span class="${base} bg-slate-50 text-slate-600 border-slate-200" title="Products on this invoice do not share one expiry source — open the record to see which is which">Mixed</span>`;
+        }
+        const src = [...sources][0] || 'computed';
+        if (src === 'ams') {
           return `<span class="${base} bg-emerald-50 text-emerald-700 border-emerald-200" title="Expiry taken from the Yealink AMS registration date">AMS registered</span>`;
         }
-        return `<span class="${base} bg-slate-50 text-slate-600 border-slate-200" title="No AMS registration date on file — expiry is invoice + 2 years and may be up to 6 months early">Computed</span>`;
+        if (src === 'manual') {
+          return `<span class="${base} bg-blue-50 text-blue-700 border-blue-200" title="End dates on this invoice were entered by hand">Manual</span>`;
+        }
+        return `<span class="${base} bg-slate-50 text-slate-600 border-slate-200" title="No AMS registration date on file — expiry is the start date plus the recorded term and may be up to 6 months early">Computed</span>`;
       }
 
-      /** "MODEL serial; MODEL serial" -> one chip per asset. */
-      function assetChips(assets: string): string {
-        const parts = String(assets || '').split(';').map((s) => s.trim()).filter(Boolean);
-        if (!parts.length) return '<span class="text-sm text-slate-400 italic">No serials recorded</span>';
-        return parts.map((p) =>
-          `<span class="inline-block px-2 py-1 rounded bg-white border border-slate-200 text-xs font-mono text-slate-700">${esc(p)}</span>`
-        ).join(' ');
+      /** "3 of 10 expiring" — only worth saying when the invoice is not uniform. */
+      function mixNote(r: any): string {
+        const live = r.counts.lapsed + r.counts.due + r.counts.active;
+        if (!r.total || live === 0) return '';
+        if (r.counts.lapsed === live) return '';
+        if (r.counts.due === live) return '';
+        const parts: string[] = [];
+        if (r.counts.lapsed) parts.push(`${r.counts.lapsed} lapsed`);
+        if (r.counts.due) parts.push(`${r.counts.due} expiring`);
+        if (!parts.length) return '';
+        return `<div class="text-xs text-slate-400 mt-1">${parts.join(', ')} of ${r.total}</div>`;
       }
 
-      function detailPanel(f: any, days: number | null): string {
-        const reminded = f['Last Reminded']
-          ? `Reminder sent ${fmtDate(f['Last Reminded'])}`
-          : (days !== null && days <= LEAD_DAYS ? 'No reminder sent yet' : '');
-        return `
-          <div class="px-4 py-4 bg-slate-50 border-t border-slate-200">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-              <div>
-                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice No</div>
-                <div class="text-sm text-slate-800 mt-0.5">${esc(f['Invoice No'] || '—')}</div>
-              </div>
-              <div>
-                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice Date</div>
-                <div class="text-sm text-slate-800 mt-0.5">${fmtDate(f['Invoice Date'])}</div>
-              </div>
-              <div>
-                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Assigned To</div>
-                <div class="text-sm text-slate-800 mt-0.5">${esc(f['Assigned To'] || 'Unassigned')}</div>
-              </div>
-              <div>
-                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reminder</div>
-                <div class="text-sm text-slate-800 mt-0.5">${esc(reminded || '—')}</div>
-              </div>
-            </div>
-            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-              Serial numbers (${esc(f['Asset Count'] ?? 0)})
-            </div>
-            <div class="flex flex-wrap gap-1.5">${assetChips(f['Assets'])}</div>
-          </div>
-        `;
+      /**
+       * Each row opens its own record page. The current band travels with it so
+       * the detail page's Back link returns to the same filtered view.
+       */
+      function detailHref(id: string): string {
+        const band = bandFilter.value;
+        return `/warranty-detail?id=${encodeURIComponent(id)}${band ? `&band=${encodeURIComponent(band)}` : ''}`;
       }
 
       function applyFilters() {
@@ -309,18 +343,22 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               .map((v) => String(v ?? '').toLowerCase()).join(' ');
             if (!hay.includes(search)) return false;
           }
-          if (band && bandOf(daysLeft(f['Expiry Date'])) !== band) return false;
-          if (source && String(f['Expiry Source'] ?? '').toLowerCase() !== source) return false;
+          const r = rollupFor(record);
+          // An invoice matches a band when it CONTAINS a product in that band —
+          // a mixed invoice legitimately appears under more than one tile.
+          if (band && !r.counts[band]) return false;
+          if (source && !r.sources.has(source)) return false;
           return true;
         });
 
         filtered = [...filtered].sort((a, b) => {
           const af = a.fields || {}, bf = b.fields || {};
+          const an = rollupFor(a).next || '', bn = rollupFor(b).next || '';
           switch (sort) {
-            case 'expiry-desc':  return String(bf['Expiry Date'] || '').localeCompare(String(af['Expiry Date'] || ''));
+            case 'expiry-desc':  return bn.localeCompare(an);
             case 'value-desc':   return (parseFloat(bf['Value']) || 0) - (parseFloat(af['Value']) || 0);
             case 'customer-asc': return String(af['Customer Name'] || '').localeCompare(String(bf['Customer Name'] || ''));
-            default:             return String(af['Expiry Date'] || '').localeCompare(String(bf['Expiry Date'] || ''));
+            default:             return an.localeCompare(bn);
           }
         });
 
@@ -328,15 +366,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         renderTable(filtered);
       }
 
+      /**
+       * The tiles count PRODUCTS, not invoices. An invoice that mixes 1/3/5-year
+       * terms sits in several bands at once and cannot be counted into one tile;
+       * a product is in exactly one band, so these numbers always add up.
+       */
       function renderSummary() {
         let lapsed = 0, due = 0, active = 0, assets = 0, value = 0;
         for (const r of allRecords) {
           const f = r.fields || {};
-          const band = bandOf(daysLeft(f['Expiry Date']));
-          if (band === 'lapsed') lapsed++;
-          else if (band === 'due') due++;
-          else active++;
-          assets += parseInt(String(f['Asset Count'] ?? '0')) || 0;
+          const roll = rollupFor(r);
+          lapsed += roll.counts.lapsed;
+          due += roll.counts.due;
+          active += roll.counts.active;
+          assets += roll.total;
           value += parseFloat(String(f['Value'] ?? '0')) || 0;
         }
         (document.getElementById('tileLapsed') as HTMLElement).textContent = String(lapsed);
@@ -364,67 +407,64 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         warrantyBody.innerHTML = records.map((record) => {
           const f = record.fields || {};
           const id = String(record.id);
-          const days = daysLeft(f['Expiry Date']);
-          const isOpen = expanded.has(id);
+          const href = detailHref(id);
+          const roll = rollupFor(record);
+          const days = daysLeft(roll.next || '');
           const accent = days === null ? 'border-l-4 border-l-transparent'
             : days < 0 ? 'border-l-4 border-l-red-400'
             : days <= LEAD_DAYS ? 'border-l-4 border-l-amber-400'
             : 'border-l-4 border-l-transparent';
 
           return `
-            <tr data-row-id="${esc(id)}" class="row-toggle cursor-pointer transition-colors hover:bg-slate-50 ${accent}">
-              <td class="px-3 py-4 text-slate-400">
-                <svg class="w-4 h-4 transition-transform ${isOpen ? 'rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <tr data-href="${esc(href)}" class="row-link cursor-pointer transition-colors hover:bg-slate-50 ${accent}">
+              <td class="px-3 py-4 text-slate-300">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
               </td>
-              <td class="px-4 py-4 text-sm font-medium text-slate-900 truncate max-w-0">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</td>
+              <td class="px-4 py-4 text-sm font-medium truncate max-w-0">
+                <a href="${esc(href)}" class="text-slate-900 hover:text-blue-700 hover:underline">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</a>
+              </td>
               <td class="px-4 py-4 text-sm text-slate-600 truncate max-w-0">${esc(f['Location'] || '—')}</td>
-              <td class="px-4 py-4 text-sm text-slate-700 whitespace-nowrap">${fmtDate(f['Expiry Date'])}</td>
-              <td class="px-4 py-4 whitespace-nowrap">${statusCell(days)}</td>
-              <td class="px-4 py-4 text-sm text-slate-600">${esc(f['Asset Count'] ?? 0)}</td>
+              <td class="px-4 py-4 text-sm text-slate-700 whitespace-nowrap">${fmtDate(roll.next || '')}</td>
+              <td class="px-4 py-4 whitespace-nowrap align-top">${statusCell(days)}${mixNote(roll)}</td>
+              <td class="px-4 py-4 text-sm text-slate-600">${esc(roll.total)}</td>
               <td class="px-4 py-4 text-sm text-slate-700 text-right whitespace-nowrap">${fmtMoney(f['Value'])}</td>
-              <td class="px-4 py-4 whitespace-nowrap">${sourceCell(f['Expiry Source'])}</td>
-            </tr>
-            <tr data-detail-for="${esc(id)}" class="${isOpen ? '' : 'hidden'}">
-              <td colspan="8" class="p-0">${detailPanel(f, days)}</td>
+              <td class="px-4 py-4 whitespace-nowrap">${sourceCell(roll.sources)}</td>
             </tr>
           `;
         }).join('');
 
         warrantyMobileList.innerHTML = records.map((record) => {
           const f = record.fields || {};
-          const id = String(record.id);
-          const days = daysLeft(f['Expiry Date']);
-          const isOpen = expanded.has(id);
+          const href = detailHref(String(record.id));
+          const roll = rollupFor(record);
+          const days = daysLeft(roll.next || '');
           return `
-            <div>
-              <div data-row-id="${esc(id)}" class="row-toggle p-4 cursor-pointer hover:bg-slate-50 transition-colors">
-                <div class="flex items-start justify-between gap-2 mb-1">
-                  <div class="text-sm font-semibold text-slate-900 flex-1 min-w-0">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</div>
-                  ${statusCell(days)}
-                </div>
-                <div class="text-xs text-slate-500 mb-1">
-                  ${esc(f['Location'] || '')}${f['Location'] ? ' · ' : ''}expires ${fmtDate(f['Expiry Date'])}
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-sm text-slate-700">${esc(f['Asset Count'] ?? 0)} asset(s)</span>
-                  <span class="text-sm text-slate-500">${fmtMoney(f['Value'])}</span>
-                  ${sourceCell(f['Expiry Source'])}
-                </div>
+            <a href="${esc(href)}" class="block p-4 hover:bg-slate-50 transition-colors">
+              <div class="flex items-start justify-between gap-2 mb-1">
+                <div class="text-sm font-semibold text-slate-900 flex-1 min-w-0">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</div>
+                ${statusCell(days)}
               </div>
-              <div data-detail-for="${esc(id)}" class="${isOpen ? '' : 'hidden'}">${detailPanel(f, days)}</div>
-            </div>
+              <div class="text-xs text-slate-500 mb-1">
+                ${esc(f['Location'] || '')}${f['Location'] ? ' · ' : ''}next expiry ${fmtDate(roll.next || '')}
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm text-slate-700">${esc(roll.total)} product(s)</span>
+                <span class="text-sm text-slate-500">${fmtMoney(f['Value'])}</span>
+                ${sourceCell(roll.sources)}
+              </div>
+              ${mixNote(roll)}
+            </a>
           `;
         }).join('');
 
-        document.querySelectorAll<HTMLElement>('.row-toggle').forEach((el) => {
-          el.addEventListener('click', () => {
-            const id = el.dataset.rowId || '';
-            if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
-            document.querySelectorAll<HTMLElement>(`[data-detail-for="${CSS.escape(id)}"]`)
-              .forEach((d) => d.classList.toggle('hidden'));
-            el.querySelector('svg')?.classList.toggle('rotate-90');
+        // Whole-row click, but let the customer-name anchor handle its own
+        // clicks so middle-click and ctrl-click still open a new tab.
+        document.querySelectorAll<HTMLElement>('.row-link').forEach((el) => {
+          el.addEventListener('click', (event) => {
+            if ((event.target as HTMLElement).closest('a')) return;
+            window.location.href = el.dataset.href || '';
           });
         });
 
@@ -451,6 +491,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const data = await safeJsonParse(response);
           allRecords = data.records || [];
 
+          await loadAssets();
+
           loadingDiv.classList.add('hidden');
           applyFilters();
         } catch (error) {
@@ -458,6 +500,35 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           (document.getElementById('errorText') as HTMLElement).textContent =
             error instanceof Error ? error.message : 'Failed to load cover records';
           errorDiv.classList.remove('hidden');
+        }
+      }
+
+      /**
+       * Every product row in one read, grouped by parent. The proxy paginates for
+       * us, and the whole table is small enough that per-invoice queries would
+       * only add round trips. A failure here is not fatal: rollupFor() falls back
+       * to the parent row, so the page still renders the old per-invoice numbers.
+       */
+      async function loadAssets() {
+        try {
+          const res = await fetch(`${API_BASE_URL}/proxy/warranty_assets/records?limit=1000`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (!res.ok) return;
+          const data = await safeJsonParse(res);
+          const rows = (data.records || data.list || [])
+            .map((r: any) => (r.fields ? { Id: r.Id ?? r.id, ...r.fields } : r));
+
+          const byParent = new Map<string, any[]>();
+          for (const a of rows) {
+            const key = String(a['Warranty Id'] ?? '');
+            if (!key) continue;
+            if (!byParent.has(key)) byParent.set(key, []);
+            byParent.get(key)!.push(a);
+          }
+          rollups = new Map([...byParent].map(([k, v]) => [k, rollupOf(k, v)]));
+        } catch {
+          rollups = new Map();
         }
       }
 

@@ -13,6 +13,12 @@ services:
       - DATABASE_PATH=/app/data/users.db
       - LOG_DIR=/app/logs
       - PROXY_CONFIG_PATH=/app/config/proxy.yaml
+      # Warranty-reminder emails are sent by the Go proxy, not the frontend,
+      # so it needs the same Resend credentials the frontend container gets.
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - EMAIL_FROM_ADMIN=${EMAIL_FROM_ADMIN}
+      - APP_BASE_URL=${APP_BASE_URL}
     volumes:
       - ./data/db:/app/data
       - ./data/logs:/app/logs
