@@ -25,9 +25,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     <!-- Account Form -->
     <form id="accountForm" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm">
-      <!-- Basic Information -->
+      <!-- Account details: the company this record represents -->
       <div class="p-6 border-b border-slate-200">
-        <h2 class="text-lg font-semibold text-slate-800 mb-4">Basic Information</h2>
+        <h2 class="text-lg font-semibold text-slate-800">Account Details</h2>
+        <p class="text-sm text-slate-500 mt-0.5 mb-4">The organisation this account represents. The account name is what appears on quotes.</p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="md:col-span-2">
             <label for="accountName" class="block text-sm font-medium text-slate-700 mb-1">
@@ -40,33 +41,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               required
               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter account name"
-            />
-          </div>
-
-          <div>
-            <label for="companyName" class="block text-sm font-medium text-slate-700 mb-1">
-              Company Name
-            </label>
-            <input
-              type="text"
-              id="companyName"
-              name="companyName"
-              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter company name"
-            />
-          </div>
-
-          <div>
-            <label for="phone" class="block text-sm font-medium text-slate-700 mb-1">
-              Phone <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              required
-              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter phone number"
             />
           </div>
 
@@ -84,15 +58,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </div>
 
           <div>
-            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">
-              Email
+            <label for="industry" class="block text-sm font-medium text-slate-700 mb-1">
+              Industry
             </label>
             <input
-              type="email"
-              id="email"
-              name="email"
+              type="text"
+              id="industry"
+              name="industry"
               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Enter email address"
+              placeholder="e.g., Technology, Finance"
             />
           </div>
 
@@ -106,19 +80,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               name="website"
               class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="https://example.com"
-            />
-          </div>
-
-          <div>
-            <label for="industry" class="block text-sm font-medium text-slate-700 mb-1">
-              Industry
-            </label>
-            <input
-              type="text"
-              id="industry"
-              name="industry"
-              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="e.g., Technology, Finance"
             />
           </div>
 
@@ -148,6 +109,53 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             >
               <option value="">Unassigned</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact person -->
+      <div class="p-6 border-b border-slate-200 bg-slate-50/60">
+        <h2 class="text-lg font-semibold text-slate-800">Primary Contact</h2>
+        <p class="text-sm text-slate-500 mt-0.5 mb-4">The person you deal with on this account. Everyone else lives on the Contacts page.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <label for="contactName" class="block text-sm font-medium text-slate-700 mb-1">
+              Contact Name
+            </label>
+            <input
+              type="text"
+              id="contactName"
+              name="contactName"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter contact person's name"
+            />
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-slate-700 mb-1">
+              Phone <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              required
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter email address"
+            />
           </div>
         </div>
       </div>
@@ -270,6 +278,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       `${window.location.protocol}//${window.location.hostname}:8082`;
     const urlParams = new URLSearchParams(window.location.search);
     const accountId = urlParams.get('id');
+    let companyMirrorsAccount = false;
 
     function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
       const container = document.getElementById('toastContainer')!;
@@ -319,7 +328,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       if (!token) { window.location.href = '/login'; return; }
 
       try {
-        const fields = 'Account Name,Company Name,Phone Number,GST No,Email 1,Website,Industry,Account Type,Handled By,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Shipping Street,Shipping City,Shipping State,Shipping Code,Shipping Country,Employees,Annual Revenue,Description';
+        const fields = 'Account Name,Company Name,Primary Contact,Phone Number,GST No,Email 1,Website,Industry,Account Type,Handled By,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Shipping Street,Shipping City,Shipping State,Shipping Code,Shipping Country,Employees,Annual Revenue,Description';
         const response = await fetch(
           `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=${encodeURIComponent(fields)}`,
           { headers: { 'Authorization': `Bearer ${token}` } }
@@ -332,8 +341,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const f = data.fields || {};
 
         // Pre-fill all fields
+        // "Company Name" is what quote search and the quote's bill-to read. On
+        // accounts created since the form split it simply mirrors the account
+        // name; on imported ones it is the real, separately-typed company. Only
+        // the mirrored kind is kept in step when the account is renamed.
+        companyMirrorsAccount =
+          (f['Company Name'] || '').trim() === (f['Account Name'] || '').trim();
+
         (document.getElementById('accountName') as HTMLInputElement).value   = f['Account Name'] || '';
-        (document.getElementById('companyName') as HTMLInputElement).value   = f['Company Name'] || '';
+        (document.getElementById('contactName') as HTMLInputElement).value   = f['Primary Contact'] || '';
         (document.getElementById('phone') as HTMLInputElement).value         = f['Phone Number'] || '';
         (document.getElementById('gstNo') as HTMLInputElement).value         = f['GST No'] || '';
         (document.getElementById('email') as HTMLInputElement).value         = f['Email 1'] || '';
@@ -416,7 +432,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         id: parseInt(accountId!),
         fields: {
           'Account Name':    formData.get('accountName'),
-          'Company Name':    formData.get('companyName') || '',
+          'Company Name':    companyMirrorsAccount ? formData.get('accountName') : undefined,
+          'Primary Contact': formData.get('contactName') || '',
           'Phone Number':    formData.get('phone'),
           'GST No':          formData.get('gstNo'),
           'Email 1':         formData.get('email') || '',

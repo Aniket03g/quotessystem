@@ -262,7 +262,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               </div>
             </div>
             <div class="group">
-              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Company Name</label>
+              <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-2">Contact Name</label>
               <div class="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-blue-300 transition-colors">
                 <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
@@ -455,7 +455,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           return;
         }
 
-        const fields = 'Account Name,Phone Number,Industry,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Company Name,Website,GST No,Handled By';
+        const fields = 'Account Name,Phone Number,Industry,Billing Street,Billing City,Billing State,Billing Code,Billing Country,Company Name,Primary Contact,Website,GST No,Handled By';
         const url = `${API_BASE_URL}/proxy/accounts_duplicate/records/${accountId}?fields=${encodeURIComponent(fields)}`;
         
         console.log('[ACCOUNT DETAIL] ========================================');
@@ -493,7 +493,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const accountName = data.fields?.['Account Name'] || 'Unknown Account';
         const accountIndustry = data.fields?.['Industry'] || '';
         const accountPhone = data.fields?.['Phone Number'] || '-';
-        const accountCompany = data.fields?.['Company Name'] || '-';
+        // The contact person. Deliberately NOT falling back to "Company Name" —
+        // on imported accounts that field holds a company, not a person.
+        const accountCompany = data.fields?.['Primary Contact'] || '-';
         const accountWebsite = data.fields?.['Website'] || '-';
         const accountGstNo = data.fields?.['GST No'] || '-';
         
