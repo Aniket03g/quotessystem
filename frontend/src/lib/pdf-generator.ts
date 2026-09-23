@@ -530,13 +530,13 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
           '1. Order to be placed on: Grove Systems Pvt. Ltd., F-85, Okhla Industrial Area, Phase III, New Delhi - 110020.',
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
-          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', `6. ${validityTerm}`] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651', `5. ${validityTerm}`]),
+          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - HDFC Bank, Account No- 50200122562409, IFSC Code- HDFC0003878', `6. ${validityTerm}`] : ['4. Bank Details - HDFC Bank, Account No- 50200122562409, IFSC Code- HDFC0003878', `5. ${validityTerm}`]),
         ]
       : [
           '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.',
           `2. Delivery Terms - ${deliveryTerms}`,
           `3. Payment Terms - ${paymentTerms}`,
-          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', `6. ${validityTerm}`] : ['4. Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651', `5. ${validityTerm}`]),
+          ...(extraTerms ? [`4. ${extraTerms}`, '5. Bank Details - HDFC Bank, Account No- 50200122730471, IFSC Code- HDFC0003878', `6. ${validityTerm}`] : ['4. Bank Details - HDFC Bank, Account No- 50200122730471, IFSC Code- HDFC0003878', `5. ${validityTerm}`]),
         ];
 
   // Wrap every term up front, at the same font the terms are drawn in, so the

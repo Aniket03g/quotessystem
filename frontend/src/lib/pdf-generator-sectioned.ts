@@ -821,8 +821,8 @@ export function generateSectionedPdfBuffer(
       : '1. Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.';
   const bankLine =
     selectedLogo === 'grove'
-      ? 'Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651'
-      : 'Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651';
+      ? 'Bank Details - HDFC Bank, Account No- 50200122562409, IFSC Code- HDFC0003878'
+      : 'Bank Details - HDFC Bank, Account No- 50200122730471, IFSC Code- HDFC0003878';
 
   const terms = [orderLine];
   if (quoteData.deliveryTerms) terms.push(`Delivery Terms - ${quoteData.deliveryTerms}`);

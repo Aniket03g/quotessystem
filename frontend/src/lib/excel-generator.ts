@@ -319,8 +319,8 @@ export async function generateExcelBuffer(quoteData: QuoteData): Promise<Buffer>
   // ------------------------------------------------------------------- terms
   cursor += 2;
   const bankDetails = isGrove
-    ? 'Bank Details - Kotak Mahindra Bank, Account No- 5949818822, IFSC Code- KKBK0004651'
-    : 'Bank Details - Kotak Mahindra Bank, Account No- 6847253937, IFSC Code- KKBK0004651';
+    ? 'Bank Details - HDFC Bank, Account No- 50200122562409, IFSC Code- HDFC0003878'
+    : 'Bank Details - HDFC Bank, Account No- 50200122730471, IFSC Code- HDFC0003878';
   const orderLine = isGrove
     ? 'Order to be placed on: Grove Systems Pvt. Ltd., F-85, Okhla Industrial Area, Phase III, New Delhi - 110020.'
     : 'Order to be placed on: GreenOCare Solutions Pvt. Ltd., F-85, 2nd Floor, Okhla Industrial Area, Phase III, New Delhi - 110020.';
