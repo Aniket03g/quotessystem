@@ -1053,9 +1053,27 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           option.textContent = `${user.name} (${user.email})`;
           editAssignedToSelect.appendChild(option);
         });
+        // The list can arrive after the modal was opened; put the lead's assignee back.
+        if (currentEditingLead) selectAssignee(currentEditingLead.fields?.['Assigned to'] || '');
       } catch (error) {
         console.error('Failed to load users for modal:', error);
       }
+    }
+
+    /**
+     * Setting a <select> to a value it has no option for silently leaves it at
+     * "" — and saving that cleared the lead's assignee. Reps cannot load the
+     * user list at all, so their dropdown never held their own email. Add the
+     * current assignee as an option when it is missing.
+     */
+    function selectAssignee(email: string) {
+      if (email && ![...editAssignedToSelect.options].some((o) => o.value === email)) {
+        const option = document.createElement('option');
+        option.value = email;
+        option.textContent = email;
+        editAssignedToSelect.appendChild(option);
+      }
+      editAssignedToSelect.value = email;
     }
 
     // Open Edit Modal
@@ -1078,7 +1096,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       (document.getElementById('editEmail') as HTMLInputElement).value = fields['Email'] || '';
       (document.getElementById('editSource') as HTMLSelectElement).value = fields['Source'] || '';
       (document.getElementById('editStatus') as HTMLSelectElement).value = fields['Status'] || 'New';
-      (document.getElementById('editAssignedTo') as HTMLSelectElement).value = fields['Assigned to'] || '';
+      selectAssignee(fields['Assigned to'] || '');
       (document.getElementById('editLastContacted') as HTMLInputElement).value = fields['Last Contacted'] || '';
       (document.getElementById('editNextFollowUp') as HTMLInputElement).value = fields['Next Follow-up'] || '';
       (document.getElementById('editNotes') as HTMLTextAreaElement).value = fields['Notes'] || '';
@@ -1143,22 +1161,22 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       saveEditBtn.textContent = 'Saving...';
 
       try {
-        const updatePayload = {
-          id: leadId,
-          fields: {
-            'Lead Name': leadName,
-            'Company': company || '',
-            'Contact Person': contactPerson || '',
-            'Phone Number': phoneNumber,
-            'Email': email || '',
-            'Source': source,
-            'Status': status,
-            'Assigned to': assignedTo || '',
-            'Last Contacted': lastContacted || null,
-            'Next Follow-up': nextFollowUp || null,
-            'Notes': notes || ''
-          }
+        const updateFields: Record<string, any> = {
+          'Lead Name': leadName,
+          'Company': company || '',
+          'Contact Person': contactPerson || '',
+          'Phone Number': phoneNumber,
+          'Email': email || '',
+          'Source': source,
+          'Status': status,
+          'Last Contacted': lastContacted || null,
+          'Next Follow-up': nextFollowUp || null,
+          'Notes': notes || ''
         };
+        // Only someone allowed to change the assignee writes it; for everyone
+        // else the field is left exactly as it is.
+        if (!editAssignedToSelect.disabled) updateFields['Assigned to'] = assignedTo || '';
+        const updatePayload = { id: leadId, fields: updateFields };
 
         console.log('[LEAD UPDATE] Payload:', JSON.stringify(updatePayload, null, 2));
 

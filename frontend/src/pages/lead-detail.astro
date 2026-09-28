@@ -817,13 +817,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       (document.getElementById('editEmail') as HTMLInputElement).value = f['Email'] || '';
       (document.getElementById('editSource') as HTMLSelectElement).value = f['Source'] || '';
       (document.getElementById('editStatus') as HTMLSelectElement).value = f['Status'] || 'New';
-      (document.getElementById('editAssignedTo') as HTMLSelectElement).value = f['Assigned to'] || '';
+      // A <select> set to a value it has no option for silently falls back to ""
+      // — and saving that cleared the assignee. Reps cannot load the user list,
+      // so their dropdown never held their own email; add it when missing.
+      const assignee = f['Assigned to'] || '';
+      const assigneeSelect = document.getElementById('editAssignedTo') as HTMLSelectElement;
+      if (assignee && ![...assigneeSelect.options].some((o) => o.value === assignee)) {
+        const opt = document.createElement('option');
+        opt.value = assignee;
+        opt.textContent = assignee;
+        assigneeSelect.appendChild(opt);
+      }
+      assigneeSelect.value = assignee;
       (document.getElementById('editLastContacted') as HTMLInputElement).value = f['Last Contacted'] || '';
       (document.getElementById('editNextFollowUp') as HTMLInputElement).value = f['Next Follow-up'] || '';
       (document.getElementById('editNotes') as HTMLTextAreaElement).value = f['Notes'] || '';
 
       const assignedSelect = document.getElementById('editAssignedTo') as HTMLSelectElement;
-      if (userRole !== 'admin') {
+      if (userRole !== 'admin' && userRole !== 'super_admin') {
         assignedSelect.disabled = true;
         assignedSelect.classList.add('bg-slate-200', 'cursor-not-allowed');
       } else {
@@ -864,12 +875,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             'Email': (document.getElementById('editEmail') as HTMLInputElement).value || '',
             'Source': (document.getElementById('editSource') as HTMLSelectElement).value,
             'Status': (document.getElementById('editStatus') as HTMLSelectElement).value,
-            'Assigned to': (document.getElementById('editAssignedTo') as HTMLSelectElement).value || '',
             'Last Contacted': (document.getElementById('editLastContacted') as HTMLInputElement).value || null,
             'Next Follow-up': (document.getElementById('editNextFollowUp') as HTMLInputElement).value || null,
             'Notes': (document.getElementById('editNotes') as HTMLTextAreaElement).value || '',
-          }
+          } as Record<string, any>
         };
+        // Only someone allowed to change the assignee writes it; for everyone
+        // else the field is left exactly as it is.
+        const assignedSelect = document.getElementById('editAssignedTo') as HTMLSelectElement;
+        if (!assignedSelect.disabled) payload.fields['Assigned to'] = assignedSelect.value || '';
 
         const res = await fetch(`${API_BASE_URL}/proxy/leads/records`, {
           method: 'PATCH',
