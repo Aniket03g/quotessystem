@@ -16,6 +16,10 @@ export interface QuoteProduct {
   warranty?: number | null;
   quantity?: number;
   uom?: string;
+  // AMC quotes only: the unit a line covers and the cover period being sold.
+  serialNumber?: string;
+  periodStart?: string;
+  periodEnd?: string;
 }
 
 export interface QuoteData {
@@ -32,6 +36,8 @@ export interface QuoteData {
   extraTerms?: string;
   endUser?: string;
   endUserLocation?: string;
+  /** Per-unit AMC layout: serial and cover period columns, totals before GST. */
+  amc?: boolean;
   account: {
     name: string;
     street?: string;
@@ -42,6 +48,18 @@ export interface QuoteData {
   };
   products: QuoteProduct[];
 }
+
+/** dd-Mmm-yyyy for the AMC period columns; anything unparseable is printed as given. */
+function formatShortDate(iso: string | undefined): string {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  // Spelled out by hand: en-GB gives "Sept", which no longer fits the column.
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${String(d.getDate()).padStart(2, '0')}-${MONTHS[d.getMonth()]}-${d.getFullYear()}`;
+}
+
+const money = (n: number) => n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function formatINR(amount: number): string {
   return `Rs. ${amount.toLocaleString('en-IN', {
@@ -259,7 +277,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.text('Customer Name', margin, currentY);
 
   const rightX = pageWidth - margin;
-  doc.text('Quote', rightX, currentY, { align: 'right' });
+  doc.text(quoteData.amc ? 'AMC Quote' : 'Quote', rightX, currentY, { align: 'right' });
 
   currentY += 6;
   doc.setFont('helvetica', 'normal');
@@ -336,6 +354,13 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   const nameLineCounts: number[] = [];
   const requiredCellHeights: number[] = [];
 
+  // An AMC line prints the unit it covers and the period being sold, in the
+  // shape of csv/AMC/AMC Quote Format.xlsx: the AMC Charges column is the charge per
+  // unit and Total is the line before GST. The equipment's own price is an
+  // internal reference and never reaches the customer.
+  const amc = !!quoteData.amc;
+  const detailWidth = amc ? 38 : 49;
+
   const tableData = quoteData.products.map((product, index) => {
     const price = product.price || 0;
     const qty = product.quantity || 1;
@@ -362,18 +387,18 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
 
     doc.setFontSize(8);
     doc.setFont('helvetica', 'bold');
-    const boldNameLines: string[] = doc.splitTextToSize(sanitizePdfText(product.name), 49);
+    const boldNameLines: string[] = doc.splitTextToSize(sanitizePdfText(product.name), detailWidth);
     nameLineCounts.push(boldNameLines.length);
     doc.setFont('helvetica', 'normal');
 
     const allDisplayLines: string[] = [...boldNameLines];
     if (product.brand) {
-      allDisplayLines.push(...doc.splitTextToSize(`Brand: ${sanitizePdfText(product.brand)}`, 49));
+      allDisplayLines.push(...doc.splitTextToSize(`Brand: ${sanitizePdfText(product.brand)}`, detailWidth));
     }
     if (product.description) {
       const descParts = sanitizePdfText(product.description as string).split('\n');
       for (const part of descParts) {
-        if (part.trim()) allDisplayLines.push(...doc.splitTextToSize(part, 49));
+        if (part.trim()) allDisplayLines.push(...doc.splitTextToSize(part, detailWidth));
       }
     }
 
@@ -382,6 +407,19 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
     const productDetails = allDisplayLines.join('\n');
     const warrantyDisplay = product.warranty != null ? product.warranty.toString() : '-';
     const taxLabel = formatTaxLabel(product.tax);
+
+    if (amc) {
+      return [
+        (index + 1).toString(),
+        productDetails,
+        product.serialNumber || '-',
+        formatShortDate(product.periodStart),
+        formatShortDate(product.periodEnd),
+        `${qty}`,
+        money(price),
+        money(afterDiscount),
+      ];
+    }
 
     // Column order must match `head` and `columnStyles` below.
     return [
@@ -396,9 +434,37 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
     ];
   });
 
+  const head = amc
+    ? [['Sr. No', 'Description', 'Serial Number', 'Warranty Start', 'Warranty End', 'Qty', 'AMC Charges (Rs.)', 'Total (Rs.)']]
+    : [['Sr. No', 'Product Details', 'Model No', 'Qty/UOM', 'Unit Price (Rs.)', 'Tax(%)', 'Total (Rs.)', 'Warranty (months)']];
+  // Both layouts total 180mm, the usable width.
+  const columnStyles: Record<number, any> = amc
+    ? {
+        0: { halign: 'center', cellWidth: 9 },
+        1: { halign: 'left',   cellWidth: 42, overflow: 'linebreak' },
+        2: { halign: 'center', cellWidth: 30 }, // a 16-character serial on one line
+        3: { halign: 'center', cellWidth: 21 },
+        4: { halign: 'center', cellWidth: 21 },
+        5: { halign: 'center', cellWidth: 9 },
+        6: { halign: 'right',  cellWidth: 23 },
+        7: { halign: 'right',  cellWidth: 25 },
+      }
+    : {
+        // Each column keeps the width and alignment it had before the reorder, so
+        // the row still totals 180mm and nothing reflows.
+        0: { halign: 'center', cellWidth: 9 },  // Sr. No
+        1: { halign: 'left',   cellWidth: 53, overflow: 'linebreak' }, // Product Details
+        2: { halign: 'center', cellWidth: 18 }, // Model No
+        3: { halign: 'center', cellWidth: 16 }, // Qty/UOM
+        4: { halign: 'right',  cellWidth: 24 }, // Unit Price
+        5: { halign: 'center', cellWidth: 14 }, // Tax
+        6: { halign: 'right',  cellWidth: 28 }, // Total
+        7: { halign: 'center', cellWidth: 18 }, // Warranty
+      };
+
   autoTable(doc, {
     startY: currentY,
-    head: [['Sr. No', 'Product Details', 'Model No', 'Qty/UOM', 'Unit Price (Rs.)', 'Tax(%)', 'Total (Rs.)', 'Warranty (months)']],
+    head,
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -417,18 +483,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
       cellPadding: { top: 2, right: 2, bottom: 2, left: 2 },
       minCellHeight: 12,
     },
-    // Each column keeps the width and alignment it had before the reorder, so
-    // the row still totals 180mm and nothing reflows.
-    columnStyles: {
-      0: { halign: 'center', cellWidth: 9 },  // Sr. No
-      1: { halign: 'left',   cellWidth: 53, overflow: 'linebreak' }, // Product Details
-      2: { halign: 'center', cellWidth: 18 }, // Model No
-      3: { halign: 'center', cellWidth: 16 }, // Qty/UOM
-      4: { halign: 'right',  cellWidth: 24 }, // Unit Price
-      5: { halign: 'center', cellWidth: 14 }, // Tax
-      6: { halign: 'right',  cellWidth: 28 }, // Total
-      7: { halign: 'center', cellWidth: 18 }, // Warranty
-    },
+    columnStyles,
     styles: { lineColor: [0, 0, 0], lineWidth: 0.3 },
     margin: { left: margin, right: margin },
     showHead: 'everyPage',
@@ -496,7 +551,7 @@ export function generatePdfBuffer(quoteData: QuoteData): Buffer {
   doc.text(formatINR(subtotalBeforeDiscount), summaryValueX, currentY, { align: 'right' });
   currentY += 6;
 
-  doc.text('Tax', summaryLabelX, currentY);
+  doc.text(amc ? 'GST' : 'Tax', summaryLabelX, currentY);
   doc.text(formatINR(totalTax), summaryValueX, currentY, { align: 'right' });
   currentY += 6;
 

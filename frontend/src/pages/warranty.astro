@@ -5,22 +5,22 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 <AdminLayout title="Warranty & AMC" currentPage="warranty">
   <!-- Page Header -->
   <div class="mb-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
       <div>
         <h1 class="text-2xl font-semibold text-slate-800">Warranty &amp; AMC</h1>
-        <p class="text-sm text-slate-500 mt-0.5">Cover currently tracked, soonest to expire first</p>
+        <p class="text-sm text-slate-500 mt-0.5">Every product under cover, soonest to expire first</p>
       </div>
 
-      <!-- TEMPORARY test control — remove with reminder_test_endpoint.go -->
-      <div id="testReminderBox" class="hidden items-center gap-3">
-        <span id="testReminderStatus" class="text-sm text-slate-500"></span>
+      <!-- Sends the next due reminder to the signed-in admin only, and says who the real one goes to. -->
+      <div id="testReminderBox" class="hidden flex-col sm:items-end gap-1.5">
         <button id="testReminderBtn"
-          class="inline-flex items-center gap-2 px-4 py-2 border border-dashed border-amber-400 bg-amber-50 text-amber-800 text-sm font-medium rounded-md hover:bg-amber-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          class="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 bg-white text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
           </svg>
-          Send test reminder to me
+          Send me a test reminder
         </button>
+        <p id="testReminderStatus" class="text-xs text-slate-500 sm:text-right max-w-sm"></p>
       </div>
     </div>
   </div>
@@ -59,7 +59,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <input
           type="text"
           id="searchInput"
-          placeholder="Search by customer, location, invoice no, model or serial..."
+          placeholder="Search by account, customer, location, invoice no, model or serial..."
           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           autocomplete="off"
         />
@@ -75,7 +75,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <select id="sourceFilter" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all min-w-[190px]">
         <option value="">Any expiry source</option>
         <option value="ams">AMS registered (exact)</option>
-        <option value="computed">Computed (may be early)</option>
+        <option value="computed">Estimated (may be early)</option>
         <option value="manual">Entered by hand</option>
       </select>
 
@@ -123,17 +123,19 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <table class="w-full table-fixed">
         <colgroup>
           <col class="w-10" />
-          <col class="w-[24%]" />
+          <col class="w-[18%]" />
+          <col class="w-[16%]" />
+          <col class="w-[10%]" />
           <col class="w-[11%]" />
           <col class="w-[13%]" />
-          <col class="w-[14%]" />
-          <col class="w-[9%]" />
+          <col class="w-[8%]" />
+          <col class="w-[10%]" />
           <col class="w-[12%]" />
-          <col class="w-[13%]" />
         </colgroup>
         <thead class="bg-slate-50 border-b border-slate-200">
           <tr>
             <th class="px-3 py-3"></th>
+            <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">ACCOUNT</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">CUSTOMER</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">LOCATION</th>
             <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">NEXT EXPIRY</th>
@@ -151,8 +153,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <svg class="w-16 h-16 text-slate-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
       </svg>
-      <p class="text-slate-600 font-medium mb-1">No cover records found</p>
-      <p class="text-sm text-slate-500">Try adjusting your search or filters</p>
+      <p class="text-slate-600 font-medium mb-1">No covers match</p>
+      <p class="text-sm text-slate-500">Try a different search, or reset the filters</p>
     </div>
   </div>
 
@@ -196,6 +198,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       // Warranty Id -> what its product rows add up to. Cover runs per product,
       // so nothing on this page reads the parent's own Expiry Date directly.
       let rollups = new Map<string, any>();
+      // Account Id -> Account Name, for the Account column.
+      let accountNames = new Map<string, string>();
 
       const CLOSED = new Set(['renewed', 'replaced']);
 
@@ -267,6 +271,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         };
       }
 
+      /**
+       * The account billed for the cover, which Customer Name need not match.
+       * Archive rows carry no Account Id, so they fall back to their Partner —
+       * the same rule warranty-detail uses.
+       */
+      function accountOf(f: any): string {
+        return accountNames.get(String(f['Account Id'] ?? '')) || String(f['Partner'] ?? '').trim();
+      }
+
       function fmtDate(iso: string): string {
         if (!iso) return '—';
         const d = new Date(iso);
@@ -305,8 +318,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (src === 'manual') {
           return `<span class="${base} bg-blue-50 text-blue-700 border-blue-200" title="End dates on this invoice were entered by hand">Manual</span>`;
         }
-        return `<span class="${base} bg-slate-50 text-slate-600 border-slate-200" title="No AMS registration date on file — expiry is the start date plus the recorded term and may be up to 6 months early">Computed</span>`;
+        return `<span class="${base} bg-slate-50 text-slate-600 border-slate-200" title="No AMS registration date on file — expiry is the start date plus the recorded term and may be up to 6 months early">Estimated</span>`;
       }
+
+      const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
       /** "3 of 10 expiring" — only worth saying when the invoice is not uniform. */
       function mixNote(r: any): string {
@@ -339,7 +354,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         let filtered = allRecords.filter((record) => {
           const f = record.fields || {};
           if (search) {
-            const hay = [f['Customer Name'], f['Location'], f['Invoice No'], f['Assets'], f['Title']]
+            const hay = [accountOf(f), f['Customer Name'], f['Location'], f['Invoice No'], f['Assets'], f['Title']]
               .map((v) => String(v ?? '').toLowerCase()).join(' ');
             if (!hay.includes(search)) return false;
           }
@@ -393,8 +408,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       function renderTable(records: any[]) {
         const isFiltered = searchInput.value || bandFilter.value || sourceFilter.value;
         searchStatus.textContent = isFiltered
-          ? `Showing ${records.length} of ${allRecords.length} record(s)`
-          : `${records.length} record(s)`;
+          ? `Showing ${records.length} of ${plural(allRecords.length, 'cover')}`
+          : plural(records.length, 'cover');
 
         if (records.length === 0) {
           warrantyTable.classList.add('hidden');
@@ -422,6 +437,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
               </td>
+              <td class="px-4 py-4 text-sm text-slate-700 truncate max-w-0" title="${esc(accountOf(f))}">${esc(accountOf(f) || '—')}</td>
               <td class="px-4 py-4 text-sm font-medium truncate max-w-0">
                 <a href="${esc(href)}" class="text-slate-900 hover:text-blue-700 hover:underline">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</a>
               </td>
@@ -446,11 +462,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <div class="text-sm font-semibold text-slate-900 flex-1 min-w-0">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</div>
                 ${statusCell(days)}
               </div>
+              ${accountOf(f) ? `<div class="text-xs text-slate-700 mb-0.5">${esc(accountOf(f))}</div>` : ''}
               <div class="text-xs text-slate-500 mb-1">
                 ${esc(f['Location'] || '')}${f['Location'] ? ' · ' : ''}next expiry ${fmtDate(roll.next || '')}
               </div>
               <div class="flex flex-wrap items-center gap-2">
-                <span class="text-sm text-slate-700">${esc(roll.total)} product(s)</span>
+                <span class="text-sm text-slate-700">${plural(roll.total, 'product')}</span>
                 <span class="text-sm text-slate-500">${fmtMoney(f['Value'])}</span>
                 ${sourceCell(roll.sources)}
               </div>
@@ -486,12 +503,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           });
 
           if (response.status === 401) { logout(); return; }
-          if (!response.ok) throw new Error(`Failed to load cover records (HTTP ${response.status})`);
+          if (!response.ok) {
+            console.error('warranty_reminders read failed', response.status);
+            throw new Error('Could not load the cover records. Please refresh the page to try again.');
+          }
 
           const data = await safeJsonParse(response);
           allRecords = data.records || [];
 
-          await loadAssets();
+          await Promise.all([loadAssets(), loadAccountNames()]);
 
           loadingDiv.classList.add('hidden');
           applyFilters();
@@ -532,6 +552,26 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
       }
 
+      /** Best-effort: an unreadable accounts table leaves the column on Partner, never the page. */
+      async function loadAccountNames() {
+        try {
+          const fields = encodeURIComponent(['Id', 'Account Name', 'Company Name'].join(','));
+          const res = await fetch(`${API_BASE_URL}/proxy/accounts_duplicate/records?fields=${fields}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (!res.ok) return;
+          const data = await safeJsonParse(res);
+          accountNames = new Map();
+          for (const r of data.records || data.list || []) {
+            const af = r.fields || r;
+            const name = String(af['Account Name'] || af['Company Name'] || '').trim();
+            if (name) accountNames.set(String(r.id ?? r.Id ?? af.Id), name);
+          }
+        } catch {
+          accountNames = new Map();
+        }
+      }
+
       document.querySelectorAll<HTMLButtonElement>('#summaryTiles .tile').forEach((tile) => {
         tile.addEventListener('click', () => {
           const band = tile.dataset.band || '';
@@ -540,35 +580,38 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         });
       });
 
-      // TEMPORARY: super-admin-only trigger that mails the real reminder for the
-      // next due row to the caller alone, without stamping "Last Reminded".
-      // Remove with proxy/reminder_test_endpoint.go.
+      // Mails the reminder for the next due cover to the caller alone. It never
+      // stamps "Last Reminded", so it cannot use up a product's real reminder.
       const testBox = document.getElementById('testReminderBox') as HTMLDivElement;
       const testBtn = document.getElementById('testReminderBtn') as HTMLButtonElement;
-      const testStatus = document.getElementById('testReminderStatus') as HTMLSpanElement;
+      const testStatus = document.getElementById('testReminderStatus') as HTMLParagraphElement;
 
-      // isAdmin() reads the JWT, the same source requireAdmin() uses above, so
-      // the button cannot disagree with the page's own guard.
-      if (isAdmin() && testBox && testBtn) {
+      if (isAdmin()) {
         testBox.classList.remove('hidden');
         testBox.classList.add('flex');
 
         testBtn.addEventListener('click', async () => {
           testBtn.disabled = true;
-          testStatus.className = 'text-sm text-slate-500';
+          testStatus.className = 'text-xs text-slate-500 sm:text-right max-w-sm';
           testStatus.textContent = 'Sending...';
           try {
             const res = await fetch(`${API_BASE_URL}/api/admin/warranty-reminder-test`, {
               method: 'POST',
               headers: { 'Authorization': `Bearer ${token}` },
             });
+            if (res.status === 401) { logout(); return; }
             const data = await safeJsonParse(res);
-            if (!res.ok || data?.error) throw new Error(data?.error || `HTTP ${res.status}`);
-            testStatus.className = 'text-sm text-emerald-700';
-            testStatus.textContent = `Sent "${data.row}" to ${data.to}`;
+            if (!res.ok || data?.error) {
+              console.error('warranty reminder test failed', res.status, data);
+              throw new Error(data?.error || `The test email could not be sent (error ${res.status}).`);
+            }
+            const real: string[] = data.would_go_to || [];
+            testStatus.className = 'text-xs text-emerald-700 sm:text-right max-w-sm';
+            testStatus.textContent = `Sent the reminder for “${data.row}” to ${data.to}. ` +
+              (real.length ? `The real one goes to ${real.join(', ')}.` : 'The real one would reach nobody — assign the cover to someone.');
           } catch (error) {
-            testStatus.className = 'text-sm text-red-700';
-            testStatus.textContent = error instanceof Error ? error.message : 'Failed to send';
+            testStatus.className = 'text-xs text-red-700 sm:text-right max-w-sm';
+            testStatus.textContent = error instanceof Error ? error.message : 'The test email could not be sent.';
           } finally {
             testBtn.disabled = false;
           }

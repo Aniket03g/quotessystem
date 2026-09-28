@@ -1,0 +1,680 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Create AMC Quote" currentPage="warranty">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-5">
+      <a id="backLink" href="/warranty" class="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to cover
+      </a>
+    </div>
+
+    <div id="pageLoading" class="py-20 text-center">
+      <svg class="animate-spin w-8 h-8 text-violet-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm text-slate-500">Loading the cover...</p>
+    </div>
+
+    <div id="pageError" class="hidden p-5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm"></div>
+
+    <div id="pageContent" class="hidden space-y-5">
+
+      <!-- Header -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-violet-500/25 flex-shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <h1 class="text-2xl font-semibold text-slate-800">Create AMC quote</h1>
+            <p class="text-sm text-slate-500 mt-1">
+              For <span id="hCustomer" class="font-medium text-slate-700"></span>.
+              Each covered unit becomes one line. The AMC period starts the day after its current cover ends.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quote details -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Quote details</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 px-6 py-5">
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Company *</span>
+            <select id="fCompany" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500">
+              <option value="">Select company...</option>
+              <option value="GreenOCare">GreenOCare</option>
+              <option value="Grove Systems">Grove Systems</option>
+            </select>
+          </label>
+          <div class="block lg:col-span-3 relative">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Billed account *</span>
+            <input id="fAccountSearch" autocomplete="off" placeholder="Search accounts..." class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            <div id="accountDropdown" class="hidden absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-64 overflow-y-auto"></div>
+            <p id="accountHint" class="text-xs text-slate-400 mt-1"></p>
+          </div>
+
+          <label class="block lg:col-span-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">End user</span>
+            <input id="fEndUser" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          </label>
+          <label class="block lg:col-span-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">End user location</span>
+            <input id="fEndUserLocation" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          </label>
+
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Quote date *</span>
+            <input id="fDate" type="date" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          </label>
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Valid until</span>
+            <input id="fValid" type="date" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          </label>
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">AMC term</span>
+            <select id="fTerm" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500">
+              <option value="1">1 year</option>
+              <option value="2">2 years</option>
+              <option value="3">3 years</option>
+            </select>
+          </label>
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">SAC</span>
+            <input id="fSac" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Lines -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">
+            Covered units <span id="lineCount" class="text-slate-400 font-normal normal-case"></span>
+          </h2>
+          <div class="flex items-center gap-2 text-xs text-slate-600">
+            <span>Set AMC price to</span>
+            <input id="pctInput" type="number" min="0" step="0.5" value="10" class="w-16 px-2 py-1.5 text-sm border border-slate-300 rounded-lg" />
+            <span>% of unit price</span>
+            <button id="pctApply" class="px-3 py-1.5 text-xs font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors">Apply to ticked</button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-10"></th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Description</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-40">Serial Number</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Warranty Start</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Warranty End</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-20">Qty</th>
+                <th class="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-32">Unit Price</th>
+                <th class="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">AMC Total Price</th>
+              </tr>
+            </thead>
+            <tbody id="lineBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+        <div class="px-6 py-4 border-t border-slate-200 flex justify-end">
+          <dl class="grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
+            <dt class="text-slate-500">Sub total</dt><dd id="tSub" class="text-right tabular-nums text-slate-800"></dd>
+            <dt class="text-slate-500">GST 18%</dt><dd id="tTax" class="text-right tabular-nums text-slate-800"></dd>
+            <dt class="font-semibold text-slate-800">Grand total</dt><dd id="tGrand" class="text-right tabular-nums font-semibold text-slate-800"></dd>
+          </dl>
+        </div>
+      </div>
+
+      <div id="saveError" class="hidden p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800"></div>
+
+      <div class="flex items-center justify-end gap-3">
+        <a id="cancelLink" href="/warranty" class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</a>
+        <button id="saveBtn" class="px-6 py-2.5 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors disabled:opacity-50">
+          Create AMC quote
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getToken, logout, safeJsonParse } from '../lib/api';
+    import { requireAdmin, getTokenClaims } from '../utils/jwt';
+    import { getNextQuoteNumber } from '../lib/quote-number';
+
+    // Same gate as /warranty-detail, which is the only way in.
+    requireAdmin();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8082`;
+      const token = getToken();
+      if (!token) { window.location.href = '/login'; return; }
+
+      const coverId = Number(new URLSearchParams(window.location.search).get('coverId'));
+      const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+      const pageLoading = $<HTMLDivElement>('pageLoading');
+      const pageError = $<HTMLDivElement>('pageError');
+      const pageContent = $<HTMLDivElement>('pageContent');
+
+      const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]);
+
+      // AMC is a service billed at the standard rate.
+      const GST = 18;
+
+      function isoOf(d: Date): string {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+      const dateOnly = (v: any) => (v ? String(v).slice(0, 10) : '');
+
+      function addDays(iso: string, days: number): string {
+        const [y, m, d] = iso.split('-').map(Number);
+        return isoOf(new Date(y, m - 1, d + days));
+      }
+
+      /** Same 29 Feb rule as warranty-detail: clamp to 28 Feb rather than roll into March. */
+      function addYears(iso: string, years: number): string {
+        const [y, m, d] = iso.split('-').map(Number);
+        if (!y) return '';
+        const out = new Date(y + years, m - 1, d);
+        if (out.getDate() !== d) out.setDate(0);
+        return isoOf(out);
+      }
+
+      /** 01 Sep 2026 + 1 year ends 31 Aug 2027 — the AMC Quote Format's convention. */
+      const periodEnd = (start: string, years: number) => (start ? addDays(addYears(start, years), -1) : '');
+
+      const inr = (n: number) => '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const round2 = (n: number) => Math.round(n * 100) / 100;
+
+      function showError(msg: string) {
+        pageLoading.classList.add('hidden');
+        pageContent.classList.add('hidden');
+        pageError.innerHTML = msg;
+        pageError.classList.remove('hidden');
+      }
+
+      async function get(path: string) {
+        const res = await fetch(`${API_BASE_URL}${path}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.status === 401) { logout(); throw new Error('Your session has expired. Please sign in again.'); }
+        if (!res.ok) {
+          console.error(`GET ${path} failed`, res.status);
+          throw new Error('Could not load the cover. Please refresh the page to try again.');
+        }
+        return safeJsonParse(res);
+      }
+
+      async function send(method: string, path: string, body: any) {
+        const res = await fetch(`${API_BASE_URL}${path}`, {
+          method,
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (res.status === 401) { logout(); throw new Error('Your session has expired. Please sign in again.'); }
+        if (!res.ok) {
+          console.error(`${method} ${path} failed`, res.status, await res.text());
+          throw new Error(res.status === 403
+            ? 'You do not have permission to create this quote.'
+            : `The quote could not be saved (error ${res.status}). Please try again.`);
+        }
+        return safeJsonParse(res);
+      }
+
+      const rowsOf = (data: any) => data?.records || data?.list || [];
+      const idOf = (r: any) => r?.id ?? r?.Id ?? r?.fields?.Id;
+      const flat = (r: any) => (r?.fields ? { Id: idOf(r), ...r.fields } : r);
+
+      // --- state ---------------------------------------------------------------
+
+      type Line = {
+        assetId: number;
+        include: boolean;
+        model: string;
+        productName: string;
+        name: string;          // the line's bold title on the PDF
+        description: string;   // catalogue description, as on a normal quote
+        serial: string;
+        start: string;
+        end: string;
+        manualEnd: boolean;
+        qty: number;
+        unitPrice: number | null;   // the equipment's own price, for reference
+        priceSource: 'cover' | 'catalogue' | '';
+        typedPrice: number | null;  // typed here when nothing is on file
+        amc: number | null;         // what this line charges, before GST
+        nameTouched: boolean;
+      };
+
+      let parent: any = {};
+      let lines: Line[] = [];
+      let accountId: number | null = null;
+      let accountName = '';
+
+      const term = () => Number($<HTMLSelectElement>('fTerm').value) || 1;
+      const defaultName = (l: Line) =>
+        `${term()} Year${term() === 1 ? '' : 's'} AMC for ${l.productName || l.model || 'product'}${l.productName && l.model && l.productName !== l.model ? ` (${l.model})` : ''}`;
+
+      // --- rendering -----------------------------------------------------------
+
+      const INPUT = 'w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500';
+
+      function priceCell(l: Line): string {
+        if (l.unitPrice == null) {
+          return `<input type="number" min="0" step="0.01" data-lf="unitPrice" value="${l.typedPrice ?? ''}" placeholder="—" class="${INPUT} text-right" title="No price on file for this unit — type it if you want a % quick-fill">`;
+        }
+        const note = l.priceSource === 'catalogue'
+          ? '<div class="text-[10px] text-amber-700" title="Not recorded on the cover; this is today\'s catalogue price">list price</div>'
+          : '';
+        return `${inr(l.unitPrice)}${note}`;
+      }
+
+      function renderLines() {
+        const body = $<HTMLTableSectionElement>('lineBody');
+        if (!lines.length) {
+          body.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500">This cover has no products recorded.</td></tr>';
+          return;
+        }
+        body.innerHTML = lines.map((l, i) => `
+          <tr data-line="${i}" class="align-top ${l.include ? '' : 'opacity-50'}">
+            <td class="px-3 py-2"><input type="checkbox" data-lf="include" ${l.include ? 'checked' : ''} class="w-4 h-4 mt-2 accent-violet-600"></td>
+            <td class="px-3 py-2 min-w-[18rem]">
+              <input data-lf="name" value="${esc(l.name)}" class="${INPUT} font-medium">
+              <textarea data-lf="description" rows="2" placeholder="Description" class="${INPUT} mt-1 text-xs text-slate-600">${esc(l.description)}</textarea>
+            </td>
+            <td class="px-3 py-2"><input data-lf="serial" value="${esc(l.serial)}" placeholder="Serial" class="${INPUT} font-mono"></td>
+            <td class="px-3 py-2"><input type="date" data-lf="start" value="${esc(l.start)}" class="${INPUT}"></td>
+            <td class="px-3 py-2"><input type="date" data-lf="end" value="${esc(l.end)}" class="${INPUT} ${l.manualEnd ? 'border-blue-400' : ''}" title="${l.manualEnd ? 'Entered by hand' : 'Start date plus the AMC term'}"></td>
+            <td class="px-3 py-2"><input type="number" min="1" data-lf="qty" value="${l.qty}" class="${INPUT}"></td>
+            <td class="px-3 py-2 text-sm text-slate-700 text-right tabular-nums whitespace-nowrap pt-3.5">${priceCell(l)}</td>
+            <td class="px-3 py-2"><input type="number" min="0" step="0.01" data-lf="amc" value="${l.amc ?? ''}" placeholder="0.00" class="${INPUT} text-right tabular-nums"></td>
+          </tr>`).join('');
+        renderTotals();
+      }
+
+      function renderTotals() {
+        const ticked = lines.filter((l) => l.include);
+        $('lineCount').textContent = lines.length ? `(${ticked.length} of ${lines.length} ticked)` : '';
+        const sub = ticked.reduce((s, l) => s + (l.amc || 0), 0);
+        const tax = sub * GST / 100;
+        $('tSub').textContent = inr(sub);
+        $('tTax').textContent = inr(tax);
+        $('tGrand').textContent = inr(sub + tax);
+      }
+
+      const body = $('lineBody');
+
+      body.addEventListener('input', (e) => {
+        const el = e.target as HTMLInputElement;
+        const tr = el.closest('tr') as HTMLTableRowElement | null;
+        const l = tr ? lines[Number(tr.dataset.line)] : null;
+        if (!l || !tr) return;
+        switch (el.dataset.lf) {
+          case 'name': l.name = el.value; l.nameTouched = true; break;
+          case 'description': l.description = el.value; break;
+          case 'serial': l.serial = el.value; break;
+          case 'qty': l.qty = Math.max(1, Math.floor(Number(el.value) || 1)); break;
+          case 'amc': l.amc = el.value === '' ? null : Number(el.value); renderTotals(); break;
+          case 'unitPrice': {
+            const v = Number(el.value);
+            l.typedPrice = el.value !== '' && isFinite(v) ? v : null;
+            break;
+          }
+          case 'end':
+            l.end = el.value; l.manualEnd = !!el.value;
+            el.classList.toggle('border-blue-400', l.manualEnd);
+            break;
+          case 'start':
+            l.start = el.value;
+            if (!l.manualEnd) {
+              l.end = periodEnd(l.start, term());
+              (tr.querySelector('[data-lf="end"]') as HTMLInputElement).value = l.end;
+            }
+            break;
+        }
+      });
+
+      body.addEventListener('change', (e) => {
+        const el = e.target as HTMLInputElement;
+        if (el.dataset.lf !== 'include') return;
+        const l = lines[Number((el.closest('tr') as HTMLTableRowElement).dataset.line)];
+        l.include = el.checked;
+        renderLines();
+      });
+
+      // A new term moves every end date and title nobody has typed over.
+      $('fTerm').addEventListener('change', () => {
+        for (const l of lines) {
+          if (!l.manualEnd) l.end = periodEnd(l.start, term());
+          if (!l.nameTouched) l.name = defaultName(l);
+        }
+        renderLines();
+      });
+
+      // Quick-fill: AMC price as a share of what the unit cost, times the term.
+      $('pctApply').addEventListener('click', () => {
+        const pct = Number($<HTMLInputElement>('pctInput').value);
+        if (!isFinite(pct) || pct < 0) return;
+        let skipped = 0;
+        for (const l of lines) {
+          if (!l.include) continue;
+          const base = l.unitPrice ?? l.typedPrice;
+          if (base == null) { skipped++; continue; }
+          l.amc = round2(base * l.qty * pct / 100 * term());
+        }
+        renderLines();
+        saveError.classList.toggle('hidden', !skipped);
+        if (skipped) saveError.textContent = `${skipped} ticked unit${skipped === 1 ? ' has' : 's have'} no unit price on file — type the AMC price for ${skipped === 1 ? 'it' : 'them'} directly.`;
+      });
+
+      // --- account picker --------------------------------------------------------
+
+      const accountSearch = $<HTMLInputElement>('fAccountSearch');
+      const accountDropdown = $<HTMLDivElement>('accountDropdown');
+      let searchTimer: number | undefined;
+
+      function setAccount(id: number | null, name: string) {
+        accountId = id;
+        accountName = name;
+        accountSearch.value = name;
+        const hint = $('accountHint');
+        hint.textContent = id ? '✓ Account selected' : 'Pick the account this quote is billed to.';
+        hint.className = `text-xs mt-1 ${id ? 'text-emerald-700' : 'text-slate-400'}`;
+        accountDropdown.classList.add('hidden');
+      }
+
+      accountSearch.addEventListener('input', () => {
+        accountId = null;
+        $('accountHint').textContent = 'Pick the account this quote is billed to.';
+        $('accountHint').className = 'text-xs text-slate-400 mt-1';
+        window.clearTimeout(searchTimer);
+        const q = accountSearch.value.trim();
+        if (q.length < 2) { accountDropdown.classList.add('hidden'); return; }
+        searchTimer = window.setTimeout(async () => {
+          try {
+            // The value is only ever used inside a like-pattern; strip the characters
+            // that would end the where-expression early.
+            const safe = q.replace(/[(),~]/g, ' ');
+            const data = await get(`/proxy/accounts_duplicate/records?where=${encodeURIComponent(`(Company Name,like,%${safe}%)`)}&limit=20&fields=Company Name,Billing City`);
+            const rows = rowsOf(data).map(flat);
+            accountDropdown.innerHTML = rows.length
+              ? rows.map((r: any) => `<div data-acc="${esc(r.Id)}" data-name="${esc(r['Company Name'])}" class="px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer">${esc(r['Company Name'] || 'Unnamed')} <span class="text-slate-400">${esc(r['Billing City'] || '')}</span></div>`).join('')
+              : '<div class="px-3 py-2 text-sm text-slate-500">No accounts found</div>';
+            accountDropdown.classList.remove('hidden');
+          } catch {
+            accountDropdown.classList.add('hidden');
+          }
+        }, 300);
+      });
+
+      accountDropdown.addEventListener('click', (e) => {
+        const row = (e.target as HTMLElement).closest('[data-acc]') as HTMLElement | null;
+        if (row) setAccount(Number(row.dataset.acc), row.dataset.name || '');
+      });
+      document.addEventListener('click', (e) => {
+        if (!(e.target as HTMLElement).closest('#fAccountSearch, #accountDropdown')) accountDropdown.classList.add('hidden');
+      });
+
+      // --- saving ----------------------------------------------------------------
+
+      const saveBtn = $<HTMLButtonElement>('saveBtn');
+      const saveError = $<HTMLDivElement>('saveError');
+
+      function fail(msg: string) {
+        saveError.textContent = msg;
+        saveError.classList.remove('hidden');
+        saveError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      saveBtn.addEventListener('click', async () => {
+        saveError.classList.add('hidden');
+        const val = (id: string) => $<HTMLInputElement>(id).value.trim();
+        const company = val('fCompany');
+        const quoteDate = val('fDate');
+
+        if (!company) return fail('Pick the company issuing the quote.');
+        if (!accountId) return fail('Pick the billed account from the search results.');
+        if (!quoteDate) return fail('Quote date is required.');
+
+        const ticked = lines.filter((l) => l.include);
+        if (!ticked.length) return fail('Tick at least one unit.');
+        const n = (l: Line) => lines.indexOf(l) + 1;
+        const noName = ticked.find((l) => !l.name.trim());
+        if (noName) return fail(`Row ${n(noName)} has no description.`);
+        const noDates = ticked.find((l) => !l.start || !l.end);
+        if (noDates) return fail(`Row ${n(noDates)} needs a warranty start and end date.`);
+        const backwards = ticked.find((l) => l.end <= l.start);
+        if (backwards) return fail(`Row ${n(backwards)} ends on or before it starts.`);
+        const noPrice = ticked.find((l) => !(l.amc && l.amc > 0));
+        if (noPrice) return fail(`Row ${n(noPrice)} has no AMC total price.`);
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Creating...';
+
+        try {
+          const me = getTokenClaims()?.email || 'Unknown User';
+          const total = round2(ticked.reduce((s, l) => s + (l.amc || 0), 0));
+          const quoteNumber = await getNextQuoteNumber(company, { apiBaseUrl: API_BASE_URL, token: token! });
+
+          const created = await send('POST', '/proxy/quotes/records', {
+            fields: {
+              'Subject': accountName,
+              'Company': company,
+              'Quote Number': quoteNumber,
+              'Quote Status': 'Draft',
+              'Quote Type': 'Customer',
+              'Quote Version': '1.0',
+              'Quote Date': quoteDate,
+              'Valid Until': val('fValid') || null,
+              // Saved including GST, the same way quote-detail saves it after an edit.
+              'Total Amount': round2(total * (1 + GST / 100)),
+              'Notes': '',
+              'End User': val('fEndUser'),
+              'End User Location': val('fEndUserLocation'),
+              'Quote Created By': me,
+              // Marks the quote as an AMC and tells quote-detail which PDF to print.
+              'Quote Layout': 'AMC',
+              'AMC Cover Id': coverId,
+            },
+          });
+          const quoteId = idOf(rowsOf(created)[0]) ?? idOf(created);
+          if (!quoteId) {
+            console.error('quote create returned no id', created);
+            throw new Error('The quote may not have saved completely. Check the Quotes list before trying again.');
+          }
+
+          // Same case wiring as create-quote: quote-detail finds the account through it.
+          const createdCase = await send('POST', '/proxy/cases/records', {
+            fields: {
+              'Title': accountName,
+              'Status': 'Open',
+              'Created': isoOf(new Date()),
+              'Case Created By': me,
+            },
+          });
+          const caseId = idOf(rowsOf(createdCase)[0]) ?? idOf(createdCase);
+          if (!caseId) {
+            console.error('case create returned no id', createdCase);
+            throw new Error('The quote was saved but could not be linked to its account. Open it from the Quotes list to check.');
+          }
+          await send('POST', `/proxy/cases/links/accounts_duplicate/${caseId}`, [{ id: accountId }]);
+          await send('POST', `/proxy/cases/links/quotes/${caseId}`, [{ id: quoteId }]);
+
+          // One line per unit. They carry no catalogue link — an AMC is a service,
+          // not the product — so they are written as outsourced lines, which is
+          // what lets the description be the AMC's own wording.
+          const sac = val('fSac');
+          for (const l of ticked) {
+            await send('POST', '/proxy/products_for_quotes/records', {
+              fields: {
+                'Quotes': quoteId,
+                'Quantity': l.qty,
+                // Stored per unit so Line Total and every renderer's qty x price
+                // maths lands exactly on the AMC total typed here.
+                'Custom Unit Price': round2((l.amc || 0) / l.qty),
+                'Discount': 0,
+                'Is Outsourced': true,
+                'Custom Product Name': l.name.trim(),
+                'Custom Description': l.description.trim() || null,
+                'Custom Model No': l.model || null,
+                'Custom HSN': sac || null,
+                'Custom Tax': GST,
+                'Custom UOM': 'Nos',
+                'Serial Number': l.serial.trim() || null,
+                'Warranty Start': l.start,
+                'Warranty End': l.end,
+                'Equipment Unit Price': l.unitPrice ?? l.typedPrice,
+                'Warranty Asset Id': l.assetId,
+              },
+            });
+          }
+
+          // The reminder panel and list should show these units are being worked.
+          for (const l of ticked) {
+            await send('PATCH', '/proxy/warranty_assets/records', { id: l.assetId, fields: { 'Status': 'Renewal Quoted' } });
+          }
+
+          window.location.replace(`/quote-detail?id=${quoteId}`);
+        } catch (err) {
+          fail(err instanceof Error ? err.message : 'Could not create the quote.');
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Create AMC quote';
+        }
+      });
+
+      // --- loading ---------------------------------------------------------------
+
+      const normModel = (s: any) => String(s ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+      /**
+       * Catalogue rows for the covered products. Units captured from a quote know
+       * their product id; archive units only have a free-text model, matched the
+       * way warranty-detail matches HSN — exact first, then one unambiguous prefix.
+       */
+      async function loadCatalogue(assets: any[]): Promise<Map<number, any>> {
+        const out = new Map<number, any>();
+        const fields = 'Product Name,Model No,Description,Customer Unit Price';
+
+        const ids = [...new Set(assets.map((a) => Number(a['Product Id'])).filter((x) => x > 0))];
+        if (ids.length) {
+          const where = ids.map((x) => `(Id,eq,${x})`).join('~or');
+          const byId = new Map<number, any>(rowsOf(await get(`/proxy/products/records?where=${encodeURIComponent(where)}&limit=1000&fields=${fields}`))
+            .map((r: any) => [Number(idOf(r)), flat(r)]));
+          for (const a of assets) {
+            const p = byId.get(Number(a['Product Id']));
+            if (p) out.set(a.Id, p);
+          }
+        }
+
+        const rest = assets.filter((a) => !out.has(a.Id) && normModel(a['Model']));
+        const prefixes = [...new Set(rest.map((a) => (String(a['Model']).match(/^[A-Za-z0-9]+/)?.[0] || '').slice(0, 3)).filter(Boolean))];
+        if (prefixes.length) {
+          const where = prefixes.map((p) => `(Model No,like,${p}%)`).join('~or');
+          const catalogue = rowsOf(await get(`/proxy/products/records?where=${encodeURIComponent(where)}&limit=1000&fields=${fields}`)).map(flat);
+          for (const a of rest) {
+            const key = normModel(a['Model']);
+            let hits = catalogue.filter((p: any) => normModel(p['Model No']) === key);
+            if (!hits.length) hits = catalogue.filter((p: any) => normModel(p['Model No']).startsWith(key));
+            if (hits.length === 1) out.set(a.Id, hits[0]);
+          }
+        }
+        return out;
+      }
+
+      async function load() {
+        if (!coverId) { showError('No cover record specified. Open this page from a cover record.'); return; }
+        const detailUrl = `/warranty-detail?id=${coverId}`;
+        $<HTMLAnchorElement>('backLink').href = detailUrl;
+        $<HTMLAnchorElement>('cancelLink').href = detailUrl;
+
+        try {
+          const rec = await get(`/proxy/warranty_reminders/records/${coverId}`);
+          parent = rec?.fields || {};
+          const assets = rowsOf(await get(`/proxy/warranty_assets/records?where=${encodeURIComponent(`(Warranty Id,eq,${coverId})`)}&limit=1000`)).map(flat);
+          assets.sort((a: any, b: any) => dateOnly(a['End Date']).localeCompare(dateOnly(b['End Date'])));
+
+          let catalogue = new Map<number, any>();
+          try { catalogue = await loadCatalogue(assets); } catch { /* descriptions and prices just stay blank */ }
+
+          const today = isoOf(new Date());
+          lines = assets.map((a: any) => {
+            const p = catalogue.get(a.Id);
+            const coverPrice = a['Unit Price'] != null && a['Unit Price'] !== '' ? Number(a['Unit Price']) : null;
+            const listPrice = p?.['Customer Unit Price'] != null ? Number(p['Customer Unit Price']) : null;
+            const status = String(a['Status'] || '').toLowerCase();
+            // Cover still running: the AMC picks up the day after it ends. Already
+            // lapsed: it can only start from today.
+            const end = dateOnly(a['End Date']);
+            const start = end && end >= today ? addDays(end, 1) : today;
+            const l: Line = {
+              assetId: Number(a.Id),
+              include: status !== 'renewed' && status !== 'replaced',
+              model: a['Model'] || '',
+              productName: p?.['Product Name'] || '',
+              name: '',
+              description: p?.['Description'] || '',
+              serial: a['Serial Number'] || '',
+              start,
+              end: periodEnd(start, 1),
+              manualEnd: false,
+              qty: 1,
+              unitPrice: coverPrice ?? listPrice,
+              priceSource: coverPrice != null ? 'cover' : listPrice != null ? 'catalogue' : '',
+              typedPrice: null,
+              amc: null,
+              nameTouched: false,
+            };
+            l.name = defaultName(l);
+            return l;
+          });
+
+          const customer = parent['Customer Name'] || parent['Title'] || 'this customer';
+          $('hCustomer').textContent = customer;
+          document.title = `AMC quote — ${customer}`;
+
+          // Sold through a partner: the partner is billed and the customer is the
+          // end user — the same shape Create Cover reads off a quote.
+          const partner = String(parent['Partner'] || '').trim();
+          $<HTMLInputElement>('fEndUser').value = partner ? customer : '';
+          $<HTMLInputElement>('fEndUserLocation').value = partner ? (parent['Location'] || '') : '';
+          $<HTMLInputElement>('fSac').value = parent['SAC'] || '';
+
+          const accId = Number(parent['Account Id']) || null;
+          let accName = '';
+          if (accId) {
+            try {
+              const acc = await get(`/proxy/accounts_duplicate/records/${accId}?fields=Company Name,Account Name`);
+              accName = acc?.fields?.['Company Name'] || acc?.fields?.['Account Name'] || '';
+            } catch { /* fall through to a manual pick */ }
+          }
+          if (accId && accName) setAccount(accId, accName);
+          else {
+            setAccount(null, '');
+            accountSearch.value = partner || '';
+          }
+
+          $<HTMLInputElement>('fDate').value = today;
+          $<HTMLInputElement>('fValid').value = addDays(today, 30);
+
+          renderLines();
+          pageLoading.classList.add('hidden');
+          pageContent.classList.remove('hidden');
+        } catch (err) {
+          showError(esc(err instanceof Error ? err.message : 'Failed to load the cover record.'));
+        }
+      }
+
+      load();
+    });
+  </script>
+</AdminLayout>

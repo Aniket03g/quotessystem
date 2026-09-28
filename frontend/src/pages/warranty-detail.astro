@@ -42,9 +42,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <div class="min-w-0">
                 <h1 id="detailCustomer" class="text-2xl font-semibold text-slate-800 leading-tight break-words"></h1>
                 <p id="detailLocation" class="text-sm text-slate-500 mt-1"></p>
-                <p id="detailPartner" class="hidden text-sm text-slate-600 mt-1">
-                  <span class="text-slate-400">Partner</span>
-                  <span id="detailPartnerName" class="font-medium"></span>
+                <p id="detailAccount" class="hidden text-sm text-slate-600 mt-1">
+                  <span class="text-slate-400">Account</span>
+                  <span id="detailAccountName" class="font-medium"></span>
                 </p>
                 <div class="flex flex-wrap items-center gap-2 mt-3" id="detailBadges"></div>
               </div>
@@ -55,6 +55,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <div id="detailExpiry" class="text-xl font-semibold text-slate-800 mt-0.5 whitespace-nowrap"></div>
               <div id="detailCountdown" class="text-sm text-slate-500 mt-0.5"></div>
               <div id="detailNextWhat" class="text-xs text-slate-400 mt-0.5"></div>
+              <a id="createAmcQuote" href="#" class="inline-flex items-center gap-1.5 mt-3 px-3 py-2 text-xs font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors whitespace-nowrap">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Create AMC quote
+              </a>
             </div>
           </div>
         </div>
@@ -68,6 +74,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         </div>
       </div>
 
+      <!-- AMC quotes raised against this cover -->
+      <div id="amcQuotesCard" class="hidden bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">AMC quotes</h2>
+        </div>
+        <div id="amcQuotesList" class="divide-y divide-slate-100"></div>
+      </div>
+
       <!-- Computed-expiry advisory -->
       <div id="computedNotice" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-xl">
         <div class="flex items-start gap-3">
@@ -75,10 +89,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"></path>
           </svg>
           <p class="text-sm text-amber-800">
-            <span id="computedCount"></span> on this invoice have a <strong>computed</strong> expiry
-            — invoice date plus the recorded term, with no Yealink AMS registration date on file.
-            Registration always follows invoicing, so the real expiry is typically 3–6 months later
-            than the date shown. Confirm against the AMS portal before quoting a renewal.
+            <strong><span id="computedCount"></span></strong> on this cover have no Yealink AMS registration
+            on file, so their end date is estimated from the invoice date. The real expiry is usually
+            3–6 months later — check the AMS portal before quoting a renewal.
           </p>
         </div>
       </div>
@@ -90,8 +103,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         </div>
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-5 px-6 py-5">
           <div>
-            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Partner</div>
-            <div id="fPartner" class="text-sm text-slate-800 mt-1 break-words"></div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</div>
+            <div id="fAccount" class="text-sm text-slate-800 mt-1 break-words"></div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice No</div>
@@ -121,7 +134,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           <div>
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Next reminder due</div>
             <div id="fReminderDue" class="text-sm text-slate-800 mt-1"></div>
-            <div class="text-xs text-slate-400 mt-0.5">60 days before the next expiry</div>
+            <div class="text-xs text-slate-400 mt-0.5">60 days before the next warranty end</div>
           </div>
           <div>
             <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Last Reminded</div>
@@ -148,9 +161,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             Covered products <span id="assetCount" class="text-slate-400 font-normal normal-case"></span>
           </h2>
           <div class="flex items-center gap-2">
-            <button id="copySerials" class="px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors whitespace-nowrap">
-              Copy serials
-            </button>
             <button id="editAssets" class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">
               Edit products
             </button>
@@ -167,9 +177,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         </div>
 
         <div id="editHint" class="hidden px-6 py-3 bg-blue-50 border-b border-blue-100 text-xs text-blue-800">
-          Set a <strong>term</strong> and the end date follows the start date. Type an end date
-          directly and it is kept exactly as entered, marked <em>manual</em>. The invoice's next
-          expiry is worked out from these rows when you save.
+          Pick a <strong>term</strong> and the end date is filled in from the start date, or type an
+          end date yourself to override it. The cover's next expiry updates when you save.
         </div>
 
         <div id="saveError" class="hidden px-6 py-3 bg-red-50 border-b border-red-100 text-sm text-red-800"></div>
@@ -184,12 +193,59 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         </div>
       </div>
 
+      <!-- Invoice PDF -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Invoice PDF</h2>
+          <div class="flex items-center gap-2">
+            <button id="viewInvoice" class="hidden px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 bg-white rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">View</button>
+            <button id="downloadInvoice" class="hidden px-3 py-1.5 text-xs font-medium text-slate-700 border border-slate-300 bg-white rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">Download</button>
+            <button id="removeInvoice" class="hidden px-3 py-1.5 text-xs font-medium text-red-700 border border-red-200 bg-white rounded-lg hover:bg-red-50 transition-colors whitespace-nowrap">Remove</button>
+            <button id="uploadInvoice" class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap disabled:opacity-50">Upload invoice PDF</button>
+            <input id="invoiceFile" type="file" accept="application/pdf,.pdf" class="hidden" />
+          </div>
+        </div>
+        <div class="px-6 py-5">
+          <div id="invoiceView" class="text-sm"></div>
+          <p id="invoiceError" class="hidden mt-2 text-sm text-red-700"></p>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-3">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Notes</h2>
+          <div class="flex items-center gap-2">
+            <button id="editNotes" class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap">Add notes</button>
+            <button id="cancelNotes" class="hidden px-3 py-1.5 text-xs font-medium text-slate-600 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap">Cancel</button>
+            <button id="saveNotes" class="hidden px-3 py-1.5 text-xs font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors whitespace-nowrap disabled:opacity-50">Save notes</button>
+          </div>
+        </div>
+        <div class="px-6 py-5">
+          <p id="notesView" class="text-sm text-slate-700 whitespace-pre-wrap break-words"></p>
+          <textarea id="notesInput" rows="5" class="hidden w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Anything worth knowing about this cover — site contact, special terms, what was left out..."></textarea>
+          <p id="notesError" class="hidden mt-2 text-sm text-red-700"></p>
+        </div>
+      </div>
+
+      <!-- Delete cover (admin / super_admin) -->
+      <div id="deleteCard" class="hidden bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+          <div class="min-w-0">
+            <h2 class="text-sm font-semibold text-red-800 uppercase tracking-wider">Delete cover</h2>
+            <p id="deleteHint" class="text-xs text-slate-500 mt-1">Removes this cover record and all its covered products. This cannot be undone.</p>
+          </div>
+          <button id="deleteCover" class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors whitespace-nowrap disabled:opacity-50">Delete cover</button>
+        </div>
+        <p id="deleteError" class="hidden px-6 pb-4 text-sm text-red-700"></p>
+      </div>
+
     </div>
   </div>
 
   <script>
     import { getToken, logout, safeJsonParse } from '../lib/api';
-    import { requireAdmin } from '../utils/jwt';
+    import { requireAdmin, isAdmin } from '../utils/jwt';
 
     // Same gate as /warranty: the backfilled rows carry no "Assigned To", so a
     // rep's ownership-scoped read would find nothing here. Drop it with the
@@ -331,6 +387,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return d < 0 ? `${-d}d ago` : d === 0 ? 'today' : `${d}d left`;
       }
 
+      /**
+       * The date a product's reminder counts down to. An AMS unit's End Date is
+       * the later portal date; its own warranty end is kept in Invoice End Date
+       * and the reminder follows that. Mirrors remindOn in the Go scheduler.
+       */
+      function remindOn(a: any): string {
+        const end = dateInputValue(a['End Date']);
+        const inv = dateInputValue(a['Invoice End Date']);
+        if (!inv) return end;
+        return !end || inv < end ? inv : end;
+      }
+
       /** The soonest end date still in force, which is what the invoice expires on. */
       function nextExpiry(list: any[]): { iso: string; assets: any[] } | null {
         const live = list.filter((a) => bandOf(a) !== 'closed' && a['End Date']);
@@ -342,11 +410,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       }
 
       let parent: any = null;
+      let accountName = '';        // the linked account's name, when the cover has one
+      let sourceQuoteNumber = '';  // the quote the cover was created from, when known
       let assets: any[] = [];      // as loaded — the baseline a Cancel returns to
       let draft: any[] = [];       // what the editor is working on
       let editing = false;
       let removed: any[] = [];     // ids deleted in this editing session
-      let serialsForCopy: string[] = [];
 
       // --- HSN lookup ---------------------------------------------------------
       // A product row stores a free-text model, so HSN/SAC comes from the
@@ -469,7 +538,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
              <th class="${TH}">Model</th>
              <th class="${TH}">Serial Number</th>
              <th class="${TH} w-64">Cover period</th>
-             <th class="${TH} w-20">Term</th>
+             <th class="${TH} w-24">Term</th>
              <th class="${TH} w-36">Status</th>`;
       }
 
@@ -498,24 +567,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <div class="absolute inset-y-0 left-0 rounded-full ${style.bar}" style="width:${pct}%"></div>
             </div>
             <div class="text-[11px] ${style.text} mt-1">${esc(daysLabel(a))}</div>
+            ${remindOn(a) !== dateInputValue(a['End Date'])
+              ? `<div class="text-[11px] text-slate-500 mt-0.5" title="Registered on the Yealink AMS portal. The renewal reminder is timed to the warranty end, not the AMS date.">Warranty ends ${esc(fmtDate(remindOn(a)))}</div>`
+              : ''}
           </td>`;
       }
 
+      /** Only the exceptions are tagged; a plain start + term date is the normal case. */
       function sourceBadge(a: any): string {
         const src = String(a['Expiry Source'] ?? '').toLowerCase();
+        const tag = 'block w-fit mt-0.5 px-1.5 py-px rounded border text-[10px] font-medium';
         if (src === 'ams') {
-          return `<span class="ml-1 text-[10px] text-emerald-700" title="Expiry taken from the Yealink AMS registration date">AMS</span>`;
+          return `<span class="${tag} bg-emerald-50 text-emerald-700 border-emerald-200" title="End date taken from the Yealink AMS registration">AMS</span>`;
         }
         if (src === 'manual') {
-          return `<span class="ml-1 text-[10px] text-blue-700" title="End date entered by hand">manual</span>`;
+          return `<span class="${tag} bg-blue-50 text-blue-700 border-blue-200" title="End date entered by hand">Manual</span>`;
         }
-        return `<span class="ml-1 text-[10px] text-slate-400" title="End date worked out from the start date and term">computed</span>`;
+        return '';
       }
 
       function renderView() {
         const body = document.getElementById('assetBody') as HTMLTableSectionElement;
         if (!assets.length) {
-          body.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500">No products recorded on this record</td></tr>';
+          body.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500">No products on this cover yet. Use “Edit products” to add them.</td></tr>';
           return;
         }
 
@@ -529,10 +603,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <td class="px-4 py-3 text-sm text-slate-400">${i + 1}</td>
               <td class="px-4 py-3 text-sm ${stored ? 'font-mono text-slate-700' : 'text-slate-300'}"
                   data-hsn-for="${esc(a['Model'])}" ${stored ? 'data-hsn-fixed="1"' : ''}>${stored ? esc(stored) : '…'}</td>
-              <td class="px-4 py-3 text-sm text-slate-800">${esc(a['Model']) || '<span class="text-slate-400 italic">(unnamed)</span>'}</td>
+              <td class="px-4 py-3 text-sm text-slate-800">${esc(a['Model']) || '<span class="text-slate-400 italic">Model not recorded</span>'}</td>
               <td class="px-4 py-3 text-sm font-mono text-slate-700">${a['Serial Number'] ? esc(a['Serial Number']) : '<span class="font-sans text-slate-400 italic">not recorded</span>'}</td>
               ${coverCell(a)}
-              <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">${term ? `${esc(term)}y` : '—'}${sourceBadge(a)}</td>
+              <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">${term ? esc(`${term} ${Number(term) === 1 ? 'year' : 'years'}`) : '—'}${sourceBadge(a)}</td>
               <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}">${esc(a['Status'] || style.label)}</span>
               </td>
@@ -607,11 +681,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         locEl.textContent = f['Location'] || '';
         locEl.classList.toggle('hidden', !f['Location']);
 
-        // Every backfilled row came through KDDI, but the column is per-row, so
-        // the line is shown only when the record actually carries a partner.
-        const partner = String(f['Partner'] ?? '').trim();
-        document.getElementById('detailPartner')!.classList.toggle('hidden', !partner);
-        set('detailPartnerName', partner);
+        // The account billed for the cover, which Customer Name need not match.
+        // Archive rows carry no Account Id, so they fall back to their Partner.
+        const account = accountName || String(f['Partner'] ?? '').trim();
+        document.getElementById('detailAccount')!.classList.toggle('hidden', !account);
+        const accountEl = document.getElementById('detailAccountName') as HTMLElement;
+        accountEl.innerHTML = f['Account Id'] && accountName
+          ? `<a href="/account-detail?id=${encodeURIComponent(f['Account Id'])}" class="text-blue-700 hover:underline">${esc(account)}</a>`
+          : esc(account);
 
         // Counts by band, which is also what the list page's tiles count.
         const counts: Record<string, number> = { lapsed: 0, due: 0, active: 0, closed: 0, unknown: 0 };
@@ -635,11 +712,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             : soleSource === 'manual'
             ? `<span class="${pill} bg-blue-50 text-blue-700 border border-blue-200" title="Every end date on this invoice was entered by hand">Manual expiry</span>`
             : soleSource === 'computed'
-            ? `<span class="${pill} bg-slate-50 text-slate-600 border border-slate-200" title="No AMS registration date on file — expiry is the start date plus the recorded term">Computed expiry</span>`
+            ? `<span class="${pill} bg-slate-50 text-slate-600 border border-slate-200" title="No AMS registration date on file — expiry is the start date plus the recorded term">Estimated expiry</span>`
             : `<span class="${pill} bg-slate-50 text-slate-600 border border-slate-200" title="Products on this invoice do not share one expiry source">Mixed sources</span>`,
         );
-        if (f['Status']) {
-          badges.push(`<span class="${pill} bg-blue-50 text-blue-700 border border-blue-200">${esc(f['Status'])}</span>`);
+        if (f['Type']) {
+          badges.push(`<span class="${pill} bg-violet-50 text-violet-700 border border-violet-200">${esc(f['Type'])}</span>`);
+        }
+        // Records captured from a quote know where they came from; archive rows don't.
+        if (f['Source Quote Id']) {
+          badges.push(`<a href="/quote-detail?id=${encodeURIComponent(f['Source Quote Id'])}" class="${pill} gap-1 bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            ${esc(sourceQuoteNumber ? `Quote ${sourceQuoteNumber}` : 'Original quote')}</a>`);
         }
         (document.getElementById('detailBadges') as HTMLElement).innerHTML = badges.join('');
 
@@ -684,28 +767,32 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           : `${computed} of ${assets.length} products`);
 
         // Invoice
-        set('fPartner', partner);
+        set('fAccount', account);
         set('fInvoiceNo', f['Invoice No']);
         set('fInvoiceDate', fmtDate(f['Invoice Date']));
         set('fValue', fmtMoney(f['Value']));
         set('fAssigned', f['Assigned To'] || 'Unassigned');
 
-        // Reminder — driven by the next product to expire, not by the invoice.
-        set('fReminderDue', nextDate
-          ? fmtDate(isoOf(new Date(nextDate.getTime() - LEAD_DAYS * 86400000)))
+        // Reminder — driven by the next product to expire, not by the invoice,
+        // and by an AMS unit's warranty end rather than its later portal date.
+        const remindIso = assets
+          .filter((a) => bandOf(a) !== 'closed')
+          .map(remindOn)
+          .filter(Boolean)
+          .sort()[0];
+        const remindDate = remindIso ? toDate(remindIso) : null;
+        const remindDays = remindDate ? daysBetween(TODAY, remindDate) : null;
+        set('fReminderDue', remindDate
+          ? fmtDate(isoOf(new Date(remindDate.getTime() - LEAD_DAYS * 86400000)))
           : '—');
         set('fLastReminded', f['Last Reminded']
           ? fmtDate(f['Last Reminded'])
-          : (days !== null && days <= LEAD_DAYS ? 'Not sent yet' : 'Not due yet'));
+          : (remindDays !== null && remindDays <= LEAD_DAYS ? 'Not sent yet' : 'Not due yet'));
         set('fStatus', f['Status']);
         set('fSource', soleSource === 'ams' ? 'Yealink AMS registration'
           : soleSource === 'manual' ? 'Entered by hand'
-          : soleSource === 'computed' ? 'Computed (start date + term)'
+          : soleSource === 'computed' ? 'Estimated (start date + term)'
           : 'Mixed across products');
-
-        serialsForCopy = assets.map((a) => a['Serial Number']).filter(Boolean);
-        (document.getElementById('copySerials') as HTMLButtonElement)
-          .classList.toggle('hidden', serialsForCopy.length === 0 || editing);
       }
 
       // --- editing ------------------------------------------------------------
@@ -865,10 +952,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
-        if (res.status === 401) { logout(); throw new Error('Session expired'); }
+        if (res.status === 401) { logout(); throw new Error('Your session has expired. Please sign in again.'); }
         if (!res.ok) {
-          const text = await res.text();
-          throw new Error(`${method} ${path} failed (HTTP ${res.status}) ${text.slice(0, 200)}`);
+          // The raw response is for whoever debugs it, not for the person saving.
+          console.error(`${method} ${path} failed`, res.status, await res.text());
+          throw new Error(res.status === 403
+            ? 'You do not have permission to make this change.'
+            : `The change could not be saved (error ${res.status}). Please try again.`);
         }
         return res;
       }
@@ -945,16 +1035,185 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         renderSummary();
       }
 
-      const copyBtn = document.getElementById('copySerials') as HTMLButtonElement;
-      copyBtn.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(serialsForCopy.join('\n'));
-          copyBtn.textContent = `Copied ${serialsForCopy.length}`;
-        } catch {
-          copyBtn.textContent = 'Copy failed';
+      // --- invoice PDF ----------------------------------------------------------
+      // Lives in the record's "Invoice PDF" attachment column; every read and
+      // write goes through the proxy's /api/warranty/invoice, which keeps
+      // NocoDB's host and token out of the browser.
+
+      const MAX_PDF = 15 * 1024 * 1024;
+      const invoiceView = document.getElementById('invoiceView') as HTMLElement;
+      const invoiceError = document.getElementById('invoiceError') as HTMLElement;
+      const invoiceFile = document.getElementById('invoiceFile') as HTMLInputElement;
+      const btnView = document.getElementById('viewInvoice') as HTMLButtonElement;
+      const btnDownload = document.getElementById('downloadInvoice') as HTMLButtonElement;
+      const btnRemove = document.getElementById('removeInvoice') as HTMLButtonElement;
+      const btnUpload = document.getElementById('uploadInvoice') as HTMLButtonElement;
+      const invoiceUrl = () => `${API_BASE_URL}/api/warranty/invoice?id=${encodeURIComponent(id)}`;
+
+      function invoiceAttachment(): any | null {
+        const v = parent?.fields?.['Invoice PDF'];
+        return Array.isArray(v) && v.length ? v[0] : null;
+      }
+
+      function showInvoiceError(msg: string) {
+        invoiceError.textContent = msg;
+        invoiceError.classList.toggle('hidden', !msg);
+      }
+
+      function renderInvoice() {
+        const att = invoiceAttachment();
+        btnView.classList.toggle('hidden', !att);
+        btnDownload.classList.toggle('hidden', !att);
+        btnRemove.classList.toggle('hidden', !att);
+        btnRemove.textContent = 'Remove';
+        delete btnRemove.dataset.armed;
+        btnUpload.textContent = att ? 'Replace' : 'Upload invoice PDF';
+        if (att) {
+          const size = Number(att.size) ? ` <span class="text-slate-400">· ${(Number(att.size) / 1024 / 1024).toFixed(1)} MB</span>` : '';
+          invoiceView.innerHTML = `
+            <div class="flex items-center gap-2 text-slate-700">
+              <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+              <span class="font-medium break-all">${esc(att.title || 'invoice.pdf')}</span>${size}
+            </div>`;
+        } else {
+          invoiceView.innerHTML = '<span class="text-slate-400 italic">No invoice attached to this cover yet.</span>';
         }
-        setTimeout(() => { copyBtn.textContent = 'Copy serials'; }, 1500);
+      }
+
+      async function fetchInvoiceBlob(): Promise<Blob> {
+        const res = await fetch(invoiceUrl(), { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.status === 401) { logout(); throw new Error('Session expired'); }
+        if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error || `Could not open the invoice (HTTP ${res.status})`);
+        return res.blob();
+      }
+
+      btnView.addEventListener('click', async () => {
+        showInvoiceError('');
+        // Opened before the fetch so the popup blocker sees a direct click.
+        const win = window.open('', '_blank');
+        try {
+          const url = URL.createObjectURL(await fetchInvoiceBlob());
+          if (win) win.location.href = url; else window.location.href = url;
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+        } catch (err) {
+          win?.close();
+          showInvoiceError(err instanceof Error ? err.message : 'Could not open the invoice.');
+        }
       });
+
+      btnDownload.addEventListener('click', async () => {
+        showInvoiceError('');
+        try {
+          const url = URL.createObjectURL(await fetchInvoiceBlob());
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = invoiceAttachment()?.title || 'invoice.pdf';
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(url), 60000);
+        } catch (err) {
+          showInvoiceError(err instanceof Error ? err.message : 'Could not download the invoice.');
+        }
+      });
+
+      btnUpload.addEventListener('click', () => invoiceFile.click());
+
+      invoiceFile.addEventListener('change', async () => {
+        const file = invoiceFile.files?.[0];
+        invoiceFile.value = '';
+        if (!file) return;
+        showInvoiceError('');
+        if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') { showInvoiceError('The invoice must be a PDF file.'); return; }
+        if (file.size > MAX_PDF) { showInvoiceError('The invoice PDF is larger than 15 MB.'); return; }
+
+        btnUpload.disabled = true;
+        btnUpload.textContent = 'Uploading...';
+        try {
+          const form = new FormData();
+          form.append('file', file);
+          const res = await fetch(invoiceUrl(), { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: form });
+          if (res.status === 401) { logout(); return; }
+          const body = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(body?.error || `Upload failed (HTTP ${res.status})`);
+          parent.fields = { ...parent.fields, 'Invoice PDF': [{ title: body.title || file.name, size: body.size || file.size }] };
+        } catch (err) {
+          showInvoiceError(err instanceof Error ? err.message : 'Upload failed.');
+        } finally {
+          btnUpload.disabled = false;
+          renderInvoice();
+        }
+      });
+
+      // Two clicks rather than a confirm() dialog: the first arms the button.
+      btnRemove.addEventListener('click', async () => {
+        if (!btnRemove.dataset.armed) {
+          btnRemove.dataset.armed = '1';
+          btnRemove.textContent = 'Click again to remove';
+          setTimeout(() => { if (btnRemove.dataset.armed) renderInvoice(); }, 4000);
+          return;
+        }
+        showInvoiceError('');
+        try {
+          const res = await fetch(invoiceUrl(), { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+          if (res.status === 401) { logout(); return; }
+          if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error || `Could not remove it (HTTP ${res.status})`);
+          parent.fields = { ...parent.fields, 'Invoice PDF': null };
+        } catch (err) {
+          showInvoiceError(err instanceof Error ? err.message : 'Could not remove the invoice.');
+        }
+        renderInvoice();
+      });
+
+      // --- notes --------------------------------------------------------------
+
+      const notesView = document.getElementById('notesView') as HTMLElement;
+      const notesInput = document.getElementById('notesInput') as HTMLTextAreaElement;
+      const notesError = document.getElementById('notesError') as HTMLElement;
+      const btnEditNotes = document.getElementById('editNotes') as HTMLButtonElement;
+      const btnCancelNotes = document.getElementById('cancelNotes') as HTMLButtonElement;
+      const btnSaveNotes = document.getElementById('saveNotes') as HTMLButtonElement;
+
+      function renderNotes(editingNotes = false) {
+        const notes = String(parent?.fields?.['Notes'] ?? '').trim();
+        notesView.classList.toggle('hidden', editingNotes);
+        notesInput.classList.toggle('hidden', !editingNotes);
+        btnEditNotes.classList.toggle('hidden', editingNotes);
+        btnCancelNotes.classList.toggle('hidden', !editingNotes);
+        btnSaveNotes.classList.toggle('hidden', !editingNotes);
+        notesError.classList.add('hidden');
+        btnEditNotes.textContent = notes ? 'Edit notes' : 'Add notes';
+        if (notes) {
+          notesView.textContent = notes;
+          notesView.className = 'text-sm text-slate-700 whitespace-pre-wrap break-words';
+        } else {
+          notesView.textContent = 'No notes on this cover yet.';
+          notesView.className = 'text-sm text-slate-400 italic';
+        }
+        if (editingNotes) {
+          notesInput.value = notes;
+          notesInput.focus();
+        }
+      }
+
+      btnEditNotes.addEventListener('click', () => renderNotes(true));
+      btnCancelNotes.addEventListener('click', () => renderNotes(false));
+
+      btnSaveNotes.addEventListener('click', async () => {
+        btnSaveNotes.disabled = true;
+        btnSaveNotes.textContent = 'Saving...';
+        try {
+          const notes = notesInput.value.trim();
+          await send('PATCH', '/proxy/warranty_reminders/records', { id: Number(id), fields: { 'Notes': notes || null } });
+          parent.fields = { ...parent.fields, 'Notes': notes };
+          renderNotes(false);
+        } catch (err) {
+          notesError.textContent = err instanceof Error ? err.message : 'Could not save the notes.';
+          notesError.classList.remove('hidden');
+        } finally {
+          btnSaveNotes.disabled = false;
+          btnSaveNotes.textContent = 'Save notes';
+        }
+      });
+
 
       // --- loading ------------------------------------------------------------
 
@@ -965,13 +1224,49 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           { headers: { 'Authorization': `Bearer ${token}` } },
         );
         if (res.status === 401) { logout(); return; }
-        if (!res.ok) throw new Error(`Failed to load covered products (HTTP ${res.status})`);
+        if (!res.ok) {
+          console.error('warranty_assets read failed', res.status);
+          throw new Error('Could not load the covered products. Please refresh the page to try again.');
+        }
         const data = await safeJsonParse(res);
         const rows = data.records || data.list || [];
         // The proxy returns either bare rows or {fields}, depending on the route.
         assets = rows.map((r: any) => (r.fields ? { Id: r.Id ?? r.id ?? r.fields.Id, ...r.fields } : r));
         // Soonest first, so the row that drives the invoice's expiry is at the top.
         assets.sort((a, b) => String(dateInputValue(a['End Date'])).localeCompare(String(dateInputValue(b['End Date']))));
+      }
+
+      /** Best-effort: an unreadable account leaves the name blank, never the page. */
+      async function loadAccountName(accountId: unknown) {
+        if (!accountId) return;
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/proxy/accounts_duplicate/records/${encodeURIComponent(String(accountId))}?fields=Account Name,Company Name`,
+            { headers: { 'Authorization': `Bearer ${token}` } },
+          );
+          if (!res.ok) return;
+          const data = await safeJsonParse(res);
+          const af = data?.fields || data || {};
+          accountName = String(af['Account Name'] || af['Company Name'] || '').trim();
+        } catch {
+          // leave it blank
+        }
+      }
+
+      /** Best-effort: without it the badge just says "Original quote". */
+      async function loadSourceQuoteNumber(quoteId: unknown) {
+        if (!quoteId) return;
+        try {
+          const res = await fetch(
+            `${API_BASE_URL}/proxy/quotes/records/${encodeURIComponent(String(quoteId))}?fields=Quote Number`,
+            { headers: { 'Authorization': `Bearer ${token}` } },
+          );
+          if (!res.ok) return;
+          const data = await safeJsonParse(res);
+          sourceQuoteNumber = String((data?.fields || data || {})['Quote Number'] || '').trim();
+        } catch {
+          // leave it generic
+        }
       }
 
       async function loadRecord() {
@@ -989,7 +1284,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             showError('That cover record was not found, or you do not have access to it.');
             return;
           }
-          if (!res.ok) throw new Error(`Failed to load cover record (HTTP ${res.status})`);
+          if (!res.ok) {
+            console.error('warranty_reminders read failed', res.status);
+            throw new Error('Could not load this cover. Please refresh the page to try again.');
+          }
 
           const data = await safeJsonParse(res);
           // By-id reads pass straight through to NocoDB, which returns the row
@@ -1001,9 +1299,22 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           }
           parent = record;
 
-          await loadAssets();
+          await Promise.all([
+            loadAssets(),
+            loadAccountName(record.fields['Account Id']),
+            loadSourceQuoteNumber(record.fields['Source Quote Id']),
+          ]);
           renderSummary();
           renderAssets();
+          renderNotes();
+          renderInvoice();
+          // Set by create-cover when the record saved but the PDF upload did not.
+          if (params.get('invoice') === 'failed') {
+            showInvoiceError('The cover was created, but the invoice PDF did not upload. Please upload it again.');
+          }
+          (document.getElementById('createAmcQuote') as HTMLAnchorElement).href =
+            `/create-amc-quote?coverId=${encodeURIComponent(id)}`;
+          loadAmcQuotes();
 
           pageLoading.classList.add('hidden');
           pageContent.classList.remove('hidden');
@@ -1011,6 +1322,90 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           showError(error instanceof Error ? error.message : 'Failed to load cover record');
         }
       }
+
+      /** AMC quotes raised from this cover. Best-effort: a missing column just hides the card. */
+      async function loadAmcQuotes() {
+        try {
+          const where = `(AMC Cover Id,eq,${Number(id)})`;
+          const res = await fetch(
+            `${API_BASE_URL}/proxy/quotes/records?where=${encodeURIComponent(where)}&limit=100` +
+            `&fields=Quote Number,Quote Status,Quote Date,Total Amount,Subject`,
+            { headers: { 'Authorization': `Bearer ${token}` } },
+          );
+          if (!res.ok) return;
+          const rows = ((await safeJsonParse(res)).records || []) as any[];
+          if (!rows.length) return;
+          rows.sort((a, b) => String(b.fields?.['Quote Date'] ?? '').localeCompare(String(a.fields?.['Quote Date'] ?? '')));
+          (document.getElementById('amcQuotesList') as HTMLElement).innerHTML = rows.map((r) => {
+            const f = r.fields || {};
+            return `
+              <a href="/quote-detail?id=${encodeURIComponent(r.id)}" class="flex items-center justify-between gap-4 px-6 py-3 hover:bg-slate-50 transition-colors">
+                <div class="min-w-0">
+                  <div class="text-sm font-medium text-slate-800">${esc(f['Quote Number'] || `Quote #${r.id}`)}</div>
+                  <div class="text-xs text-slate-500">${esc(fmtDate(f['Quote Date']))}</div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                  <span class="text-sm text-slate-700 tabular-nums">${esc(fmtMoney(f['Total Amount']))}</span>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">${esc(f['Quote Status'] || 'Draft')}</span>
+                </div>
+              </a>`;
+          }).join('');
+          amcQuoteCount = rows.length;
+          document.getElementById('amcQuotesCard')!.classList.remove('hidden');
+        } catch { /* the card simply stays hidden */ }
+      }
+
+      // --- delete cover ---------------------------------------------------------
+      // Products first, parent last: a failure part-way leaves the parent in
+      // place, so the record is still reachable and the delete can be retried.
+      // AMC quotes raised from the cover are kept — they are sales history.
+
+      let amcQuoteCount = 0;
+      const deleteCard = document.getElementById('deleteCard') as HTMLElement;
+      const btnDelete = document.getElementById('deleteCover') as HTMLButtonElement;
+      const deleteError = document.getElementById('deleteError') as HTMLElement;
+
+      // requireAdmin() already gates the page; this keeps the button tied to the
+      // same role check should that gate ever be relaxed for reps.
+      if (isAdmin()) deleteCard.classList.remove('hidden');
+
+      function disarmDelete() {
+        delete btnDelete.dataset.armed;
+        btnDelete.textContent = 'Delete cover';
+      }
+
+      // Two clicks rather than a confirm() dialog, like the invoice Remove button.
+      btnDelete.addEventListener('click', async () => {
+        deleteError.classList.add('hidden');
+        if (!btnDelete.dataset.armed) {
+          btnDelete.dataset.armed = '1';
+          const n = assets.length;
+          btnDelete.textContent = `Click again to delete${n ? ` (${n} product${n === 1 ? '' : 's'})` : ''}`;
+          if (amcQuoteCount) {
+            deleteError.textContent = `${amcQuoteCount} AMC quote${amcQuoteCount === 1 ? '' : 's'} raised from this cover will be kept, but will no longer link to it.`;
+            deleteError.classList.remove('hidden');
+          }
+          setTimeout(() => { if (btnDelete.dataset.armed) { disarmDelete(); deleteError.classList.add('hidden'); } }, 5000);
+          return;
+        }
+        disarmDelete();
+        btnDelete.disabled = true;
+        btnDelete.textContent = 'Deleting...';
+        try {
+          // Re-read so products added elsewhere since page load are not orphaned.
+          await loadAssets();
+          for (const a of assets) {
+            await send('DELETE', '/proxy/warranty_assets/records', { id: a.Id });
+          }
+          await send('DELETE', '/proxy/warranty_reminders/records', { id: Number(id) });
+          window.location.href = band ? `/warranty?band=${encodeURIComponent(band)}` : '/warranty';
+        } catch (err) {
+          deleteError.textContent = err instanceof Error ? err.message : 'Could not delete the cover.';
+          deleteError.classList.remove('hidden');
+          btnDelete.disabled = false;
+          btnDelete.textContent = 'Delete cover';
+        }
+      });
 
       loadRecord();
     });

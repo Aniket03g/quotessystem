@@ -75,6 +75,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             </svg>
             New Version
           </button>
+          <!--
+            Warranty / AMC capture. Shown to admins on a won quote only (the
+            register itself is admin-only). Becomes "View cover" once a record
+            carries this quote as its Source Quote Id, so a quote can't be
+            captured twice by accident.
+          -->
+          <a id="createCoverBtn" href="#" class="hidden inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-md hover:bg-emerald-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+            <span id="createCoverLabel">Create AMC</span>
+          </a>
           <button id="deleteQuoteBtn" class="inline-flex items-center justify-center p-2 bg-white border border-red-300 text-red-600 rounded-md hover:bg-red-50 transition-colors" title="Delete Quote">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -142,7 +154,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </span>
         </div>
         <div>
-          <p id="quoteTotalLabel" class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">SUB TOTAL</p>
+          <p id="quoteTotalLabel" class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">SUB TOTAL (BEFORE GST)</p>
           <p id="quoteTotal" class="text-xl font-bold text-slate-900">₹0</p>
           <!--
             One figure per priced alternative, filled in for room-wise quotes.
@@ -253,6 +265,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           <select id="editQuoteStatus" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all hover:border-slate-300">
             <option value="Draft">📝 Draft</option>
             <option value="Sent">📤 Sent</option>
+            <option value="Accepted">🤝 Accepted</option>
             <option value="Approved">✅ Approved</option>
             <option value="Rejected">❌ Rejected</option>
             <option value="Final">🎯 Final</option>
@@ -913,6 +926,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           console.warn('[QUOTE DETAIL] Section lookup failed:', error);
         }
 
+        // AMC lines carry the unit they cover. Read separately, like Section, so a
+        // server without these columns still shows the quote.
+        const amcById = new Map<number, any>();
+        if (String(fields['Quote Layout'] || '') === 'AMC') {
+          try {
+            const amcResponse = await fetch(
+              `${API_BASE_URL}/proxy/products_for_quotes/records?where=(nc_76_d___Quotes_id,eq,${quoteId})&fields=Id,Serial%20Number,Warranty%20Start,Warranty%20End,Equipment%20Unit%20Price`,
+              { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            if (amcResponse.ok) {
+              ((await safeJsonParse(amcResponse)).records || []).forEach((r: any) => amcById.set(r.id, r.fields || {}));
+            }
+          } catch (error) {
+            console.warn('[QUOTE DETAIL] AMC line lookup failed:', error);
+          }
+        }
+
         // Step 3: Merge catalog products with junction data. Junction records are the
         // source of truth for line items (some may have no catalog link — outsourced products).
         console.log('[QUOTE DETAIL] Step 3: Merging catalog and junction data...');
@@ -937,6 +967,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             discountRs,
             catalogUnitPrice: null,
             isOutsourced,
+            serialNumber: amcById.get(jr.id)?.['Serial Number'] || '',
+            periodStart: amcById.get(jr.id)?.['Warranty Start'] || '',
+            periodEnd: amcById.get(jr.id)?.['Warranty End'] || '',
+            equipmentPrice: amcById.get(jr.id)?.['Equipment Unit Price'] ?? null,
           };
 
           if (isOutsourced) {
@@ -1020,7 +1054,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           // Which alternative this line belongs to. Ignored everywhere except
           // the room-wise PDF, which prints one option per page.
           option: record.option || '',
-          make: record.brand
+          make: record.brand,
+          // AMC quotes only: the unit each line covers. Read by the AMC PDF layout.
+          serialNumber: record.serialNumber || '',
+          periodStart: record.periodStart || '',
+          periodEnd: record.periodEnd || '',
+          // equipmentPrice deliberately left out: it is an internal reference
+          // shown on this page only, never printed or emailed.
         }));
 
         // Store for PDF generation (same structure as download function)
@@ -1038,6 +1078,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           // Option names in print order. Stored as JSON text; a quote written
           // before options existed simply has none, and prints as it always did.
           options: parseQuoteOptions(fields['Options']),
+          // Prints the per-unit AMC layout instead of the product table.
+          amc: String(fields['Quote Layout'] || '') === 'AMC',
           account: {
             name: accountName,
             street: accountData?.['Billing Street'] || '',
@@ -1108,11 +1150,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       // Show/hide approval banner
       renderApprovalBanner(status);
+      renderCoverButton(status);
 
-      // Total
-      const total = fields['Total Amount'] || 0;
-      (document.getElementById('quoteTotal') as HTMLParagraphElement).textContent = 
-        `₹${Number(total).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+      // Total. The header tile is filled in by renderHeaderTotals() below, off
+      // the line items — the saved Total Amount includes GST and this tile
+      // reports the pre-GST figure, so the two are not interchangeable here.
 
       // Valid Until
       (document.getElementById('quoteValidUntil') as HTMLParagraphElement).textContent = fields['Valid Until'] || 'N/A';
@@ -1314,6 +1356,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       return afterDiscount + afterDiscount * (taxRate / 100);
     }
 
+    /** The same line, stopped before GST: qty x price, less the line's discount. */
+    function lineNetOf(product: any): number {
+      const customPrice = product.customUnitPrice ? Number(product.customUnitPrice) : null;
+      if (customPrice === null) return 0;
+      const quantity = Number(product.quantity) || 1;
+      const discountRs = product.discountRs != null ? Number(product.discountRs) : null;
+      const discount = Number(product.discount) || 0;
+      const subtotal = customPrice * quantity;
+      const discountAmount = discountRs !== null ? discountRs : subtotal * (discount / 100);
+      return subtotal - discountAmount;
+    }
+
     const formatMoney = (n: number) =>
       '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -1328,14 +1382,15 @@ import AdminLayout from '../layouts/AdminLayout.astro';
     }
 
     /**
-     * The header's SUB TOTAL for a quote with priced alternatives. The saved
-     * Total Amount is option 1's price by design (see calculateTotal), so on a
-     * two-option quote the one figure in the header is only half the answer.
-     * Every option is listed instead, and picking one here drives the same
-     * switch the option tabs below do — the header and the table always agree.
+     * The header's SUB TOTAL — the quote's value *before* GST, which is what
+     * the label has always claimed and now actually holds. The Grand Total
+     * below the table is the GST-inclusive figure; the two are meant to differ.
      *
-     * Left alone on an ordinary quote, which keeps the saved figure it has
-     * always shown.
+     * On a quote with priced alternatives the saved Total Amount is option 1's
+     * price by design (see calculateTotal), so on a two-option quote one figure
+     * in the header is only half the answer. Every option is listed instead,
+     * and picking one here drives the same switch the option tabs below do —
+     * the header and the table always agree.
      */
     function renderHeaderTotals() {
       const label = document.getElementById('quoteTotalLabel');
@@ -1343,28 +1398,31 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       const list = document.getElementById('quoteTotalOptions');
       if (!label || !totalEl || !list) return;
 
+      // Whole rupees, the way this header has always shown the figure — the
+      // paise live in the table below.
+      const roundMoney = (n: number) =>
+        '₹' + Math.round(n).toLocaleString('en-IN');
+      const optionNet = (group: { products: any[] }) =>
+        group.products.reduce((sum: number, p: any) => sum + lineNetOf(p), 0);
+
+      label.textContent = 'SUB TOTAL (BEFORE GST)';
+
       const groups = buildOptionGroups();
       if (groups.length === 1 && groups[0].option === null) {
-        label.textContent = 'SUB TOTAL';
+        totalEl.textContent = roundMoney(
+          currentProducts.reduce((sum: number, p: any) => sum + lineNetOf(p), 0),
+        );
         list.classList.add('hidden');
         list.innerHTML = '';
         return;
       }
 
-      // Whole rupees, the way this header has always shown the figure — the
-      // paise live in the table below.
-      const roundMoney = (n: number) =>
-        '₹' + Math.round(n).toLocaleString('en-IN');
-      const optionTotal = (group: { products: any[] }) =>
-        group.products.reduce((sum: number, p: any) => sum + lineTotalOf(p), 0);
-
       const active = groups.find(g => g.option === activeOptionKey) || groups[0];
-      label.textContent = 'SUB TOTAL';
-      totalEl.textContent = roundMoney(optionTotal(active));
+      totalEl.textContent = roundMoney(optionNet(active));
 
       list.classList.remove('hidden');
       list.innerHTML = groups.map((group, i) => {
-        const total = optionTotal(group);
+        const total = optionNet(group);
         const isActive = group.option === active.option;
         return `
           <button type="button" data-option="${escapeHtml(group.option)}"
@@ -1375,8 +1433,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <span class="truncate text-[11px] font-semibold ${isActive ? 'text-indigo-800' : 'text-slate-500'}">${i + 1}. ${escapeHtml(group.option)}</span>
             <span class="shrink-0 text-xs font-bold tabular-nums ${isActive ? 'text-indigo-900' : 'text-slate-600'}">${roundMoney(total)}</span>
           </button>`;
-      }).join('') +
-        `<p class="px-2 pt-0.5 text-[10px] leading-snug text-slate-400">Alternatives &middot; only one is bought. Option 1 is the saved quote total.</p>`;
+      }).join('');
 
       list.querySelectorAll('.header-option-total').forEach(button => {
         button.addEventListener('click', () => {
@@ -1635,7 +1692,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       // fold into a second line under the product name. Ordinary quotes are left
       // on the wide layout they have always had.
       const roomWise = hasSections || hasOptions;
-      const colCount = (roomWise ? 6 : 10) + (isEditMode ? 1 : 0);
+      // AMC quotes (raised from a cover record) get their own table: one row per
+      // unit with its serial and cover period, the equipment's own price for
+      // reference, and the AMC charge. Room-wise and ordinary quotes never see it.
+      const amc = !roomWise && String(currentQuoteFields?.['Quote Layout'] || '') === 'AMC';
+      const colCount = (roomWise ? 6 : amc ? 9 : 10) + (isEditMode ? 1 : 0);
 
       // Flattened so the row template below stays a single map, with banners
       // interleaved. `index` is the zebra counter over visible product rows only.
@@ -1708,6 +1769,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         `<th class="px-4 py-3 text-${align} text-[11px] font-bold text-slate-500 uppercase tracking-wider ${extra}">${label}</th>`;
       const headerCells = roomWise
         ? [th('Item'), th('Qty', 'center'), th('Unit Price', 'right'), th('Discount', 'center'), th('Tax', 'center'), th('Line Total', 'right')]
+        : amc
+        ? [th('Description'), th('Serial Number'), th('Warranty Start'), th('Warranty End'), th('Qty', 'center'),
+           th('Product Unit Price', 'right'), th('AMC Price', 'right'), th('Tax %', 'center'), th('Line Total', 'right')]
         : [th('Product'), th('Brand'), th('Model No'), th('HSN Code'), th('Warranty (months)', 'center'),
            th('Qty', 'center'), th('Unit Price', 'right'), th('Discount %', 'center'), th('Tax %', 'center'), th('Line Total', 'right')];
       if (isEditMode) headerCells.push(th('', 'right'));
@@ -1850,7 +1914,20 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                     ].filter(Boolean)
                   : [];
 
-                const identityCells = roomWise ? `
+                const fmtAmcDate = (iso: string) => {
+                  if (!iso) return '<span class="text-slate-400">-</span>';
+                  const d = new Date(iso);
+                  return escapeHtml(isNaN(d.getTime()) ? iso : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }));
+                };
+                const identityCells = amc ? `
+                  <td class="px-4 py-3.5">
+                    <div class="text-sm font-medium text-slate-900">${escapeHtml(name)}</div>
+                    ${product.description ? `<div class="mt-0.5 text-xs text-slate-400 line-clamp-2" title="${escapeHtml(product.description)}">${escapeHtml(product.description)}</div>` : ''}
+                  </td>
+                  <td class="px-4 py-3.5 text-sm text-slate-700 font-mono whitespace-nowrap">${product.serialNumber ? escapeHtml(product.serialNumber) : '<span class="font-sans text-slate-400">-</span>'}</td>
+                  <td class="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">${fmtAmcDate(product.periodStart)}</td>
+                  <td class="px-4 py-3.5 text-sm text-slate-600 whitespace-nowrap">${fmtAmcDate(product.periodEnd)}</td>
+                ` : roomWise ? `
                   <td class="px-4 py-3">
                     <div class="text-sm font-semibold text-slate-900 leading-snug">${escapeHtml(name)}${product.isOutsourced ? ' <span class="ml-1.5 align-middle inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-700">Outsourced</span>' : ''}</div>
                     ${meta.length ? `<div class="mt-0.5 text-xs text-slate-400 leading-snug">${meta.join('<span class="mx-1.5 text-slate-300">&middot;</span>')}</div>` : ''}
@@ -1868,12 +1945,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 const rowClass = roomWise
                   ? 'bg-white border-b border-slate-100'
                   : (entry.index % 2 === 0 ? 'bg-white' : 'bg-slate-50');
+                // AMC rows: the equipment's price is a reference only (it never
+                // prints), and there is no discount column — the AMC charge is
+                // typed as the price. updateLineItemDisplay() still wants a
+                // discount input to recalculate live, so edit mode gets a fixed 0.
+                const equipmentPrice = product.equipmentPrice != null && product.equipmentPrice !== '' ? Number(product.equipmentPrice) : null;
+                const middleCells = amc ? `
+                    <td class="px-4 py-3.5 text-sm text-slate-500 text-right tabular-nums" title="The equipment's own price — for reference, not printed on the PDF">${equipmentPrice !== null ? '₹' + equipmentPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '<span class="text-slate-400">-</span>'}${isEditMode ? `<input type="hidden" class="discount-input" data-mode="percent" value="0" data-junction-id="${junctionId}" />` : ''}</td>
+                    ${priceCell}
+                  ` : `
+                    ${priceCell}
+                    ${discountCell}
+                  `;
                 return `
                   <tr data-junction-id="${junctionId}" data-floor-key="${entry.floorKey || ''}" data-room-key="${entry.roomKey || ''}" class="${rowClass} hover:bg-indigo-50/50 transition-colors">
                     ${identityCells}
                     ${qtyCell}
-                    ${priceCell}
-                    ${discountCell}
+                    ${middleCells}
                     <td class="px-4 py-3.5 text-sm text-slate-500 text-center tabular-nums">${taxRate}%</td>
                     <td class="px-4 py-3.5 text-sm font-bold text-slate-900 text-right tabular-nums line-total-cell" data-junction-id="${junctionId}">₹${lineTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     ${actionCell}
@@ -3017,6 +3105,54 @@ import AdminLayout from '../layouts/AdminLayout.astro';
      * field. Anything unparseable is treated as "no options" rather than
      * thrown: a malformed field must not cost the user their PDF.
      */
+    /**
+     * A won quote offers to start its warranty/AMC record. "Final" is treated
+     * as won alongside "Accepted" because older quotes were closed that way.
+     * If a record already names this quote as its source, link to it instead.
+     */
+    const WON_STATUSES = new Set(['Accepted', 'Final']);
+
+    async function renderCoverButton(status: string) {
+      const btn = document.getElementById('createCoverBtn') as HTMLAnchorElement | null;
+      const label = document.getElementById('createCoverLabel');
+      if (!btn || !label) return;
+      // An AMC quote was raised from a cover, so it points back there instead of
+      // offering to capture a second one from lines that carry no products.
+      const amcCoverId = currentQuoteFields?.['AMC Cover Id'];
+      if (isAdmin() && String(currentQuoteFields?.['Quote Layout'] || '') === 'AMC' && amcCoverId) {
+        btn.href = `/warranty-detail?id=${encodeURIComponent(amcCoverId)}`;
+        label.textContent = 'View cover';
+        btn.classList.remove('hidden');
+        return;
+      }
+      if (!isAdmin() || !WON_STATUSES.has(status)) {
+        btn.classList.add('hidden');
+        return;
+      }
+
+      btn.href = `/create-cover?quoteId=${encodeURIComponent(quoteId || '')}`;
+      label.textContent = 'Create AMC';
+      btn.classList.remove('hidden');
+
+      try {
+        const where = `(Source Quote Id,eq,${Number(quoteId)})`;
+        const res = await fetch(
+          `${API_BASE_URL}/proxy/warranty_reminders/records?where=${encodeURIComponent(where)}&limit=1`,
+          { headers: { 'Authorization': `Bearer ${token}` } },
+        );
+        if (!res.ok) return;
+        const data = await safeJsonParse(res);
+        const existing = (data.records || data.list || [])[0];
+        const existingId = existing?.id ?? existing?.Id;
+        if (existingId) {
+          btn.href = `/warranty-detail?id=${encodeURIComponent(existingId)}`;
+          label.textContent = 'View cover';
+        }
+      } catch {
+        // Lookup failing leaves "Create AMC" in place; the create page re-checks.
+      }
+    }
+
     function parseQuoteOptions(raw: any): string[] {
       if (!raw) return [];
       if (Array.isArray(raw)) return raw.map((v) => String(v).trim()).filter(Boolean);

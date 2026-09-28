@@ -148,6 +148,7 @@ const ASSET_COLUMNS = [
   { title: 'Start Date', column_name: 'Start_Date', uidt: 'Date' },
   { title: 'Term Years', column_name: 'Term_Years', uidt: 'Decimal' },
   { title: 'End Date', column_name: 'End_Date', uidt: 'Date' },
+  { title: 'Invoice End Date', column_name: 'Invoice_End_Date', uidt: 'Date' },
   { title: 'Expiry Source', column_name: 'Expiry_Source', uidt: 'SingleSelect', dtxp: "'ams','computed','manual'" },
   { title: 'Status', column_name: 'Status', uidt: 'SingleSelect', dtxp: "'Active','Renewal Quoted','Renewed','Lapsed','Replaced'" },
   { title: 'Last Reminded', column_name: 'Last_Reminded', uidt: 'Date' },
@@ -216,6 +217,9 @@ function plan(parents) {
           'Start Date': start ? iso(start) : null,
           'Term Years': term,
           'End Date': end ? iso(end) : null,
+          // The warranty's own end (invoice + 2 years) that the portal date
+          // replaced. Reminders count down to this, not to the AMS date.
+          'Invoice End Date': source === 'ams' && start ? iso(addYears(start, 2)) : null,
           'Expiry Source': source,
           'Status': p['Status'] || 'Active',
           'Assigned To': p['Assigned To'] || null,

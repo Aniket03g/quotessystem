@@ -305,6 +305,33 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       applyFilters();
     });
 
+    /**
+     * A room-wise quote is read floor by floor and prints from a different
+     * renderer, so the list says which kind each row is.
+     *
+     * `Quote Layout` is written by create-room-quote.astro and was backfilled
+     * onto the older ones (csv/room/backfill-quote-layout.mjs). `Options` is the
+     * fallback for anything that slipped through: options only exist on that
+     * page. Neither is a lookup, so the badge costs no extra request — deriving
+     * it properly would mean reading every quote's line items, where the
+     * floor/room structure actually lives.
+     *
+     * Not to be confused with `Quote Type`, which is Customer vs Dealer pricing.
+     */
+    function roomWiseBadge(fields: any): string {
+      const layout = String(fields?.['Quote Layout'] ?? '').trim().toLowerCase();
+      if (layout === 'amc') {
+        return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-violet-50 text-violet-700 border border-violet-100 whitespace-nowrap" title="AMC quote raised from a cover record — prints one line per unit">AMC</span>`;
+      }
+      const options = String(fields?.['Options'] ?? '').trim();
+      const isRoomWise = layout === 'room-wise' || (options !== '' && options !== '[]');
+      if (!isRoomWise) return '';
+      return `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 whitespace-nowrap" title="Quoted floor by floor — prints with the room-wise layout">
+        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"></path>
+        </svg>Room-wise</span>`;
+    }
+
     function renderQuotes(records: any[]) {
       if (records.length === 0) {
         quotesTable.classList.add('hidden');
@@ -318,6 +345,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const fields = record.fields || {};
         const quoteName = fields['Subject'] || '<span class="text-slate-400 italic">Untitled Quote</span>';
         const quoteNumber = fields['Quote Number'] || '';
+        const roomWise = roomWiseBadge(fields);
         const rawDate = fields['Quote Date'] || fields['Date'] || '';
         const date = (() => {
           if (!rawDate) return '<span class="text-slate-400 italic">N/A</span>';
@@ -351,7 +379,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <td class="px-3 py-3 text-sm font-medium text-slate-900">${index + 1}</td>
             <td class="px-3 py-3 text-sm text-slate-900 truncate">
               ${quoteName}
-              ${quoteNumber ? `<div class="text-xs text-slate-400 font-normal">${quoteNumber}</div>` : ''}
+              ${quoteNumber || roomWise ? `<div class="flex items-center gap-1.5 mt-0.5">
+                ${quoteNumber ? `<span class="text-xs text-slate-400 font-normal">${quoteNumber}</span>` : ''}
+                ${roomWise}
+              </div>` : ''}
             </td>
             <td class="px-3 py-3 text-xs text-slate-600 whitespace-nowrap">${date}</td>
             ${isAdminUser ? `<td class="px-3 py-3 text-xs text-slate-700 whitespace-nowrap">${creatorFirst || '<span class="text-slate-300">—</span>'}</td>` : ''}
@@ -378,6 +409,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const fields = record.fields || {};
         const quoteName = fields['Subject'] || 'Untitled Quote';
         const quoteNumber = fields['Quote Number'] || '';
+        const roomWise = roomWiseBadge(fields);
         const rawDate = fields['Quote Date'] || fields['Date'] || '';
         const date = (() => {
           if (!rawDate) return 'N/A';
@@ -406,7 +438,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <div class="flex items-start justify-between gap-2 mb-1">
               <div class="flex-1 min-w-0">
                 <div class="text-sm font-medium text-slate-900 truncate">${quoteName}</div>
-                ${quoteNumber ? `<div class="text-xs text-slate-400">${quoteNumber}</div>` : ''}
+                ${quoteNumber || roomWise ? `<div class="flex items-center gap-1.5 mt-0.5">
+                  ${quoteNumber ? `<span class="text-xs text-slate-400">${quoteNumber}</span>` : ''}
+                  ${roomWise}
+                </div>` : ''}
               </div>
               <span class="flex-shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusClasses}">${status}</span>
             </div>

@@ -298,6 +298,11 @@ func main() {
 		warrantyReminderTestHandler(warrantyScheduler),
 	))
 
+	// Invoice PDF on a warranty/AMC cover record — see warranty_invoice_endpoint.go.
+	mux.Handle("/api/warranty/invoice", middleware.AuthMiddleware(cfg.JWTSecret)(
+		warrantyInvoiceHandler(metaCache, deriveMetaBaseURL(nocoDBURL), cfg.NocoDBBaseID, cfg.NocoDBToken),
+	))
+
 	// Per-user read marks for the notifications page — see notifications_endpoint.go.
 	mux.Handle("/api/notifications/read", middleware.AuthMiddleware(cfg.JWTSecret)(
 		notificationReadsHandler(database),

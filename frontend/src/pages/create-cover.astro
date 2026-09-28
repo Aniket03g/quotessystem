@@ -1,0 +1,744 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Create AMC / Warranty" currentPage="warranty">
+  <div class="max-w-6xl mx-auto">
+    <div class="mb-5">
+      <a id="backLink" href="/quotes" class="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Back to quote
+      </a>
+    </div>
+
+    <div id="pageLoading" class="py-20 text-center">
+      <svg class="animate-spin w-8 h-8 text-emerald-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm text-slate-500">Loading the quote...</p>
+    </div>
+
+    <div id="pageError" class="hidden p-5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm"></div>
+
+    <div id="pageContent" class="hidden space-y-5">
+
+      <!-- Header -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-6">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/25 flex-shrink-0">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <div class="min-w-0">
+            <h1 class="text-2xl font-semibold text-slate-800">Create AMC / warranty cover</h1>
+            <p class="text-sm text-slate-500 mt-1">
+              From quote <span id="hQuote" class="font-medium text-slate-700"></span>.
+              The details are filled in from the quote. Add the serial numbers and check the dates.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Record details -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Cover details</h2>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 px-6 py-5">
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</span>
+            <select id="fType" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="AMC">AMC</option>
+              <option value="Warranty">Warranty</option>
+            </select>
+          </label>
+          <div class="block lg:col-span-3">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Account</span>
+            <div id="fAccount" class="mt-1 px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-700"></div>
+          </div>
+
+          <label class="block lg:col-span-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer name *</span>
+            <input id="fCustomer" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+          <label class="block lg:col-span-2">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Location</span>
+            <input id="fLocation" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">SAC</span>
+            <input id="fSac" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice No *</span>
+            <input id="fInvoiceNo" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoice date *</span>
+            <input id="fInvoiceDate" type="date" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Invoiced basic value (₹)</span>
+            <input id="fValue" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+          <label class="block">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Assigned to</span>
+            <input id="fAssigned" type="email" class="mt-1 w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </label>
+        </div>
+      </div>
+
+      <!-- Quote lines -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Products on the quote</h2>
+          <span class="text-xs text-slate-500">Untick anything that carries no cover (cables, installation, services).</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-12">Cover</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Product</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Model</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-24">Qty</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Unit Price</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Term</th>
+              </tr>
+            </thead>
+            <tbody id="lineBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Serials -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">
+            Covered units <span id="unitCount" class="text-slate-400 font-normal normal-case"></span>
+          </h2>
+          <span class="text-xs text-slate-500">One row per unit. Paste a column of serials into the first box to fill downwards. Tick <strong>AMS</strong> for a unit registered on the Yealink AMS portal and enter its AMS date.</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-10">#</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Model</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Serial Number</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-40">Starts</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-40">Ends</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-16 text-center" title="Registered on the Yealink AMS portal">AMS</th>
+                <th class="px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-44">AMS date</th>
+              </tr>
+            </thead>
+            <tbody id="unitBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Invoice PDF -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Invoice PDF</h2>
+          <span class="text-xs text-slate-500">Optional. You can also attach it from the cover page later. PDF only, up to 15 MB.</span>
+        </div>
+        <div class="px-6 py-5 flex items-center gap-3 flex-wrap">
+          <input id="fInvoicePdf" type="file" accept="application/pdf,.pdf" class="block text-sm text-slate-600 file:mr-3 file:px-4 file:py-2 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
+          <span id="invoicePdfNote" class="text-xs text-slate-500"></span>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200">
+          <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">Notes</h2>
+        </div>
+        <div class="px-6 py-5">
+          <textarea id="fNotes" rows="4" placeholder="Anything worth knowing about this cover — site contact, special terms, what was left out..." class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+        </div>
+      </div>
+
+      <div id="saveError" class="hidden p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800"></div>
+
+      <div class="flex items-center justify-end gap-3">
+        <span id="serialNote" class="text-xs text-amber-700"></span>
+        <a id="cancelLink" href="/quotes" class="px-5 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</a>
+        <button id="saveBtn" class="px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-50">
+          Create cover
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { getToken, logout, safeJsonParse } from '../lib/api';
+    import { requireAdmin, getTokenClaims } from '../utils/jwt';
+
+    // Same gate as /warranty and /warranty-detail.
+    requireAdmin();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ||
+        `${window.location.protocol}//${window.location.hostname}:8082`;
+      const token = getToken();
+      if (!token) { window.location.href = '/login'; return; }
+
+      const quoteId = Number(new URLSearchParams(window.location.search).get('quoteId'));
+      const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+
+      const pageLoading = $<HTMLDivElement>('pageLoading');
+      const pageError = $<HTMLDivElement>('pageError');
+      const pageContent = $<HTMLDivElement>('pageContent');
+
+      const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+      const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, (c) => ESCAPES[c]);
+
+      function isoOf(d: Date): string {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+
+      /** Same rule as warranty-detail: 29 Feb clamps to 28 Feb rather than rolling into March. */
+      function addYears(iso: string, years: number): string {
+        const [y, m, d] = iso.split('-').map(Number);
+        if (!y || !isFinite(years)) return '';
+        const whole = Math.trunc(years);
+        const months = Math.round((years - whole) * 12);
+        const out = new Date(y + whole, m - 1 + months, d);
+        if (out.getDate() !== d) out.setDate(0);
+        return isoOf(out);
+      }
+
+      function showError(msg: string) {
+        pageLoading.classList.add('hidden');
+        pageContent.classList.add('hidden');
+        pageError.innerHTML = msg;
+        pageError.classList.remove('hidden');
+      }
+
+      async function get(path: string) {
+        const res = await fetch(`${API_BASE_URL}${path}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.status === 401) { logout(); throw new Error('Your session has expired. Please sign in again.'); }
+        if (!res.ok) {
+          console.error(`GET ${path} failed`, res.status);
+          throw new Error('Could not load the quote. Please refresh the page to try again.');
+        }
+        return safeJsonParse(res);
+      }
+
+      async function send(method: string, path: string, body: any) {
+        const res = await fetch(`${API_BASE_URL}${path}`, {
+          method,
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (res.status === 401) { logout(); throw new Error('Your session has expired. Please sign in again.'); }
+        if (!res.ok) {
+          console.error(`${method} ${path} failed`, res.status, await res.text());
+          throw new Error(res.status === 403
+            ? 'You do not have permission to create this cover.'
+            : `The cover could not be saved (error ${res.status}). Please try again.`);
+        }
+        return safeJsonParse(res);
+      }
+
+      const rowsOf = (data: any) => data?.records || data?.list || [];
+      const idOf = (r: any) => r?.id ?? r?.Id ?? r?.fields?.Id;
+
+      // --- state ---------------------------------------------------------------
+
+      type Line = {
+        name: string; model: string; hsn: string; qty: number;
+        warrantyMonths: number | null; include: boolean; term: number | null;
+        // As quoted, before GST. net is after the line's discount, spread per unit.
+        unitPrice: number | null; netUnitPrice: number | null;
+        productId: number | null;
+      };
+      // ams: registered on the Yealink AMS portal. Registration follows invoicing,
+      // so the portal's date runs 3–6 months past start + term; when it is known it
+      // replaces the computed end, which would otherwise raise the renewal
+      // reminder months early.
+      type Unit = { serial: string; start: string; end: string; manualEnd: boolean; ams: boolean; amsDate: string };
+
+      let lines: Line[] = [];
+      let accountId: number | null = null;
+      // Keyed "line:unit" so ticking a line off and on again keeps what was typed.
+      const units = new Map<string, Unit>();
+
+      /** Default term for a line: 1 year for an AMC, the product's own warranty otherwise. */
+      function defaultTerm(line: Line, type: string): number | null {
+        if (type === 'AMC') return 1;
+        if (line.warrantyMonths && line.warrantyMonths >= 12) return line.warrantyMonths / 12;
+        return null;
+      }
+
+      const TERMS = [1, 2, 3, 5];
+      function termOptions(v: number | null): string {
+        const years = [...TERMS];
+        if (v && !years.includes(v)) years.push(v);
+        return `<option value=""${v ? '' : ' selected'}>—</option>` +
+          years.map((y) => `<option value="${y}"${y === v ? ' selected' : ''}>${y} ${y === 1 ? 'year' : 'years'}</option>`).join('');
+      }
+
+      const inr = (n: number) => '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      function priceCell(l: Line): string {
+        if (l.unitPrice == null) return '<span class="text-slate-400">—</span>';
+        if (l.netUnitPrice == null || Math.abs(l.netUnitPrice - l.unitPrice) < 0.005) return inr(l.unitPrice);
+        return `<span class="text-slate-400 line-through text-xs">${inr(l.unitPrice)}</span><br>${inr(l.netUnitPrice)}`;
+      }
+
+      function renderLines() {
+        const body = $<HTMLTableSectionElement>('lineBody');
+        if (!lines.length) {
+          body.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-sm text-slate-500">This quote has no products.</td></tr>';
+          return;
+        }
+        body.innerHTML = lines.map((l, i) => `
+          <tr data-line="${i}" class="${l.include ? '' : 'opacity-50'}">
+            <td class="px-4 py-2"><input type="checkbox" data-lf="include" ${l.include ? 'checked' : ''} class="w-4 h-4 accent-emerald-600"></td>
+            <td class="px-4 py-2 text-sm text-slate-800">${esc(l.name)}</td>
+            <td class="px-4 py-2 text-sm text-slate-600 font-mono">${esc(l.model) || '—'}</td>
+            <td class="px-4 py-2"><input type="number" min="0" data-lf="qty" value="${l.qty}" class="w-20 px-2 py-1.5 text-sm border border-slate-300 rounded-lg"></td>
+            <td class="px-4 py-2 text-sm text-slate-700 text-right tabular-nums whitespace-nowrap" title="Unit price on the quote, before GST">${priceCell(l)}</td>
+            <td class="px-4 py-2"><select data-lf="term" class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg">${termOptions(l.term)}</select></td>
+          </tr>`).join('');
+      }
+
+      /** The unit rows implied by the ticked lines, reusing whatever was already typed. */
+      function currentUnits() {
+        const invoiceDate = $<HTMLInputElement>('fInvoiceDate').value;
+        const out: { key: string; line: Line; unit: Unit }[] = [];
+        lines.forEach((line, li) => {
+          if (!line.include) return;
+          for (let u = 0; u < line.qty; u++) {
+            const key = `${li}:${u}`;
+            let unit = units.get(key);
+            if (!unit) {
+              unit = { serial: '', start: invoiceDate, end: '', manualEnd: false, ams: false, amsDate: '' };
+              units.set(key, unit);
+            }
+            if (!unit.start) unit.start = invoiceDate;
+            if (!unit.manualEnd) unit.end = unit.start && line.term ? addYears(unit.start, line.term) : '';
+            out.push({ key, line, unit });
+          }
+        });
+        return out;
+      }
+
+      function renderUnits() {
+        const list = currentUnits();
+        $('unitCount').textContent = list.length ? `(${list.length})` : '';
+        const body = $<HTMLTableSectionElement>('unitBody');
+        body.innerHTML = list.length
+          ? list.map(({ key, line, unit }, i) => `
+            <tr data-key="${key}">
+              <td class="px-4 py-2 text-sm text-slate-400">${i + 1}</td>
+              <td class="px-4 py-2 text-sm text-slate-700">${esc(line.model || line.name)}</td>
+              <td class="px-4 py-2"><input data-uf="serial" value="${esc(unit.serial)}" placeholder="Serial" class="w-full px-2 py-1.5 text-sm font-mono border border-slate-300 rounded-lg"></td>
+              <td class="px-4 py-2"><input type="date" data-uf="start" value="${esc(unit.start)}" class="w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg"></td>
+              <td class="px-4 py-2"><input type="date" data-uf="end" value="${esc(unit.end)}" class="w-full px-2 py-1.5 text-sm border ${unit.manualEnd ? 'border-blue-400' : 'border-slate-300'} rounded-lg" title="${unit.manualEnd ? 'Entered by hand' : 'Start date plus the line\'s term'}"></td>
+              <td class="px-4 py-2 text-center"><input type="checkbox" data-uf="ams" ${unit.ams ? 'checked' : ''} class="w-4 h-4 accent-emerald-600" title="Registered on the Yealink AMS portal"></td>
+              <td class="px-4 py-2">${unit.ams
+                ? `<input type="date" data-uf="amsDate" value="${esc(unit.amsDate)}" min="${esc(unit.end)}" class="w-full px-2 py-1.5 text-sm border ${amsProblem(unit) && unit.amsDate ? 'border-red-400' : 'border-emerald-400'} rounded-lg" title="${esc(amsProblem(unit) || 'Expiry per the Yealink AMS portal — replaces the end date')}">`
+                : '<span class="text-xs text-slate-300">—</span>'}</td>
+            </tr>`).join('')
+          : '<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500">Tick at least one product above.</td></tr>';
+        updateSerialNote(list);
+      }
+
+      /** Why a unit's AMS date is unusable, or '' when it is fine (or not AMS). */
+      function amsProblem(unit: Unit): string {
+        if (!unit.ams) return '';
+        if (!unit.amsDate) return 'Enter the AMS date';
+        if (unit.end && unit.amsDate < unit.end) return 'The AMS date cannot be before the end date';
+        return '';
+      }
+
+      function updateSerialNote(list = currentUnits()) {
+        const missing = list.filter((x) => !x.unit.serial.trim()).length;
+        $('serialNote').textContent = missing ? `${missing} unit${missing === 1 ? '' : 's'} without a serial number — they can be filled in later.` : '';
+      }
+
+      $('lineBody').addEventListener('change', (e) => {
+        const el = e.target as HTMLInputElement;
+        const tr = el.closest('tr') as HTMLTableRowElement | null;
+        const line = tr ? lines[Number(tr.dataset.line)] : null;
+        if (!line) return;
+        if (el.dataset.lf === 'include') line.include = el.checked;
+        if (el.dataset.lf === 'qty') line.qty = Math.max(0, Math.floor(Number(el.value) || 0));
+        if (el.dataset.lf === 'term') line.term = el.value ? Number(el.value) : null;
+        renderLines();
+        renderUnits();
+      });
+
+      $('unitBody').addEventListener('input', (e) => {
+        const el = e.target as HTMLInputElement;
+        const tr = el.closest('tr') as HTMLTableRowElement | null;
+        const unit = tr ? units.get(tr.dataset.key || '') : null;
+        if (!unit || !tr) return;
+        if (el.dataset.uf === 'serial') { unit.serial = el.value; updateSerialNote(); return; }
+        if (el.dataset.uf === 'ams') { unit.ams = el.checked; renderUnits(); return; }
+        if (el.dataset.uf === 'amsDate') {
+          unit.amsDate = el.value;
+          const problem = amsProblem(unit);
+          el.classList.toggle('border-red-400', !!problem && !!unit.amsDate);
+          el.classList.toggle('border-emerald-400', !problem || !unit.amsDate);
+          el.title = problem || 'Expiry per the Yealink AMS portal — replaces the end date';
+          return;
+        }
+        if (el.dataset.uf === 'end') {
+          unit.end = el.value; unit.manualEnd = !!el.value; el.classList.toggle('border-blue-400', unit.manualEnd);
+          const amsInput = tr.querySelector('[data-uf="amsDate"]') as HTMLInputElement | null;
+          if (amsInput) amsInput.min = unit.end;
+          return;
+        }
+        if (el.dataset.uf === 'start') {
+          unit.start = el.value;
+          if (!unit.manualEnd) {
+            const [li] = (tr.dataset.key || '').split(':');
+            const term = lines[Number(li)]?.term;
+            unit.end = unit.start && term ? addYears(unit.start, term) : '';
+            (tr.querySelector('[data-uf="end"]') as HTMLInputElement).value = unit.end;
+            const amsInput = tr.querySelector('[data-uf="amsDate"]') as HTMLInputElement | null;
+            if (amsInput) amsInput.min = unit.end;
+          }
+        }
+      });
+
+      // Pasting a column of serials (from Excel or a delivery note) fills downwards.
+      $('unitBody').addEventListener('paste', (e) => {
+        const el = e.target as HTMLInputElement;
+        if (el.dataset.uf !== 'serial') return;
+        const text = e.clipboardData?.getData('text') || '';
+        const values = text.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+        if (values.length < 2) return;
+        e.preventDefault();
+        const inputs = [...document.querySelectorAll<HTMLInputElement>('#unitBody [data-uf="serial"]')];
+        const from = inputs.indexOf(el);
+        values.forEach((v, i) => {
+          const input = inputs[from + i];
+          if (!input) return;
+          input.value = v;
+          const unit = units.get((input.closest('tr') as HTMLTableRowElement).dataset.key || '');
+          if (unit) unit.serial = v;
+        });
+        updateSerialNote();
+      });
+
+      // Changing the invoice date moves every start date that still follows it.
+      let lastInvoiceDate = '';
+      $('fInvoiceDate').addEventListener('change', (e) => {
+        const next = (e.target as HTMLInputElement).value;
+        for (const unit of units.values()) if (unit.start === lastInvoiceDate) unit.start = next;
+        lastInvoiceDate = next;
+        renderUnits();
+      });
+
+      // Switching type resets the default terms, but only on lines nobody has touched.
+      $('fType').addEventListener('change', (e) => {
+        const type = (e.target as HTMLSelectElement).value;
+        const prev = type === 'AMC' ? 'Warranty' : 'AMC';
+        for (const line of lines) if (line.term === defaultTerm(line, prev)) line.term = defaultTerm(line, type);
+        renderLines();
+        renderUnits();
+      });
+
+      // --- saving ----------------------------------------------------------------
+
+      const saveBtn = $<HTMLButtonElement>('saveBtn');
+      const saveError = $<HTMLDivElement>('saveError');
+
+      const MAX_PDF = 15 * 1024 * 1024;
+      function invoicePdfProblem(file: File | null): string {
+        if (!file) return '';
+        if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') return 'The invoice must be a PDF file.';
+        if (file.size > MAX_PDF) return 'The invoice PDF is larger than 15 MB.';
+        return '';
+      }
+
+      async function uploadInvoice(id: number, file: File) {
+        const form = new FormData();
+        form.append('file', file);
+        const res = await fetch(`${API_BASE_URL}/api/warranty/invoice?id=${id}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: form,
+        });
+        if (!res.ok) throw new Error((await res.json().catch(() => ({})))?.error || `Upload failed (HTTP ${res.status})`);
+      }
+
+      $('fInvoicePdf').addEventListener('change', (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0] || null;
+        const problem = invoicePdfProblem(file);
+        const note = $('invoicePdfNote');
+        note.textContent = problem || (file ? `${(file.size / 1024 / 1024).toFixed(1)} MB` : '');
+        note.className = `text-xs ${problem ? 'text-red-700' : 'text-slate-500'}`;
+      });
+
+      function fail(msg: string) {
+        saveError.textContent = msg;
+        saveError.classList.remove('hidden');
+        saveError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      saveBtn.addEventListener('click', async () => {
+        saveError.classList.add('hidden');
+        const val = (id: string) => $<HTMLInputElement>(id).value.trim();
+
+        const customer = val('fCustomer');
+        const invoiceNo = val('fInvoiceNo');
+        const invoiceDate = val('fInvoiceDate');
+        if (!customer) return fail('Customer name is required.');
+        if (!invoiceNo) return fail('Invoice No is required.');
+        if (!invoiceDate) return fail('Invoice date is required.');
+
+        const list = currentUnits();
+        if (!list.length) return fail('Tick at least one product to cover.');
+        const noEnd = list.findIndex((x) => !x.unit.end);
+        if (noEnd >= 0) return fail(`Unit ${noEnd + 1} has no end date. Pick a term for its product, or type the end date.`);
+        const backwards = list.findIndex((x) => x.unit.start && x.unit.end <= x.unit.start);
+        if (backwards >= 0) return fail(`Unit ${backwards + 1} ends on or before it starts.`);
+        const badAms = list.findIndex((x) => amsProblem(x.unit));
+        if (badAms >= 0) {
+          return fail(!list[badAms].unit.amsDate
+            ? `Unit ${badAms + 1} is marked AMS but has no AMS date.`
+            : `Unit ${badAms + 1}: the AMS date cannot be before its end date (${list[badAms].unit.end}).`);
+        }
+
+        const invoicePdf = $<HTMLInputElement>('fInvoicePdf').files?.[0] || null;
+        const pdfProblem = invoicePdfProblem(invoicePdf);
+        if (pdfProblem) return fail(pdfProblem);
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Creating...';
+
+        try {
+          // Re-check at save time: the button on the quote may be stale.
+          const dupe = rowsOf(await get(`/proxy/warranty_reminders/records?where=${encodeURIComponent(`(Source Quote Id,eq,${quoteId})`)}&limit=1`))[0];
+          if (dupe) {
+            window.location.href = `/warranty-detail?id=${encodeURIComponent(idOf(dupe))}`;
+            return;
+          }
+
+          const assigned = val('fAssigned') || null;
+          const value = parseFloat(val('fValue'));
+          const type = $<HTMLSelectElement>('fType').value;
+
+          const created = await send('POST', '/proxy/warranty_reminders/records', {
+            fields: {
+              'Title': `${customer} — ${invoiceNo}`,
+              'Type': type,
+              'Customer Name': customer,
+              'Location': val('fLocation'),
+              'SAC': val('fSac'),
+              'Invoice No': invoiceNo,
+              'Invoice Date': invoiceDate,
+              'Value': isFinite(value) ? value : null,
+              'Assigned To': assigned,
+              'Status': 'Active',
+              'Account Id': accountId,
+              'Source Quote Id': quoteId,
+              'Notes': $<HTMLTextAreaElement>('fNotes').value.trim() || null,
+            },
+          });
+          const parentId = idOf(rowsOf(created)[0]) ?? idOf(created);
+          if (!parentId) {
+            console.error('warranty_reminders create returned no id', created);
+            throw new Error('The cover may not have saved completely. Check the Warranty & AMC list before trying again.');
+          }
+
+          const assets = list.map(({ line, unit }) => ({
+            fields: {
+              'Title': [line.model || line.name, unit.serial.trim()].filter(Boolean).join(' '),
+              'Warranty Id': Number(parentId),
+              'Invoice No': invoiceNo,
+              'Customer Name': customer,
+              'Model': line.model || line.name,
+              'Serial Number': unit.serial.trim(),
+              'HSN/SAC': line.hsn || '',
+              'Start Date': unit.start || null,
+              // An AMS date is a portal fact, not start + term, so the term is
+              // left empty — the same rule the archive migration followed.
+              'Term Years': unit.ams || unit.manualEnd ? null : line.term,
+              'End Date': unit.ams ? unit.amsDate : unit.end,
+              'Expiry Source': unit.ams ? 'ams' : unit.manualEnd ? 'manual' : 'computed',
+              // The warranty's own end, which the AMS date replaced. Reminders
+              // count down to this, not to the later portal date.
+              'Invoice End Date': unit.ams ? unit.end : null,
+              'Notes': unit.ams ? `Invoice-based end date: ${unit.end}` : null,
+              'Status': 'Active',
+              'Assigned To': assigned,
+              // What the customer paid per unit, after discount and before GST —
+              // the base an AMC on this unit is priced from.
+              'Unit Price': line.netUnitPrice,
+              'Product Id': line.productId,
+            },
+          }));
+          // Posted one at a time, like the detail page's editor, so a failure
+          // names the unit rather than losing the whole batch.
+          for (const a of assets) await send('POST', '/proxy/warranty_assets/records', a);
+
+          // Keep the parent honest, exactly as warranty-detail's syncParent does:
+          // its expiry is the soonest unit's, and so is its source.
+          const effectiveEnd = (u: Unit) => (u.ams ? u.amsDate : u.end);
+          const soonest = list.map((x) => effectiveEnd(x.unit)).sort()[0];
+          const soonestIsAms = list.some((x) => x.unit.ams && effectiveEnd(x.unit) === soonest);
+          await send('PATCH', '/proxy/warranty_reminders/records', {
+            id: Number(parentId),
+            fields: {
+              'Expiry Date': soonest,
+              'Asset Count': assets.length,
+              'Assets': assets.map((a) => a.fields['Title']).join('; '),
+              // The parent's select only knows ams | computed.
+              'Expiry Source': soonestIsAms ? 'ams' : 'computed',
+            },
+          });
+
+          // The record is saved by now, so a failed upload must not lose it: the
+          // detail page says so and offers the upload again.
+          let invoiceFlag = '';
+          if (invoicePdf) {
+            saveBtn.textContent = 'Uploading invoice...';
+            try { await uploadInvoice(Number(parentId), invoicePdf); }
+            catch { invoiceFlag = '&invoice=failed'; }
+          }
+
+          window.location.href = `/warranty-detail?id=${encodeURIComponent(parentId)}${invoiceFlag}`;
+        } catch (err) {
+          fail(err instanceof Error ? err.message : 'Could not create the cover.');
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Create cover';
+        }
+      });
+
+      // --- loading ---------------------------------------------------------------
+
+      async function loadAccount(fields: any): Promise<any | null> {
+        const caseId = fields['nc_6n5b___Cases_id'];
+        if (caseId) {
+          const c = await get(`/proxy/cases/records/${caseId}?fields=Accounts duplicate`);
+          const linked = c?.fields?.['Accounts duplicate'];
+          accountId = linked?.id ?? null;
+        } else {
+          // Legacy quotes link the account directly.
+          const linked = rowsOf(await get(`/proxy/quotes/links/accounts_duplicate1/${quoteId}?fields=Company Name`))[0];
+          accountId = idOf(linked) ?? null;
+        }
+        if (!accountId) return null;
+        const acc = await get(`/proxy/accounts_duplicate/records/${accountId}?fields=Account Name,Company Name,Billing City`);
+        return acc?.fields || null;
+      }
+
+      async function loadLines(fields: any): Promise<Line[]> {
+        const [catalogData, junctionData] = await Promise.all([
+          get(`/proxy/quotes/links/products/${quoteId}?fields=Id,Product Name,Model No,HSN/SAC Code,warranty`),
+          get(`/proxy/products_for_quotes/records?where=${encodeURIComponent(`(nc_76_d___Quotes_id,eq,${quoteId})`)}&limit=1000` +
+            `&fields=Id,Quantity,Custom%20Unit%20Price,Discount,Discount%20Rs,nc_76_d__Products_id,Is%20Outsourced,Custom%20Product%20Name,Custom%20Model%20No,Custom%20HSN,Custom%20Warranty`),
+        ]);
+        const catalog = new Map<number, any>(rowsOf(catalogData).map((p: any) => [p.id, p.fields || {}]));
+
+        // Room-wise quotes can price alternatives; the customer buys the first,
+        // which is also the only one Total Amount counts.
+        let options: string[] = [];
+        try { options = JSON.parse(fields['Options'] || '[]'); } catch { options = []; }
+        let optionById = new Map<number, string>();
+        if (options.length > 1) {
+          try {
+            const opt = await get(`/proxy/products_for_quotes/records?where=${encodeURIComponent(`(nc_76_d___Quotes_id,eq,${quoteId})`)}&limit=1000&fields=Id,Option`);
+            optionById = new Map(rowsOf(opt).map((r: any) => [r.id, String(r.fields?.['Option'] || '')]));
+          } catch { /* no Option column: treat every line as bought */ }
+        }
+
+        const type = $<HTMLSelectElement>('fType').value;
+        return rowsOf(junctionData).map((jr: any) => {
+          const f = jr.fields || {};
+          const productId = f['nc_76_d__Products_id'];
+          const p = productId ? catalog.get(productId) : null;
+          const outsourced = !!f['Is Outsourced'] || !p;
+          const option = optionById.get(jr.id) || '';
+          // Same maths as quote-detail's lineTotalOf, stopped before GST.
+          const qty = Math.max(1, Number(f['Quantity']) || 1);
+          const unitPrice = f['Custom Unit Price'] ? Number(f['Custom Unit Price']) : null;
+          let netUnitPrice: number | null = null;
+          if (unitPrice != null) {
+            const subtotal = unitPrice * qty;
+            const off = f['Discount Rs'] != null ? Number(f['Discount Rs']) : subtotal * ((Number(f['Discount']) || 0) / 100);
+            netUnitPrice = (subtotal - off) / qty;
+          }
+          const line: Line = {
+            name: outsourced ? (f['Custom Product Name'] || 'Outsourced product') : (p['Product Name'] || 'Product'),
+            model: outsourced ? (f['Custom Model No'] || '') : (p['Model No'] || ''),
+            hsn: outsourced ? (f['Custom HSN'] || '') : (p['HSN/SAC Code'] || ''),
+            qty,
+            unitPrice,
+            netUnitPrice,
+            productId: outsourced ? null : productId,
+            warrantyMonths: Number(outsourced ? f['Custom Warranty'] : p['warranty']) || null,
+            include: !(options.length > 1 && option && option !== options[0]),
+            term: null,
+          };
+          line.term = defaultTerm(line, type);
+          return line;
+        });
+      }
+
+      async function load() {
+        if (!quoteId) { showError('No quote specified. Open this page from an accepted quote.'); return; }
+        $<HTMLAnchorElement>('backLink').href = `/quote-detail?id=${quoteId}`;
+        $<HTMLAnchorElement>('cancelLink').href = `/quote-detail?id=${quoteId}`;
+
+        try {
+          const existing = rowsOf(await get(`/proxy/warranty_reminders/records?where=${encodeURIComponent(`(Source Quote Id,eq,${quoteId})`)}&limit=1`))[0];
+          if (existing) {
+            showError(`This quote already has a cover record. <a class="underline font-medium" href="/warranty-detail?id=${encodeURIComponent(idOf(existing))}">Open it</a>.`);
+            return;
+          }
+
+          const quote = await get(`/proxy/quotes/records/${quoteId}`);
+          const f = quote?.fields || {};
+          const status = f['Quote Status'] || '';
+          if (status !== 'Accepted' && status !== 'Final') {
+            showError(`This quote is <strong>${esc(status || 'Draft')}</strong>. A cover record can only be created once the quote is Accepted.`);
+            return;
+          }
+
+          const account = await loadAccount(f);
+          const accountName = account?.['Company Name'] || account?.['Account Name'] || '';
+          lines = await loadLines(f);
+
+          $('hQuote').textContent = f['Quote Number'] || f['Subject'] || 'this quote';
+
+          // Sold through a partner: the quote's End User is who actually holds
+          // the equipment, and the billed account is the one invoiced — the same
+          // shape as the KDDI archive rows.
+          const endUser = String(f['End User'] || '').trim();
+          $<HTMLInputElement>('fCustomer').value = endUser || accountName;
+          $<HTMLInputElement>('fLocation').value = endUser ? (f['End User Location'] || '') : (account?.['Billing City'] || '');
+          $('fAccount').innerHTML = accountId
+            ? esc(accountName || 'Linked account')
+            : '<span class="text-amber-700">No account linked to this quote</span>';
+
+          $<HTMLInputElement>('fValue').value = f['Total Amount'] != null ? String(f['Total Amount']) : '';
+          $<HTMLInputElement>('fAssigned').value = f['Quote Created By'] || getTokenClaims()?.email || '';
+          const today = isoOf(new Date());
+          $<HTMLInputElement>('fInvoiceDate').value = today;
+          lastInvoiceDate = today;
+
+          renderLines();
+          renderUnits();
+          pageLoading.classList.add('hidden');
+          pageContent.classList.remove('hidden');
+        } catch (err) {
+          showError(esc(err instanceof Error ? err.message : 'Failed to load the quote.'));
+        }
+      }
+
+      load();
+    });
+  </script>
+</AdminLayout>
