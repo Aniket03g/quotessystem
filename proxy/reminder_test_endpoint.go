@@ -1,9 +1,7 @@
 package main
 
-// TEMPORARY — test-only endpoint for checking the warranty reminder email
-// before the scheduler is switched on. Delete this whole file, the one
-// mux.Handle line in main.go that registers it, and Scheduler.SendTestTo when
-// testing is done.
+// Test endpoint for checking the warranty reminder email on a live install.
+// The response also names who the real reminder would go to.
 //
 // Deliberately narrow so it cannot cause damage:
 //   - admin / super_admin only
@@ -62,7 +60,7 @@ func warrantyReminderTestHandler(sched *reminders.Scheduler) http.HandlerFunc {
 			}
 		}
 
-		title, err := sched.SendTestTo(email, recordID)
+		title, wouldGoTo, err := sched.SendTestTo(email, recordID)
 		if err != nil {
 			log.Printf("[REMINDERS TEST] %s requested a test email: %v", email, err)
 			w.WriteHeader(http.StatusBadGateway)
@@ -72,7 +70,7 @@ func warrantyReminderTestHandler(sched *reminders.Scheduler) http.HandlerFunc {
 
 		log.Printf("[REMINDERS TEST] Sent %q to %s", title, email)
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"sent": true, "to": email, "row": title,
+			"sent": true, "to": email, "row": title, "would_go_to": wouldGoTo,
 		})
 	}
 }

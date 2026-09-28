@@ -1,5 +1,6 @@
-// Package reminders emails admins once, two months before a warranty expires,
-// so a renewal can be quoted while the customer is still covered.
+// Package reminders emails the person assigned to a cover, copying every
+// super_admin, once, two months before a warranty expires, so a renewal can be
+// quoted while the customer is still covered.
 //
 // Cover runs per product, not per invoice: one invoice can mix 1/3/5-year terms,
 // so the products on it expire on different days and each expiry earns its own
@@ -215,19 +216,22 @@ func (s *Scheduler) RunOnce() error {
 		return nil
 	}
 
-	recipients, err := s.admins()
+	st, err := s.loadStaff()
 	if err != nil {
 		return fmt.Errorf("resolve recipients: %w", err)
 	}
-	if len(recipients) == 0 {
-		return fmt.Errorf("no admin or super_admin users to notify")
-	}
 
-	log.Printf("[REMINDERS] %d invoice(s) and %d product(s) scanned, %d email(s) due, %d recipient(s), mode=%s",
-		len(records), len(assets), len(due), len(recipients), s.cfg.Mode)
+	log.Printf("[REMINDERS] %d invoice(s) and %d product(s) scanned, %d email(s) due, mode=%s",
+		len(records), len(assets), len(due), s.cfg.Mode)
 
 	for _, g := range due {
 		days := daysBetween(today, g.expiry)
+		recipients := recipientsFor(g, st)
+		if len(recipients) == 0 {
+			log.Printf("[REMINDERS ERROR] Invoice %d (%s): nobody to notify - no assignee and no admin users",
+				g.parent.ID, g.parent.str("Title"))
+			continue
+		}
 
 		if s.cfg.Mode == ModeDry {
 			log.Printf("[REMINDERS DRY] would email %v about %q - %d product(s) expiring %s (%s)",
@@ -265,8 +269,8 @@ func (s *Scheduler) RunOnce() error {
 			log.Printf("[REMINDERS ERROR] Sent for invoice %d but could not stamp it: %v", g.parent.ID, err)
 		}
 
-		log.Printf("[REMINDERS] Reminded %d admin(s) about %d product(s) on %q (%s)",
-			len(recipients), len(g.assets), g.parent.str("Title"), describeDays(days))
+		log.Printf("[REMINDERS] Reminded %v about %d product(s) on %q (%s)",
+			recipients, len(g.assets), g.parent.str("Title"), describeDays(days))
 	}
 	return nil
 }
@@ -305,7 +309,7 @@ func selectDueGroups(parents, assets []record, today time.Time, leadDays int) []
 			if st := a.str("Status"); st == "Renewed" || st == "Replaced" {
 				continue
 			}
-			end := a.str("End Date")
+			end := remindOn(a)
 			expiry, err := time.Parse("2006-01-02", end)
 			if err != nil {
 				log.Printf("[REMINDERS WARN] Product %d has an unreadable end date %q - skipping",
@@ -358,6 +362,23 @@ func selectDue(records []record, today time.Time, leadDays int) []record {
 		}
 	}
 	return due
+}
+
+// remindOn is the date a product's reminder counts down to. For a unit
+// registered on the Yealink AMS portal, "End Date" holds the later portal date
+// and "Invoice End Date" keeps the warranty's own end. The reminder follows the
+// warranty's own end, so the renewal is raised before the original cover runs
+// out even though the portal extends it.
+func remindOn(a record) string {
+	end := a.str("End Date")
+	inv := a.str("Invoice End Date")
+	if _, err := time.Parse("2006-01-02", inv); err != nil {
+		return end
+	}
+	if _, err := time.Parse("2006-01-02", end); err != nil || inv < end {
+		return inv
+	}
+	return end
 }
 
 func daysBetween(from, to time.Time) int {
@@ -437,28 +458,81 @@ func (s *Scheduler) stampMany(tableID string, ids []int64, when, stage string) e
 	return nil
 }
 
-// admins returns the addresses that receive every reminder. Row-level ownership
-// is not consulted: the backfilled rows have no owner, and admins bypass
-// ownership filtering anyway.
-func (s *Scheduler) admins() ([]string, error) {
+// staff is who can receive a reminder besides the cover's own assignee.
+type staff struct {
+	superAdmins []string // copied on every reminder
+	admins      []string // admin + super_admin: the last resort, see recipientsFor
+}
+
+func (s *Scheduler) loadStaff() (staff, error) {
 	users, err := s.db.GetAllUsers()
 	if err != nil {
-		return nil, err
+		return staff{}, err
 	}
+	var st staff
+	seenSuper, seenAdmin := map[string]bool{}, map[string]bool{}
+	for _, u := range users {
+		email := normEmail(u.Email)
+		if email == "" {
+			continue
+		}
+		if u.Role == "super_admin" && !seenSuper[email] {
+			seenSuper[email] = true
+			st.superAdmins = append(st.superAdmins, email)
+		}
+		if (u.Role == "admin" || u.Role == "super_admin") && !seenAdmin[email] {
+			seenAdmin[email] = true
+			st.admins = append(st.admins, email)
+		}
+	}
+	return st, nil
+}
+
+func normEmail(s string) string {
+	e := strings.ToLower(strings.TrimSpace(s))
+	if !strings.Contains(e, "@") {
+		return ""
+	}
+	return e
+}
+
+// assigneeOf is who owns the cover: the invoice row's "Assigned To", or failing
+// that the first product in the group that names someone.
+func assigneeOf(g dueGroup) string {
+	if e := normEmail(g.parent.str("Assigned To")); e != "" {
+		return e
+	}
+	for _, a := range g.assets {
+		if e := normEmail(a.str("Assigned To")); e != "" {
+			return e
+		}
+	}
+	return ""
+}
+
+// recipientsFor is the person assigned to the cover plus every super_admin.
+// The backfilled archive rows have no assignee, so on an install with no
+// super_admin they would reach nobody at all; the admins are the fallback
+// then, so a reminder is never silently dropped.
+func recipientsFor(g dueGroup, st staff) []string {
 	seen := map[string]bool{}
 	var out []string
-	for _, u := range users {
-		if u.Role != "admin" && u.Role != "super_admin" {
-			continue
+	add := func(e string) {
+		if e != "" && !seen[e] {
+			seen[e] = true
+			out = append(out, e)
 		}
-		email := strings.ToLower(strings.TrimSpace(u.Email))
-		if email == "" || !strings.Contains(email, "@") || seen[email] {
-			continue
-		}
-		seen[email] = true
-		out = append(out, email)
 	}
-	return out, nil
+	add(assigneeOf(g))
+	for _, e := range st.superAdmins {
+		add(e)
+	}
+	if len(out) == 0 {
+		for _, e := range st.admins {
+			add(e)
+		}
+	}
+	return out
 }
 
 func (s *Scheduler) send(to []string, g dueGroup, days int) error {
@@ -515,6 +589,7 @@ func (s *Scheduler) body(g dueGroup, days int) string {
 		equipment = fmt.Sprintf("%d %s expiring on this date", n, plural(n, "product", "products"))
 
 		var rows strings.Builder
+		extended := false
 		for _, a := range g.assets {
 			serial := a.str("Serial Number")
 			if serial == "" {
@@ -522,14 +597,27 @@ func (s *Scheduler) body(g dueGroup, days int) string {
 			} else {
 				serial = html.EscapeString(serial)
 			}
+			// An AMS unit is reminded on its warranty end; say how far the portal
+			// carries it so nobody reads the reminder as the cover lapsing.
+			ams := ""
+			if end := a.str("End Date"); end != "" && end != remindOn(a) {
+				ams = fmt.Sprintf(`AMS cover to %s`, html.EscapeString(end))
+				extended = true
+			}
 			rows.WriteString(fmt.Sprintf(
-				`<tr><td style="padding:4px 10px 4px 0">%s</td><td style="font-family:monospace">%s</td></tr>`,
-				html.EscapeString(a.str("Model")), serial))
+				`<tr><td style="padding:4px 10px 4px 0">%s</td><td style="font-family:monospace;padding-right:10px">%s</td>`+
+					`<td style="color:#666">%s</td></tr>`,
+				html.EscapeString(a.str("Model")), serial, ams))
 		}
 		detail = fmt.Sprintf(
-			`<h3 style="margin:18px 0 6px;font-size:14px">Products expiring on %s</h3>`+
+			`<h3 style="margin:18px 0 6px;font-size:14px">Products whose warranty ends on %s</h3>`+
 				`<table cellpadding="0" style="border-collapse:collapse;font-size:13px">%s</table>`,
 			html.EscapeString(g.expiryStr()), rows.String())
+		if extended {
+			detail += `<p style="color:#666;font-size:12px">Units marked "AMS cover" are registered on the ` +
+				`Yealink AMS portal, which runs past the warranty end. This reminder is timed to the ` +
+				`warranty end so the renewal can be quoted before it.</p>`
+		}
 
 		// The invoice usually covers more than the group being reminded about.
 		if total := rec.str("Asset Count"); total != "" && total != fmt.Sprint(n) {
@@ -600,19 +688,19 @@ func truncate(s string, n int) string {
 // consume a product's one real reminder, and it ignores Mode so a dry-run
 // install can still be tested.
 //
-// TEMPORARY: wired to a test button so the email can be checked before the
-// scheduler is switched on. Delete alongside reminder_test_endpoint.go.
-func (s *Scheduler) SendTestTo(to string, recordID int64) (string, error) {
+// It also returns who the real reminder for that invoice would be sent to, so
+// the recipient rule can be checked on a live install without mailing them.
+func (s *Scheduler) SendTestTo(to string, recordID int64) (string, []string, error) {
 	tableID, ok := s.meta.ResolveTable(s.cfg.TableName)
 	if !ok {
-		return "", fmt.Errorf("table %q not found in MetaCache", s.cfg.TableName)
+		return "", nil, fmt.Errorf("table %q not found in MetaCache", s.cfg.TableName)
 	}
 	records, err := s.fetch(tableID)
 	if err != nil {
-		return "", fmt.Errorf("fetch records: %w", err)
+		return "", nil, fmt.Errorf("fetch records: %w", err)
 	}
 	if len(records) == 0 {
-		return "", fmt.Errorf("no warranty rows to preview")
+		return "", nil, fmt.Errorf("no warranty rows to preview")
 	}
 
 	var assets []record
@@ -642,7 +730,7 @@ func (s *Scheduler) SendTestTo(to string, recordID int64) (string, error) {
 			// soonest products — a preview must work on any row, not only due ones.
 			g, err := previewGroup(records, assets, recordID)
 			if err != nil {
-				return "", err
+				return "", nil, err
 			}
 			chosen = &g
 		}
@@ -651,15 +739,21 @@ func (s *Scheduler) SendTestTo(to string, recordID int64) (string, error) {
 	} else {
 		g, err := previewGroup(records, assets, records[0].ID)
 		if err != nil {
-			return "", err
+			return "", nil, err
 		}
 		chosen = &g
 	}
 
-	if err := s.send([]string{to}, *chosen, daysBetween(today, chosen.expiry)); err != nil {
-		return "", err
+	st, err := s.loadStaff()
+	if err != nil {
+		return "", nil, fmt.Errorf("resolve recipients: %w", err)
 	}
-	return chosen.parent.str("Title"), nil
+	wouldGoTo := recipientsFor(*chosen, st)
+
+	if err := s.send([]string{to}, *chosen, daysBetween(today, chosen.expiry)); err != nil {
+		return "", nil, err
+	}
+	return chosen.parent.str("Title"), wouldGoTo, nil
 }
 
 // previewGroup builds the email an invoice would produce next, ignoring whether
@@ -686,7 +780,7 @@ func previewGroup(records, assets []record, recordID int64) (dueGroup, error) {
 		if st := a.str("Status"); st == "Renewed" || st == "Replaced" {
 			continue
 		}
-		end := a.str("End Date")
+		end := remindOn(a)
 		if end == "" {
 			continue
 		}
@@ -699,7 +793,7 @@ func previewGroup(records, assets []record, recordID int64) (dueGroup, error) {
 	if soonest != "" {
 		var group []record
 		for _, a := range mine {
-			if a.str("End Date") == soonest {
+			if remindOn(a) == soonest {
 				group = append(group, a)
 			}
 		}

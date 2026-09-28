@@ -170,7 +170,7 @@ func main() {
 		log.Println("[STARTUP WARN] NOCODB_BASE_ID not set - MetaCache disabled")
 	}
 
-	// Warranty reminders: one email to admins two months before cover ends.
+	// Warranty reminders: one email to the cover's assignee (plus super_admins) two months before cover ends.
 	// Defaults to dry-run — set WARRANTY_REMINDERS=on to actually send.
 	var warrantyScheduler *reminders.Scheduler
 	if metaCache != nil {

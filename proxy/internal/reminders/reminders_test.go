@@ -126,6 +126,40 @@ func TestSelectDueGroupsSplitsByExpiryDate(t *testing.T) {
 	}
 }
 
+// An AMS date pushes End Date past the warranty's own end. The reminder must
+// still come due on the warranty end, and an AMS unit sharing that end with a
+// plain unit is reminded together with it.
+func TestSelectDueGroupsRemindsOnTheWarrantyEndNotTheAMSDate(t *testing.T) {
+	today := time.Date(2026, 8, 27, 0, 0, 0, 0, time.UTC)
+	parent := mk(1, "2026-09-18", "", "Active")
+
+	ams := asset(10, 1, "UVC86", "SN1", "2027-02-01", "", "Active")
+	ams.Fields["Invoice End Date"] = "2026-09-18"
+	plain := asset(11, 1, "UVC86", "SN2", "2026-09-18", "", "Active")
+	// An invoice end AFTER End Date is a data slip; the earlier date wins.
+	odd := asset(12, 1, "WPP30", "SN3", "2026-10-01", "", "Active")
+	odd.Fields["Invoice End Date"] = "2027-10-01"
+
+	got := selectDueGroups([]record{parent}, []record{ams, plain, odd}, today, 60)
+	if len(got) != 2 {
+		t.Fatalf("got %d group(s), want 2", len(got))
+	}
+	if len(got[0].assets) != 2 || got[0].expiryStr() != "2026-09-18" {
+		t.Fatalf("first group = %d asset(s) on %s, want 2 on 2026-09-18",
+			len(got[0].assets), got[0].expiryStr())
+	}
+	if got[1].expiryStr() != "2026-10-01" {
+		t.Fatalf("second group on %s, want 2026-10-01", got[1].expiryStr())
+	}
+
+	// Without the invoice end the AMS date is all there is, and it is outside
+	// the window.
+	delete(ams.Fields, "Invoice End Date")
+	if got := selectDueGroups([]record{parent}, []record{ams}, today, 60); len(got) != 0 {
+		t.Fatalf("AMS-only unit came due %d time(s), want 0", len(got))
+	}
+}
+
 func TestSelectDueGroupsSkipsSettledProducts(t *testing.T) {
 	today := time.Date(2026, 8, 27, 0, 0, 0, 0, time.UTC)
 	parent := mk(1, "2026-09-18", "", "Active")
@@ -241,5 +275,50 @@ func TestRecordsURL(t *testing.T) {
 	want := "http://host:8090/api/v3/data/pd0tf8xobxcryk6/tbl123/records"
 	if got := s.recordsURL("tbl123"); got != want {
 		t.Errorf("got %q, want %q", got, want)
+	}
+}
+
+func TestRecipientsForAssigneePlusSuperAdmins(t *testing.T) {
+	st := staff{
+		superAdmins: []string{"boss@grove.in"},
+		admins:      []string{"admin@grove.in", "boss@grove.in"},
+	}
+	g := dueGroup{parent: record{ID: 1, Fields: map[string]interface{}{"Assigned To": " Rep@Grove.in "}}}
+	got := recipientsFor(g, st)
+	if len(got) != 2 || got[0] != "rep@grove.in" || got[1] != "boss@grove.in" {
+		t.Fatalf("want [rep boss], got %v", got)
+	}
+
+	// The assignee who is also a super_admin is mailed once.
+	g.parent.Fields["Assigned To"] = "boss@grove.in"
+	if got := recipientsFor(g, st); len(got) != 1 {
+		t.Fatalf("want one recipient, got %v", got)
+	}
+}
+
+func TestRecipientsForFallsBackToAProductAssignee(t *testing.T) {
+	g := dueGroup{
+		parent: record{ID: 1, Fields: map[string]interface{}{}},
+		assets: []record{{ID: 2, Fields: map[string]interface{}{"Assigned To": "rep@grove.in"}}},
+	}
+	got := recipientsFor(g, staff{})
+	if len(got) != 1 || got[0] != "rep@grove.in" {
+		t.Fatalf("want [rep], got %v", got)
+	}
+}
+
+func TestRecipientsForUnassignedArchiveRow(t *testing.T) {
+	g := dueGroup{parent: record{ID: 1, Fields: map[string]interface{}{"Assigned To": "not an email"}}}
+
+	// Super admins alone; plain admins are not copied.
+	st := staff{superAdmins: []string{"boss@grove.in"}, admins: []string{"admin@grove.in", "boss@grove.in"}}
+	if got := recipientsFor(g, st); len(got) != 1 || got[0] != "boss@grove.in" {
+		t.Fatalf("want [boss], got %v", got)
+	}
+
+	// No super admin at all: the admins, rather than nobody.
+	st = staff{admins: []string{"admin@grove.in"}}
+	if got := recipientsFor(g, st); len(got) != 1 || got[0] != "admin@grove.in" {
+		t.Fatalf("want [admin], got %v", got)
 	}
 }
