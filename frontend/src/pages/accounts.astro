@@ -91,6 +91,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       <!-- Sort -->
       <select id="sortBy" class="px-3 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all min-w-[170px]">
         <option value="">Sort: Default</option>
+        <option value="created-desc">Newest created first</option>
+        <option value="created-asc">Oldest created first</option>
         <option value="name-asc">Name A → Z</option>
         <option value="name-desc">Name Z → A</option>
         <option value="state-asc">State A → Z</option>
@@ -354,6 +356,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         if (sort === 'name-asc') result.sort((a: any, b: any) => (a.fields?.['Account Name'] || '').localeCompare(b.fields?.['Account Name'] || ''));
         else if (sort === 'name-desc') result.sort((a: any, b: any) => (b.fields?.['Account Name'] || '').localeCompare(a.fields?.['Account Name'] || ''));
+        else if (sort === 'created-desc' || sort === 'created-asc') {
+          // Record ids are auto-increment, so a higher id was created later. A
+          // merged duplicate group sorts by its newest member.
+          const newest = (r: any) => Math.max(...String(r._groupIds || r.id).split(',').map(Number));
+          const dir = sort === 'created-desc' ? -1 : 1;
+          result.sort((a: any, b: any) => dir * (newest(a) - newest(b)));
+        }
         else if (sort === 'state-asc') result.sort((a: any, b: any) => (a.fields?.['Billing State'] || '').localeCompare(b.fields?.['Billing State'] || ''));
 
         displayResults(result);

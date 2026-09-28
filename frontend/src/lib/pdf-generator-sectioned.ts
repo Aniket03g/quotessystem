@@ -619,7 +619,7 @@ export function generateSectionedPdfBuffer(
     // Excel-style closing row: pre-tax under Total Price, post-tax under Total (incl. Tax).
     body.push([
       {
-        content: 'Total Amount',
+        content: 'Grand Total',
         colSpan: 6,
         styles: { halign: 'right' as const, fontStyle: 'bold' as const, fontSize: 9, fillColor: COLOR_TOTAL_BG },
       },
@@ -719,7 +719,7 @@ export function generateSectionedPdfBuffer(
     currentY = (doc as any).lastAutoTable.finalY + 8;
 
     // A discount breakdown only earns its space when something was discounted —
-    // the in-table Total Amount row already covers the no-discount case.
+    // the in-table Grand Total row already covers the no-discount case.
     if (totalDiscount >= 0.005) {
       ensureSpace(30);
       const labelX = rightX - 70;

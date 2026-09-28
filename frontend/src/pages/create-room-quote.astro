@@ -1135,9 +1135,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       const actions = document.createElement('div');
       actions.className = 'flex items-center gap-1';
+      // 'activate' adds nothing — it points the Active Floor/Room bar at this
+      // room so the next "+ Add Product" lands in it. Labelled accordingly:
+      // "Add here" read as a copy button to more than one person.
       const buttons: Array<[string, string]> = section
-        ? [['activate', 'Add here'], ['duplicate', 'Duplicate'], ['rename', 'Rename'], ['unassign', 'Unassign']]
-        : [['activate', 'Add here']];
+        ? [['activate', 'Set active'], ['duplicate', 'Duplicate'], ['rename', 'Rename'], ['unassign', 'Unassign']]
+        : [['activate', 'Set active']];
       for (const [action, label] of buttons) {
         const button = document.createElement('button');
         button.type = 'button';
@@ -2073,12 +2076,21 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           }
         };
 
+        // Marks the quote as one to read floor by floor. Without it the list has
+        // no way to tell the two kinds apart: the structure lives on the line
+        // items' Section, and `Options` is set only on multi-option quotes.
+        // Note this is NOT "Quote Type", which already means Customer vs Dealer.
+        (quotePayload.fields as Record<string, any>)['Quote Layout'] = 'Room-wise';
+
         // Only sent when the quote actually has options, so a NocoDB without
         // these columns keeps creating ordinary quotes from this page - the same
         // fail-soft rule the Section field follows.
         if (optionsInUse()) {
           (quotePayload.fields as Record<string, any>)['Options'] = JSON.stringify(quoteOptions);
-          (quotePayload.fields as Record<string, any>)['Option Totals'] = JSON.stringify(
+          // "Option Total" (singular) is the NocoDB column name on both servers.
+          // It used to be written as "Option Totals" here, which matched neither,
+          // and NocoDB drops unknown fields silently, so this never saved.
+          (quotePayload.fields as Record<string, any>)['Option Total'] = JSON.stringify(
             Object.fromEntries(quoteOptions.map((name) => [name, optionTotals.get(name) || 0])),
           );
         }
