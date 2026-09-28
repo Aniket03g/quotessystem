@@ -1,0 +1,542 @@
+---
+import AdminLayout from '../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Notifications" currentPage="notifications">
+  <div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="relative w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm shadow-blue-600/30">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+          </svg>
+          <span id="headerDot" class="hidden absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-red-500 ring-2 ring-slate-50"></span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-semibold text-slate-800 leading-tight">Notifications</h1>
+          <p id="subtitle" class="text-sm text-slate-500">Loading…</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="relative flex-1 md:w-64">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0z"></path>
+          </svg>
+          <input id="search" type="search" placeholder="Search notifications" autocomplete="off"
+            class="w-full pl-9 pr-10 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+          <kbd class="hidden md:inline absolute right-2.5 top-1/2 -translate-y-1/2 kbd">/</kbd>
+        </div>
+        <button id="refreshBtn" title="Refresh" class="icon-btn">
+          <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          </svg>
+        </button>
+        <button id="markAllBtn" disabled
+          class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>Mark all read</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary cards: each one filters the list to its band -->
+    <div id="cards" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <button data-card="overdue" class="stat-card group">
+        <div class="flex items-center justify-between">
+          <span class="stat-label">Overdue</span>
+          <span class="stat-icon bg-red-50 text-red-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </span>
+        </div>
+        <div class="stat-value text-red-600" data-stat="overdue">–</div>
+        <div class="stat-sub" data-stat-sub="overdue">needs action now</div>
+        <div class="stat-bar bg-red-500"></div>
+      </button>
+      <button data-card="today" class="stat-card group">
+        <div class="flex items-center justify-between">
+          <span class="stat-label">Due today</span>
+          <span class="stat-icon bg-blue-50 text-blue-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          </span>
+        </div>
+        <div class="stat-value text-slate-800" data-stat="today">–</div>
+        <div class="stat-sub" data-stat-sub="today">on your plate today</div>
+        <div class="stat-bar bg-blue-500"></div>
+      </button>
+      <button data-card="week" class="stat-card group">
+        <div class="flex items-center justify-between">
+          <span class="stat-label">This week</span>
+          <span class="stat-icon bg-violet-50 text-violet-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          </span>
+        </div>
+        <div class="stat-value text-slate-800" data-stat="week">–</div>
+        <div class="stat-sub" data-stat-sub="week">in the next 7 days</div>
+        <div class="stat-bar bg-violet-500"></div>
+      </button>
+      <button data-card="later" class="stat-card group">
+        <div class="flex items-center justify-between">
+          <span class="stat-label">Coming up</span>
+          <span class="stat-icon bg-emerald-50 text-emerald-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+          </span>
+        </div>
+        <div class="stat-value text-slate-800" data-stat="later">–</div>
+        <div class="stat-sub" data-stat-sub="later">renewals ahead</div>
+        <div class="stat-bar bg-emerald-500"></div>
+      </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+      <div id="tabs" class="inline-flex p-1 bg-slate-100 rounded-xl overflow-x-auto">
+        <button data-tab="all" class="tab active">All <span class="tab-count" data-count="all"></span></button>
+        <button data-tab="unread" class="tab">Unread <span class="tab-count" data-count="unread"></span></button>
+        <button data-tab="followup" class="tab">Follow-ups <span class="tab-count" data-count="followup"></span></button>
+        <button data-tab="cover" id="coverTab" class="tab hidden">Warranty &amp; AMC <span class="tab-count" data-count="cover"></span></button>
+      </div>
+    </div>
+
+    <!-- Active card filter -->
+    <div id="cardFilter" class="hidden mb-4 flex items-center gap-2 text-sm text-slate-600">
+      <span>Showing <strong id="cardFilterLabel"></strong> only</span>
+      <button id="clearCard" class="text-blue-600 hover:underline">Show all</button>
+    </div>
+
+    <div id="error" class="hidden mb-4 p-4 rounded-xl border border-red-200 bg-red-50 text-sm text-red-700"></div>
+
+    <!-- Skeleton -->
+    <div id="loading" class="bg-white rounded-2xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+      <div class="skeleton-row"><div class="sk w-10 h-10 rounded-full"></div><div class="flex-1 space-y-2"><div class="sk h-3.5 w-2/3"></div><div class="sk h-3 w-1/3"></div></div><div class="sk h-6 w-20 rounded-full"></div></div>
+      <div class="skeleton-row"><div class="sk w-10 h-10 rounded-full"></div><div class="flex-1 space-y-2"><div class="sk h-3.5 w-1/2"></div><div class="sk h-3 w-1/4"></div></div><div class="sk h-6 w-16 rounded-full"></div></div>
+      <div class="skeleton-row"><div class="sk w-10 h-10 rounded-full"></div><div class="flex-1 space-y-2"><div class="sk h-3.5 w-3/5"></div><div class="sk h-3 w-2/5"></div></div><div class="sk h-6 w-24 rounded-full"></div></div>
+    </div>
+
+    <div id="list" class="space-y-6"></div>
+
+    <!-- Empty state -->
+    <div id="empty" class="hidden bg-white rounded-2xl border border-slate-200 px-6 py-14 text-center">
+      <div class="relative w-20 h-20 mx-auto mb-4">
+        <div class="absolute inset-0 rounded-full bg-emerald-100/70 animate-ping-slow"></div>
+        <div class="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-50 to-emerald-100 flex items-center justify-center">
+          <svg class="w-9 h-9 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+      <p id="emptyTitle" class="text-base font-semibold text-slate-800">You're all caught up</p>
+      <p id="emptyHint" class="text-sm text-slate-500 mt-1">Nothing needs your attention right now.</p>
+    </div>
+
+    <p id="footnote" class="hidden text-xs text-slate-400 mt-8 text-center max-w-xl mx-auto"></p>
+  </div>
+
+  <!-- Undo toast -->
+  <div id="toast" class="toast" role="status" aria-live="polite">
+    <span id="toastText"></span>
+    <button id="toastUndo" class="font-semibold text-blue-300 hover:text-blue-200">Undo</button>
+  </div>
+
+  <style>
+    .icon-btn {
+      @apply p-2.5 text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors;
+    }
+    .kbd {
+      @apply inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-medium text-slate-500 bg-white border border-slate-200 rounded shadow-sm;
+    }
+
+    .stat-card {
+      @apply relative overflow-hidden text-left bg-white rounded-xl border border-slate-200 p-4 transition-all hover:shadow-md hover:-translate-y-0.5;
+    }
+    .stat-card.active {
+      @apply ring-2 ring-blue-500 border-transparent shadow-md;
+    }
+    .stat-label { @apply text-xs font-semibold text-slate-500 uppercase tracking-wider; }
+    .stat-icon { @apply w-7 h-7 rounded-lg flex items-center justify-center; }
+    .stat-value { @apply text-3xl font-bold mt-2 tabular-nums; }
+    .stat-sub { @apply text-xs text-slate-400 mt-0.5; }
+    .stat-bar { @apply absolute bottom-0 left-0 h-1 w-full opacity-0 transition-opacity; }
+    .stat-card:hover .stat-bar, .stat-card.active .stat-bar { @apply opacity-100; }
+
+    .tab {
+      @apply inline-flex items-center gap-1.5 px-3.5 py-1.5 text-sm font-medium text-slate-500 rounded-lg whitespace-nowrap transition-all hover:text-slate-800;
+    }
+    .tab.active { @apply bg-white text-slate-900 shadow-sm; }
+    .tab-count:empty { display: none; }
+    .tab-count { @apply px-1.5 min-w-[20px] text-center text-[11px] font-semibold rounded-full bg-slate-200 text-slate-600; }
+    .tab.active .tab-count { @apply bg-blue-100 text-blue-700; }
+
+    .skeleton-row { @apply flex items-center gap-4 px-5 py-4; }
+    .sk { @apply bg-slate-100 rounded animate-pulse; }
+
+    .toast {
+      @apply fixed left-1/2 bottom-6 z-50 flex items-center gap-4 px-4 py-3 text-sm text-white bg-slate-900 rounded-xl shadow-2xl;
+      transform: translate(-50%, 150%);
+      opacity: 0;
+      transition: transform .25s ease, opacity .25s ease;
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    @keyframes ping-slow { 0% { transform: scale(1); opacity: .7 } 80%, 100% { transform: scale(1.35); opacity: 0 } }
+    .animate-ping-slow { animation: ping-slow 2.4s cubic-bezier(0, 0, .2, 1) infinite; }
+
+    /* Rows are injected at runtime, so their styles must be global. */
+    :global(.n-row) {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.875rem;
+      padding: 0.95rem 1.25rem;
+      transition: background-color .15s ease;
+      outline: none;
+    }
+    :global(.n-row:hover) { background-color: rgb(248 250 252); }
+    :global(.n-row.leaving) { animation: n-fade .3s ease forwards; }
+    @keyframes n-fade { to { opacity: .35; } }
+  </style>
+
+  <script>
+    import {
+      loadNotifications, setRead, publishUnread,
+      FOLLOWUP_AHEAD_DAYS, COVER_AHEAD_DAYS,
+      type AppNotification, type Urgency, type ChipTone,
+    } from '../lib/notifications';
+    import { requireAuth, isAdmin } from '../utils/jwt';
+
+    requireAuth();
+
+    const admin = isAdmin();
+    let items: AppNotification[] = [];
+    let tab = 'all';
+    let card: Urgency | '' = '';
+    let query = '';
+    let loadedAt = 0;
+
+    const $ = (id: string) => document.getElementById(id)!;
+    const esc = (s: any) => String(s ?? '').replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+    const SECTIONS: { key: Urgency; label: string; dot: string; text: string }[] = [
+      { key: 'overdue', label: 'Overdue', dot: 'bg-red-500', text: 'text-red-600' },
+      { key: 'today', label: 'Today', dot: 'bg-blue-500', text: 'text-blue-600' },
+      { key: 'week', label: 'This week', dot: 'bg-violet-500', text: 'text-violet-600' },
+      { key: 'later', label: 'Coming up', dot: 'bg-emerald-500', text: 'text-emerald-600' },
+    ];
+
+    const CHIP: Record<ChipTone, string> = {
+      slate: 'bg-slate-100 text-slate-600 ring-slate-200',
+      blue: 'bg-blue-50 text-blue-700 ring-blue-200',
+      amber: 'bg-amber-50 text-amber-700 ring-amber-200',
+      emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+      red: 'bg-red-50 text-red-700 ring-red-200',
+      violet: 'bg-violet-50 text-violet-700 ring-violet-200',
+    };
+
+    // Stable colour per subject, so the same customer always looks the same.
+    const AVATAR = [
+      'from-sky-500 to-blue-600', 'from-violet-500 to-purple-600', 'from-emerald-500 to-teal-600',
+      'from-amber-500 to-orange-600', 'from-rose-500 to-pink-600', 'from-indigo-500 to-blue-700',
+      'from-cyan-500 to-sky-600', 'from-fuchsia-500 to-pink-600',
+    ];
+    function avatarOf(name: string): { initials: string; grad: string } {
+      const words = name.replace(/[^A-Za-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean);
+      const initials = ((words[0]?.[0] || '?') + (words[1]?.[0] || '')).toUpperCase();
+      let h = 0;
+      for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+      return { initials, grad: AVATAR[h % AVATAR.length] };
+    }
+
+    const KIND_BADGE: Record<string, { path: string; bg: string }> = {
+      followup: {
+        bg: 'bg-violet-600',
+        path: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z',
+      },
+      cover: {
+        bg: 'bg-emerald-600',
+        path: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+      },
+    };
+
+    function whenPill(n: AppNotification): string {
+      const label = n.days === 0 ? 'Today'
+        : n.days === 1 ? 'Tomorrow'
+        : n.days === -1 ? '1 day overdue'
+        : n.days < 0 ? `${-n.days} days overdue`
+        : `In ${n.days} days`;
+      const tone = n.read ? 'bg-slate-100 text-slate-500'
+        : n.urgency === 'overdue' ? 'bg-red-50 text-red-700'
+        : n.urgency === 'today' ? 'bg-blue-50 text-blue-700'
+        : n.urgency === 'week' ? 'bg-violet-50 text-violet-700'
+        : 'bg-slate-100 text-slate-600';
+      return `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${tone}">${esc(label)}</span>`;
+    }
+
+    function fmtDate(isoDate: string): string {
+      const [y, m, d] = isoDate.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    function visible(): AppNotification[] {
+      const q = query.trim().toLowerCase();
+      return items.filter((n) => {
+        if (tab === 'unread' && n.read) return false;
+        if ((tab === 'followup' || tab === 'cover') && n.kind !== tab) return false;
+        if (card && n.urgency !== card) return false;
+        if (q && ![n.title, n.detail, ...n.chips.map((c) => c.label)].join(' ').toLowerCase().includes(q)) return false;
+        return true;
+      });
+    }
+
+    function row(n: AppNotification): string {
+      const av = avatarOf(n.subject);
+      const kind = KIND_BADGE[n.kind];
+      const accent = n.read ? '' : n.urgency === 'overdue' ? 'bg-red-500'
+        : n.urgency === 'today' ? 'bg-blue-500' : n.urgency === 'week' ? 'bg-violet-500' : 'bg-emerald-500';
+
+      return `
+        <li class="n-row" data-key="${esc(n.key)}">
+          ${accent ? `<span class="absolute left-0 top-3 bottom-3 w-1 rounded-r-full ${accent}"></span>` : ''}
+          <div class="relative flex-shrink-0 mt-0.5 ${n.read ? 'opacity-50 grayscale' : ''}">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br ${av.grad} flex items-center justify-center text-white text-sm font-semibold shadow-sm">${esc(av.initials)}</div>
+            <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${kind.bg} ring-2 ring-white flex items-center justify-center">
+              <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="${kind.path}"></path></svg>
+            </span>
+          </div>
+
+          <a href="${esc(n.href)}" data-open="${esc(n.key)}" class="flex-1 min-w-0">
+            <p class="text-sm leading-snug ${n.read ? 'text-slate-500' : 'text-slate-700'}">
+              <span class="${n.read ? 'font-medium' : 'font-semibold text-slate-900'}">${esc(n.subject)}</span>
+              <span>${esc(n.event)}</span>
+            </p>
+            ${n.detail ? `<p class="text-xs text-slate-500 mt-0.5 truncate">${esc(n.detail)}</p>` : ''}
+            ${n.chips.length ? `<div class="flex flex-wrap gap-1.5 mt-2">${n.chips.map((c) =>
+              `<span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium ring-1 ring-inset ${n.read ? CHIP.slate : CHIP[c.tone]}">${esc(c.label)}</span>`).join('')}</div>` : ''}
+          </a>
+
+          <div class="flex flex-col items-end gap-2 flex-shrink-0">
+            <div class="flex items-center gap-2">
+              ${whenPill(n)}
+              ${n.read ? '' : '<span class="w-2 h-2 rounded-full bg-blue-600" title="Unread"></span>'}
+            </div>
+            <span class="text-[11px] text-slate-400">${esc(fmtDate(n.date))}</span>
+            <button data-toggle="${esc(n.key)}"
+              class="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-medium border transition-colors
+                ${n.read ? 'border-slate-200 text-slate-500 hover:bg-slate-50' : 'border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100'}">
+              ${n.read
+                ? '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" stroke-width="2"></circle></svg>Mark unread'
+                : '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>Mark as read'}
+            </button>
+          </div>
+        </li>`;
+    }
+
+    function render() {
+      const unread = items.filter((n) => !n.read);
+      const scope = items.filter((n) => tab !== 'followup' && tab !== 'cover' ? true : n.kind === tab);
+
+      // Cards count UNREAD items per band — what still needs looking at.
+      for (const s of SECTIONS) {
+        const all = scope.filter((n) => n.urgency === s.key);
+        const open = all.filter((n) => !n.read).length;
+        $(`stat-${s.key}`).textContent = String(open);
+        const sub = document.querySelector<HTMLElement>(`[data-stat-sub="${s.key}"]`)!;
+        sub.textContent = all.length === 0 ? 'nothing here'
+          : open === 0 ? `all ${all.length} read`
+          : `${open} unread of ${all.length}`;
+      }
+      document.querySelectorAll<HTMLElement>('[data-card]').forEach((el) =>
+        el.classList.toggle('active', el.dataset.card === card));
+
+      const counts: Record<string, number> = {
+        all: items.length,
+        unread: unread.length,
+        followup: items.filter((n) => n.kind === 'followup').length,
+        cover: items.filter((n) => n.kind === 'cover').length,
+      };
+      document.querySelectorAll<HTMLElement>('[data-count]').forEach((el) => {
+        el.textContent = counts[el.dataset.count!] ? String(counts[el.dataset.count!]) : '';
+      });
+      document.querySelectorAll<HTMLElement>('[data-tab]').forEach((el) =>
+        el.classList.toggle('active', el.dataset.tab === tab));
+
+      $('cardFilter').classList.toggle('hidden', !card);
+      $('cardFilterLabel').textContent = SECTIONS.find((s) => s.key === card)?.label.toLowerCase() || '';
+
+      const list = visible();
+      ($('markAllBtn') as HTMLButtonElement).disabled = !list.some((n) => !n.read);
+      $('headerDot').classList.toggle('hidden', unread.length === 0);
+      updateSubtitle();
+
+      $('empty').classList.toggle('hidden', list.length > 0);
+      if (!list.length) {
+        const filtered = query || card || tab !== 'all';
+        $('emptyTitle').textContent = !items.length ? "You're all caught up"
+          : tab === 'unread' ? 'Inbox zero' : 'No matches';
+        $('emptyHint').textContent = !items.length ? 'Nothing needs your attention right now.'
+          : tab === 'unread' ? 'Every notification has been read. Nice work.'
+          : filtered ? 'Try a different filter or search.' : '';
+      }
+
+      $('list').innerHTML = SECTIONS.map((s) => {
+        const inSection = list.filter((n) => n.urgency === s.key);
+        if (!inSection.length) return '';
+        const open = inSection.filter((n) => !n.read).length;
+        return `
+          <section>
+            <div class="flex items-center gap-2 mb-2 px-1">
+              <span class="w-2 h-2 rounded-full ${s.dot}"></span>
+              <h2 class="text-xs font-bold uppercase tracking-wider ${s.text}">${s.label}</h2>
+              <span class="text-xs text-slate-400">${inSection.length}${open && open !== inSection.length ? ` · ${open} unread` : ''}</span>
+              <div class="flex-1 h-px bg-slate-200 ml-2"></div>
+            </div>
+            <ul class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden divide-y divide-slate-100">
+              ${inSection.map(row).join('')}
+            </ul>
+          </section>`;
+      }).join('');
+
+      publishUnread(unread.length);
+    }
+
+    function updateSubtitle() {
+      const unread = items.filter((n) => !n.read).length;
+      const mins = loadedAt ? Math.floor((Date.now() - loadedAt) / 60000) : 0;
+      const fresh = !loadedAt ? '' : mins < 1 ? 'updated just now' : `updated ${mins} min ago`;
+      const head = !items.length ? 'Nothing pending'
+        : unread ? `${unread} unread of ${items.length}` : `All ${items.length} read`;
+      $('subtitle').textContent = [head, fresh].filter(Boolean).join(' · ');
+    }
+    setInterval(updateSubtitle, 60000);
+
+    // --- read / unread with undo ---------------------------------------------
+
+    let toastTimer = 0;
+    let undo: (() => void) | null = null;
+
+    function toast(text: string, onUndo: () => void) {
+      $('toastText').textContent = text;
+      undo = onUndo;
+      $('toast').classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => { $('toast').classList.remove('show'); undo = null; }, 6000);
+    }
+    $('toastUndo').addEventListener('click', () => {
+      $('toast').classList.remove('show');
+      const fn = undo;
+      undo = null;
+      fn?.();
+    });
+
+    async function mark(keys: string[], read: boolean, withUndo = true) {
+      if (!keys.length) return;
+      const before = new Map(items.map((n) => [n.key, n.read]));
+      items = items.map((n) => (keys.includes(n.key) ? { ...n, read } : n));
+      render();
+      try {
+        await setRead(keys, read);
+        if (withUndo) {
+          toast(`${keys.length === 1 ? 'Notification' : `${keys.length} notifications`} marked ${read ? 'read' : 'unread'}`,
+            () => mark(keys, !read, false));
+        }
+      } catch (e) {
+        // Roll back so the page never shows a mark that was not saved.
+        items = items.map((n) => ({ ...n, read: before.get(n.key) ?? n.read }));
+        render();
+        showError(e instanceof Error ? e.message : 'Could not save');
+      }
+    }
+
+    function showError(msg: string) {
+      $('error').textContent = msg;
+      $('error').classList.remove('hidden');
+    }
+
+    async function load() {
+      $('error').classList.add('hidden');
+      $('refreshIcon').classList.add('animate-spin');
+      if (!items.length) $('loading').classList.remove('hidden');
+      try {
+        items = await loadNotifications();
+        loadedAt = Date.now();
+        render();
+      } catch (e) {
+        showError(`Could not load notifications: ${e instanceof Error ? e.message : e}`);
+      } finally {
+        $('loading').classList.add('hidden');
+        $('refreshIcon').classList.remove('animate-spin');
+      }
+    }
+
+    // --- wiring ---------------------------------------------------------------
+
+    // Stable ids for the stat values so render() can address them directly.
+    document.querySelectorAll<HTMLElement>('[data-stat]').forEach((el) => { el.id = `stat-${el.dataset.stat}`; });
+
+    $('coverTab').classList.toggle('hidden', !admin);
+    const foot = $('footnote');
+    foot.textContent = admin
+      ? `Your lead follow-ups (plus unassigned leads) due within ${FOLLOWUP_AHEAD_DAYS} days, and warranty/AMC products whose warranty ends within ${COVER_AHEAD_DAYS} days. Overdue items stay until the record is updated. Opening an item marks it read.`
+      : `Your lead follow-ups due within ${FOLLOWUP_AHEAD_DAYS} days. Overdue items stay until the lead is updated. Opening an item marks it read.`;
+    foot.classList.remove('hidden');
+
+    $('tabs').addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-tab]');
+      if (!btn) return;
+      tab = btn.dataset.tab!;
+      render();
+    });
+
+    $('cards').addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-card]');
+      if (!btn) return;
+      const next = btn.dataset.card as Urgency;
+      card = card === next ? '' : next;
+      render();
+    });
+    $('clearCard').addEventListener('click', () => { card = ''; render(); });
+
+    $('search').addEventListener('input', (e) => {
+      query = (e.target as HTMLInputElement).value;
+      render();
+    });
+
+    $('list').addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const toggle = target.closest<HTMLElement>('[data-toggle]');
+      if (toggle) {
+        e.preventDefault();
+        const n = items.find((x) => x.key === toggle.dataset.toggle);
+        if (n) mark([n.key], !n.read);
+        return;
+      }
+      // Opening an item counts as reading it. Saved in the background; the
+      // browser is already navigating away.
+      const open = target.closest<HTMLElement>('[data-open]');
+      if (open) {
+        const n = items.find((x) => x.key === open.dataset.open);
+        if (n && !n.read) {
+          setRead([n.key], true).catch(() => {});
+          publishUnread(items.filter((x) => !x.read && x.key !== n.key).length);
+        }
+      }
+    });
+
+    $('markAllBtn').addEventListener('click', () => {
+      mark(visible().filter((n) => !n.read).map((n) => n.key), true);
+    });
+
+    $('refreshBtn').addEventListener('click', load);
+
+    // "/" jumps to search, as the hint in the box says.
+    document.addEventListener('keydown', (e) => {
+      const typing = (e.target as HTMLElement).closest('input, textarea, select');
+      if (e.key === '/' && !typing) { e.preventDefault(); ($('search') as HTMLInputElement).focus(); }
+      else if (e.key === 'Escape' && typing) (typing as HTMLElement).blur();
+    });
+
+    load();
+  </script>
+</AdminLayout>

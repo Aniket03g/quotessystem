@@ -298,6 +298,11 @@ func main() {
 		warrantyReminderTestHandler(warrantyScheduler),
 	))
 
+	// Per-user read marks for the notifications page — see notifications_endpoint.go.
+	mux.Handle("/api/notifications/read", middleware.AuthMiddleware(cfg.JWTSecret)(
+		notificationReadsHandler(database),
+	))
+
 	// Protected secure ping endpoint (example)
 	protectedPingHandler := auth.AuthMiddleware(cfg.JWTSecret)(
 		http.HandlerFunc(securePingHandler(database)),

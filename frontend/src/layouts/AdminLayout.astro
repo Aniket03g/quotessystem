@@ -88,6 +88,13 @@ const { title, currentPage } = Astro.props;
 
 
 
+        <a href="/notifications" class={`nav-link ${currentPage === 'notifications' ? 'active' : ''}`}>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+          </svg>
+          <span class="flex-1">Notifications</span>
+          <span id="notifBadge" class="notif-badge hidden"></span>
+        </a>
         <a href="/quotes" class={`nav-link ${currentPage === 'quotes' ? 'active' : ''}`}>
 
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -351,6 +358,13 @@ const { title, currentPage } = Astro.props;
 
 
 
+      <a href="/notifications" class={`nav-link ${currentPage === 'notifications' ? 'active' : ''}`}>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+        </svg>
+        <span class="flex-1">Notifications</span>
+        <span id="notifBadgeMobile" class="notif-badge hidden"></span>
+      </a>
       <a href="/quotes" class={`nav-link ${currentPage === 'quotes' ? 'active' : ''}`}>
 
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -518,6 +532,9 @@ const { title, currentPage } = Astro.props;
 
 
 
+    .notif-badge {
+      @apply min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-semibold leading-5 text-center;
+    }
     .nav-link svg {
 
       @apply flex-shrink-0;
@@ -547,6 +564,7 @@ const { title, currentPage } = Astro.props;
     import { logout } from '../lib/api';
 
     import { checkPasswordChangeRequired, getTokenClaims } from '../utils/jwt';
+    import { unreadCount, UNREAD_EVENT } from '../lib/notifications';
 
 
 
@@ -809,6 +827,22 @@ const { title, currentPage } = Astro.props;
     }
 
 
+
+    // Unread notifications badge. The count comes from a short session cache
+    // (see lib/notifications.ts), and the notifications page pushes updates
+    // through UNREAD_EVENT so the badge changes as items are marked read.
+    function showUnread(count: number) {
+      for (const id of ['notifBadge', 'notifBadgeMobile']) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        el.textContent = count > 99 ? '99+' : String(count);
+        el.classList.toggle('hidden', count === 0);
+      }
+    }
+    window.addEventListener(UNREAD_EVENT, (e) => showUnread((e as CustomEvent<number>).detail));
+    if (getTokenClaims() && !window.location.pathname.startsWith('/notifications')) {
+      unreadCount().then(showUnread).catch(() => { /* badge is best-effort */ });
+    }
 
     // Load user info on page load
 

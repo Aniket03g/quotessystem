@@ -81,6 +81,11 @@ func (d *Database) initSchema() error {
 		return err
 	}
 
+	// Per-user "read" marks for the notifications page
+	if err := d.initNotificationsSchema(); err != nil {
+		return err
+	}
+
 	// Run migrations to add missing columns to existing tables
 	if err := d.runMigrations(); err != nil {
 		log.Printf("[DB ERROR] Failed to run migrations: %v", err)
