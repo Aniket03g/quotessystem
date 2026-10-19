@@ -246,6 +246,22 @@ func TestSelectDueGroupsIgnoresTheParentStamp(t *testing.T) {
 	}
 }
 
+// A kit is a Bundle row (price, no serial) plus its parts. Only the parts are
+// devices, so the email lists the parts and never the Bundle row.
+func TestSelectDueGroupsSkipsTheKitRow(t *testing.T) {
+	today := time.Date(2026, 8, 27, 0, 0, 0, 0, time.UTC)
+	parent := mk(1, "2026-09-18", "", "Active")
+	kit := asset(10, 1, "MCoreKIT-C5-MS", "", "2026-09-18", "", "Active")
+	kit.Fields["Kind"] = "Bundle"
+	part := asset(11, 1, "MCore Pro", "SN1", "2026-09-18", "", "Active")
+	part.Fields["Kind"] = "Component"
+
+	got := selectDueGroups([]record{parent}, []record{kit, part}, today, 60)
+	if len(got) != 1 || len(got[0].assets) != 1 || got[0].assets[0].ID != 11 {
+		t.Fatalf("got %+v, want one group holding only the part (11)", got)
+	}
+}
+
 func TestParseMode(t *testing.T) {
 	for input, want := range map[string]Mode{
 		"on": ModeOn, "ON": ModeOn, "true": ModeOn, "1": ModeOn,

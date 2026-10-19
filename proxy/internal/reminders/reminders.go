@@ -284,6 +284,9 @@ func (s *Scheduler) RunOnce() error {
 func selectDueGroups(parents, assets []record, today time.Time, leadDays int) []dueGroup {
 	byParent := map[int64][]record{}
 	for _, a := range assets {
+		if isKitRow(a) {
+			continue
+		}
 		if pid, ok := a.num("Warranty Id"); ok {
 			byParent[pid] = append(byParent[pid], a)
 		}
@@ -362,6 +365,13 @@ func selectDue(records []record, today time.Time, leadDays int) []record {
 		}
 	}
 	return due
+}
+
+// isKitRow reports a kit's Bundle row: it carries the kit's AMC price, while
+// the kit's parts are their own (Component) rows with serials. It is not a
+// device, so it is never counted or reminded on.
+func isKitRow(a record) bool {
+	return a.str("Kind") == "Bundle"
 }
 
 // remindOn is the date a product's reminder counts down to. For a unit
@@ -774,7 +784,7 @@ func previewGroup(records, assets []record, recordID int64) (dueGroup, error) {
 	soonest := ""
 	var mine []record
 	for _, a := range assets {
-		if pid, ok := a.num("Warranty Id"); !ok || pid != recordID {
+		if pid, ok := a.num("Warranty Id"); !ok || pid != recordID || isKitRow(a) {
 			continue
 		}
 		if st := a.str("Status"); st == "Renewed" || st == "Replaced" {

@@ -37,7 +37,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <h1 class="text-2xl font-semibold text-slate-800">Create AMC quote</h1>
             <p class="text-sm text-slate-500 mt-1">
               For <span id="hCustomer" class="font-medium text-slate-700"></span>.
-              Each covered unit becomes one line. The AMC period starts the day after its current cover ends.
+              Each covered unit becomes one line, and a kit becomes one line with its parts' serials. The AMC period starts the day after its current cover ends.
             </p>
           </div>
         </div>
@@ -102,12 +102,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           <h2 class="text-sm font-semibold text-slate-800 uppercase tracking-wider">
             Covered units <span id="lineCount" class="text-slate-400 font-normal normal-case"></span>
           </h2>
-          <div class="flex items-center gap-2 text-xs text-slate-600">
-            <span>Set AMC price to</span>
-            <input id="pctInput" type="number" min="0" step="0.5" value="10" class="w-16 px-2 py-1.5 text-sm border border-slate-300 rounded-lg" />
-            <span>% of unit price</span>
-            <button id="pctApply" class="px-3 py-1.5 text-xs font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors">Apply to ticked</button>
-          </div>
+          <span class="text-xs text-slate-500 max-w-xl">
+            AMC total = AMC per year × years × qty. A price typed where the cover has none is saved back to the cover.
+          </span>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full">
@@ -119,7 +116,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Warranty Start</th>
                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Warranty End</th>
                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-20">Qty</th>
-                <th class="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-32">Unit Price</th>
+                <th class="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-32">AMC / year</th>
                 <th class="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">AMC Total Price</th>
               </tr>
             </thead>
@@ -249,11 +246,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         end: string;
         manualEnd: boolean;
         qty: number;
-        unitPrice: number | null;   // the equipment's own price, for reference
-        priceSource: 'cover' | 'catalogue' | '';
-        typedPrice: number | null;  // typed here when nothing is on file
+        rate: number | null;        // AMC for one year, per unit (per kit for a kit)
+        rateOnCover: boolean;       // false: typed here, saved back to the cover
+        equipmentPrice: number | null;  // today's catalogue price, internal reference only
         amc: number | null;         // what this line charges, before GST
+        amcTouched: boolean;        // typed over, so rate x years x qty no longer drives it
         nameTouched: boolean;
+        partIds: number[];          // a kit's parts, quoted (and marked) with it
       };
 
       let parent: any = {};
@@ -269,14 +268,16 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       const INPUT = 'w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500';
 
-      function priceCell(l: Line): string {
-        if (l.unitPrice == null) {
-          return `<input type="number" min="0" step="0.01" data-lf="unitPrice" value="${l.typedPrice ?? ''}" placeholder="—" class="${INPUT} text-right" title="No price on file for this unit — type it if you want a % quick-fill">`;
-        }
-        const note = l.priceSource === 'catalogue'
-          ? '<div class="text-[10px] text-amber-700" title="Not recorded on the cover; this is today\'s catalogue price">list price</div>'
-          : '';
-        return `${inr(l.unitPrice)}${note}`;
+      /** rate x years x qty, unless the total was typed over. */
+      function autoAmc(l: Line) {
+        if (!l.amcTouched) l.amc = l.rate != null ? round2(l.rate * term() * l.qty) : null;
+      }
+
+      function rateCell(l: Line): string {
+        const note = l.rate == null
+          ? '<div class="text-[10px] text-amber-700 mt-0.5">not on the cover</div>'
+          : !l.rateOnCover ? '<div class="text-[10px] text-slate-500 mt-0.5">saved to cover</div>' : '';
+        return `<input type="number" min="0" step="0.01" data-lf="rate" value="${l.rate ?? ''}" placeholder="—" class="${INPUT} text-right tabular-nums" title="AMC for one year${l.partIds.length ? ' for the whole kit' : ''}">${note}`;
       }
 
       function renderLines() {
@@ -292,12 +293,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               <input data-lf="name" value="${esc(l.name)}" class="${INPUT} font-medium">
               <textarea data-lf="description" rows="2" placeholder="Description" class="${INPUT} mt-1 text-xs text-slate-600">${esc(l.description)}</textarea>
             </td>
-            <td class="px-3 py-2"><input data-lf="serial" value="${esc(l.serial)}" placeholder="Serial" class="${INPUT} font-mono"></td>
+            <td class="px-3 py-2">${l.partIds.length
+              ? `<textarea data-lf="serial" rows="${Math.min(4, l.partIds.length)}" class="${INPUT} font-mono text-xs" title="The kit's part serials">${esc(l.serial)}</textarea>`
+              : `<input data-lf="serial" value="${esc(l.serial)}" placeholder="Serial" class="${INPUT} font-mono">`}</td>
             <td class="px-3 py-2"><input type="date" data-lf="start" value="${esc(l.start)}" class="${INPUT}"></td>
             <td class="px-3 py-2"><input type="date" data-lf="end" value="${esc(l.end)}" class="${INPUT} ${l.manualEnd ? 'border-blue-400' : ''}" title="${l.manualEnd ? 'Entered by hand' : 'Start date plus the AMC term'}"></td>
             <td class="px-3 py-2"><input type="number" min="1" data-lf="qty" value="${l.qty}" class="${INPUT}"></td>
-            <td class="px-3 py-2 text-sm text-slate-700 text-right tabular-nums whitespace-nowrap pt-3.5">${priceCell(l)}</td>
-            <td class="px-3 py-2"><input type="number" min="0" step="0.01" data-lf="amc" value="${l.amc ?? ''}" placeholder="0.00" class="${INPUT} text-right tabular-nums"></td>
+            <td class="px-3 py-2">${rateCell(l)}</td>
+            <td class="px-3 py-2"><input type="number" min="0" step="0.01" data-lf="amc" value="${l.amc ?? ''}" placeholder="0.00" class="${INPUT} text-right tabular-nums ${l.amcTouched ? 'border-blue-400' : ''}" title="${l.amcTouched ? 'Typed by hand — clear it to go back to AMC per year × years × qty' : 'AMC per year × years × qty'}"></td>
           </tr>`).join('');
         renderTotals();
       }
@@ -323,13 +326,23 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           case 'name': l.name = el.value; l.nameTouched = true; break;
           case 'description': l.description = el.value; break;
           case 'serial': l.serial = el.value; break;
-          case 'qty': l.qty = Math.max(1, Math.floor(Number(el.value) || 1)); break;
-          case 'amc': l.amc = el.value === '' ? null : Number(el.value); renderTotals(); break;
-          case 'unitPrice': {
+          case 'qty':
+            l.qty = Math.max(1, Math.floor(Number(el.value) || 1));
+            autoAmc(l); syncAmc(tr, l);
+            break;
+          case 'rate': {
             const v = Number(el.value);
-            l.typedPrice = el.value !== '' && isFinite(v) ? v : null;
+            l.rate = el.value !== '' && isFinite(v) ? v : null;
+            autoAmc(l); syncAmc(tr, l);
             break;
           }
+          case 'amc':
+            // Clearing the total hands it back to rate x years x qty.
+            l.amcTouched = el.value !== '';
+            if (l.amcTouched) l.amc = Number(el.value); else autoAmc(l);
+            el.classList.toggle('border-blue-400', l.amcTouched);
+            renderTotals();
+            break;
           case 'end':
             l.end = el.value; l.manualEnd = !!el.value;
             el.classList.toggle('border-blue-400', l.manualEnd);
@@ -344,37 +357,35 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         }
       });
 
+      /** Show a recomputed total without re-rendering the row being typed in. */
+      function syncAmc(tr: HTMLTableRowElement, l: Line) {
+        if (l.amcTouched) return;
+        (tr.querySelector('[data-lf="amc"]') as HTMLInputElement).value = l.amc == null ? '' : String(l.amc);
+        renderTotals();
+      }
+
       body.addEventListener('change', (e) => {
         const el = e.target as HTMLInputElement;
+        // A cleared total is recomputed while typing; show it once the box is left.
+        if (el.dataset.lf === 'amc') {
+          const l = lines[Number((el.closest('tr') as HTMLTableRowElement).dataset.line)];
+          if (l && !l.amcTouched) el.value = l.amc == null ? '' : String(l.amc);
+          return;
+        }
         if (el.dataset.lf !== 'include') return;
         const l = lines[Number((el.closest('tr') as HTMLTableRowElement).dataset.line)];
         l.include = el.checked;
         renderLines();
       });
 
-      // A new term moves every end date and title nobody has typed over.
+      // A new term moves every end date, title and total nobody has typed over.
       $('fTerm').addEventListener('change', () => {
         for (const l of lines) {
           if (!l.manualEnd) l.end = periodEnd(l.start, term());
           if (!l.nameTouched) l.name = defaultName(l);
+          autoAmc(l);
         }
         renderLines();
-      });
-
-      // Quick-fill: AMC price as a share of what the unit cost, times the term.
-      $('pctApply').addEventListener('click', () => {
-        const pct = Number($<HTMLInputElement>('pctInput').value);
-        if (!isFinite(pct) || pct < 0) return;
-        let skipped = 0;
-        for (const l of lines) {
-          if (!l.include) continue;
-          const base = l.unitPrice ?? l.typedPrice;
-          if (base == null) { skipped++; continue; }
-          l.amc = round2(base * l.qty * pct / 100 * term());
-        }
-        renderLines();
-        saveError.classList.toggle('hidden', !skipped);
-        if (skipped) saveError.textContent = `${skipped} ticked unit${skipped === 1 ? ' has' : 's have'} no unit price on file — type the AMC price for ${skipped === 1 ? 'it' : 'them'} directly.`;
       });
 
       // --- account picker --------------------------------------------------------
@@ -416,6 +427,60 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           }
         }, 300);
       });
+
+      /** "Actis Technologies Pvt. Ltd." and "Actis Technologies Pvt Ltd" are one company. */
+      const normCompany = (s: any) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
+        .replace(/(privatelimited|pvtltd|limited|ltd|llp|pvt)$/, '');
+
+      /** Dice coefficient over letter pairs: 1 = same, ~0.9 = one letter off. */
+      function similarity(a: string, b: string): number {
+        if (!a || !b) return 0;
+        const pairs = (s: string) => Array.from({ length: s.length - 1 }, (_, i) => s.slice(i, i + 2));
+        const pa = pairs(a), pb = pairs(b);
+        const left = [...pb];
+        let hits = 0;
+        for (const p of pa) {
+          const i = left.indexOf(p);
+          if (i >= 0) { hits++; left.splice(i, 1); }
+        }
+        return (2 * hits) / (pa.length + pb.length || 1);
+      }
+
+      /**
+       * Imported covers carry the partner's name but no Account Id. Select the
+       * account when exactly one matches the name; otherwise open the closest
+       * matches so the right one is a click away.
+       */
+      async function guessAccount(name: string) {
+        const word = (name.match(/[A-Za-z0-9]{3,}/) || [''])[0];
+        if (!word) return;
+        try {
+          const data = await get(`/proxy/accounts_duplicate/records?where=${encodeURIComponent(`(Company Name,like,%${word}%)`)}&limit=50&fields=Company Name,Billing City`);
+          const rows = rowsOf(data).map(flat);
+          const exact = rows.filter((r: any) => normCompany(r['Company Name']) === normCompany(name));
+          if (exact.length === 1) {
+            setAccount(Number(exact[0].Id), exact[0]['Company Name']);
+            $('accountHint').textContent = `✓ Matched to the cover's partner "${name}" — change it if this is the wrong account.`;
+            return;
+          }
+          // Near misses only ("Gadget" vs "Gadjet"), never every company sharing a word.
+          const shown = exact.length ? exact : rows
+            .map((r: any) => ({ r, score: similarity(normCompany(r['Company Name']), normCompany(name)) }))
+            .filter((x: any) => x.score >= 0.7)
+            .sort((a: any, b: any) => b.score - a.score)
+            .map((x: any) => x.r);
+          accountDropdown.innerHTML = shown.length
+            ? shown.map((r: any) => `<div data-acc="${esc(r.Id)}" data-name="${esc(r['Company Name'])}" class="px-3 py-2 text-sm hover:bg-slate-50 cursor-pointer">${esc(r['Company Name'] || 'Unnamed')} <span class="text-slate-400">${esc(r['Billing City'] || '')}</span></div>`).join('')
+            : `<div class="px-3 py-2 text-sm text-slate-500">No account found for "${esc(name)}" — add it under Accounts first, or search another name.</div>`;
+          accountDropdown.classList.remove('hidden');
+          $('accountHint').textContent = shown.length
+            ? `Pick the account for "${name}" from the list.`
+            : `"${name}" has no account yet.`;
+          $('accountHint').className = 'text-xs text-amber-700 mt-1';
+        } catch (err) {
+          console.error('account match failed', err);   // the search box still works by hand
+        }
+      }
 
       accountDropdown.addEventListener('click', (e) => {
         const row = (e.target as HTMLElement).closest('[data-acc]') as HTMLElement | null;
@@ -533,15 +598,27 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 'Serial Number': l.serial.trim() || null,
                 'Warranty Start': l.start,
                 'Warranty End': l.end,
-                'Equipment Unit Price': l.unitPrice ?? l.typedPrice,
+                'Equipment Unit Price': l.equipmentPrice,
                 'Warranty Asset Id': l.assetId,
               },
             });
           }
 
-          // The reminder panel and list should show these units are being worked.
+          // An imported cover had no account; keep the one billed here for next time.
+          if (!Number(parent['Account Id'])) {
+            await send('PATCH', '/proxy/warranty_reminders/records', { id: coverId, fields: { 'Account Id': accountId } });
+          }
+
+          // The reminder panel and list should show these units are being worked;
+          // a kit's parts with it. An AMC price typed here is kept on the cover
+          // so the next quote starts from it.
           for (const l of ticked) {
-            await send('PATCH', '/proxy/warranty_assets/records', { id: l.assetId, fields: { 'Status': 'Renewal Quoted' } });
+            const fields: Record<string, any> = { 'Status': 'Renewal Quoted' };
+            if (!l.rateOnCover && l.rate != null) fields['Unit Price'] = l.rate;
+            await send('PATCH', '/proxy/warranty_assets/records', { id: l.assetId, fields });
+            for (const partId of l.partIds) {
+              await send('PATCH', '/proxy/warranty_assets/records', { id: partId, fields: { 'Status': 'Renewal Quoted' } });
+            }
           }
 
           window.location.replace(`/quote-detail?id=${quoteId}`);
@@ -606,10 +683,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           let catalogue = new Map<number, any>();
           try { catalogue = await loadCatalogue(assets); } catch { /* descriptions and prices just stay blank */ }
 
+          // A kit is quoted as one line on its Bundle row, which carries the kit's
+          // AMC; its parts ride along on that line (serials listed, no price).
+          const bundleIds = new Set(assets.filter((a: any) => a['Kind'] === 'Bundle').map((a: any) => Number(a.Id)));
+          const inKit = (a: any) => a['Kind'] === 'Component' && bundleIds.has(Number(a['Bundle Asset Id']));
+          const partsOf = (a: any) => assets.filter((p: any) => inKit(p) && Number(p['Bundle Asset Id']) === Number(a.Id));
+
           const today = isoOf(new Date());
-          lines = assets.map((a: any) => {
+          lines = assets.filter((a: any) => !inKit(a)).map((a: any) => {
             const p = catalogue.get(a.Id);
-            const coverPrice = a['Unit Price'] != null && a['Unit Price'] !== '' ? Number(a['Unit Price']) : null;
+            const parts = a['Kind'] === 'Bundle' ? partsOf(a) : [];
+            // Unit Price on a cover product IS its AMC for one year (per kit on a Bundle row).
+            const rate = a['Unit Price'] != null && a['Unit Price'] !== '' ? Number(a['Unit Price']) : null;
             const listPrice = p?.['Customer Unit Price'] != null ? Number(p['Customer Unit Price']) : null;
             const status = String(a['Status'] || '').toLowerCase();
             // Cover still running: the AMC picks up the day after it ends. Already
@@ -622,19 +707,24 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               model: a['Model'] || '',
               productName: p?.['Product Name'] || '',
               name: '',
-              description: p?.['Description'] || '',
-              serial: a['Serial Number'] || '',
+              description: parts.length
+                ? [p?.['Description'], `Kit of ${parts.length}: ${parts.map((x: any) => x['Model']).filter(Boolean).join(', ')}`].filter(Boolean).join('\n')
+                : p?.['Description'] || '',
+              serial: parts.length ? parts.map((x: any) => x['Serial Number']).filter(Boolean).join(', ') : a['Serial Number'] || '',
               start,
               end: periodEnd(start, 1),
               manualEnd: false,
               qty: 1,
-              unitPrice: coverPrice ?? listPrice,
-              priceSource: coverPrice != null ? 'cover' : listPrice != null ? 'catalogue' : '',
-              typedPrice: null,
+              rate,
+              rateOnCover: rate != null,
+              equipmentPrice: listPrice,
               amc: null,
+              amcTouched: false,
               nameTouched: false,
+              partIds: parts.map((x: any) => Number(x.Id)),
             };
             l.name = defaultName(l);
+            autoAmc(l);
             return l;
           });
 
@@ -661,6 +751,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           else {
             setAccount(null, '');
             accountSearch.value = partner || '';
+            if (partner) await guessAccount(partner);
           }
 
           $<HTMLInputElement>('fDate').value = today;

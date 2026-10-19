@@ -140,7 +140,8 @@ function covers(parents: any[], assets: any[]): Omit<AppNotification, 'read'>[] 
   const byParent = new Map<number, any[]>();
   for (const a of assets) {
     const pid = Number(a['Warranty Id']);
-    if (!pid) continue;
+    // A kit's Bundle row is its price; the kit's parts are what expire.
+    if (!pid || a['Kind'] === 'Bundle') continue;
     if (!byParent.has(pid)) byParent.set(pid, []);
     byParent.get(pid)!.push(a);
   }

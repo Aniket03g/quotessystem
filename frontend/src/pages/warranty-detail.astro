@@ -409,6 +409,39 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return { iso: soonest, assets: live.filter((a) => dateInputValue(a['End Date']) === soonest) };
       }
 
+      /**
+       * A kit is one Bundle row (no serial; carries the kit's AMC price) plus a
+       * Component row per part, pointing at it through Bundle Asset Id. The
+       * Bundle row holds the price, it is not a device, so counts and expiry skip it.
+       */
+      const isBundle = (a: any) => a?.['Kind'] === 'Bundle';
+      const isComponent = (a: any) => a?.['Kind'] === 'Component';
+      const devicesOf = (list: any[]) => list.filter((a) => !isBundle(a));
+      // For functions that shadow `assets` with its devices-only view.
+      const allAssets = () => assets;
+
+      /** Table order as indexes into list: each kit's parts directly under the kit. */
+      function displayOrder(list: any[]): number[] {
+        const bundleIds = new Set(list.filter(isBundle).map((a) => a.Id));
+        const inKit = (a: any) => isComponent(a) && bundleIds.has(a['Bundle Asset Id']);
+        const out: number[] = [];
+        list.forEach((a, i) => {
+          if (inKit(a)) return;
+          out.push(i);
+          if (isBundle(a)) list.forEach((p, j) => { if (inKit(p) && p['Bundle Asset Id'] === a.Id) out.push(j); });
+        });
+        return out;
+      }
+
+      /** AMC for one year: per device, or per kit on the Bundle row. */
+      function amcCell(a: any): string {
+        if (isComponent(a)) return '<td class="px-4 py-3 text-xs text-slate-400 text-right">in kit</td>';
+        const v = a['Unit Price'];
+        return v === null || v === undefined || v === ''
+          ? '<td class="px-4 py-3 text-xs text-amber-700 text-right" title="No AMC price yet — add it with “Edit products”">not set</td>'
+          : `<td class="px-4 py-3 text-sm text-slate-700 text-right tabular-nums">${esc(fmtMoney(v))}</td>`;
+      }
+
       let parent: any = null;
       let accountName = '';        // the linked account's name, when the cover has one
       let sourceQuoteNumber = '';  // the quote the cover was created from, when known
@@ -531,6 +564,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
              <th class="${TH} w-40">Starts</th>
              <th class="${TH} w-32">Term (yrs)</th>
              <th class="${TH} w-40">Ends</th>
+             <th class="${TH} w-36 text-right">AMC / year (₹)</th>
              <th class="${TH} w-40">Status</th>
              <th class="${TH} w-12"></th>`
           : `<th class="${TH} w-10">#</th>
@@ -539,6 +573,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
              <th class="${TH}">Serial Number</th>
              <th class="${TH} w-64">Cover period</th>
              <th class="${TH} w-24">Term</th>
+             <th class="${TH} w-28 text-right">AMC / year</th>
              <th class="${TH} w-36">Status</th>`;
       }
 
@@ -589,24 +624,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       function renderView() {
         const body = document.getElementById('assetBody') as HTMLTableSectionElement;
         if (!assets.length) {
-          body.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500">No products on this cover yet. Use “Edit products” to add them.</td></tr>';
+          body.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500">No products on this cover yet. Use “Edit products” to add them.</td></tr>';
           return;
         }
 
-        body.innerHTML = assets.map((a, i) => {
+        let n = 0;
+        body.innerHTML = displayOrder(assets).map((i) => {
+          const a = assets[i];
           const b = bandOf(a);
           const style = BANDS[b];
           const stored = String(a['HSN/SAC'] ?? '').trim();
           const term = a['Term Years'];
+          const part = isComponent(a);
+          const parts = isBundle(a) ? assets.filter((p) => isComponent(p) && p['Bundle Asset Id'] === a.Id).length : 0;
           return `
-            <tr class="hover:bg-slate-50 transition-colors">
-              <td class="px-4 py-3 text-sm text-slate-400">${i + 1}</td>
+            <tr class="hover:bg-slate-50 transition-colors ${isBundle(a) ? 'bg-violet-50/40' : ''}">
+              <td class="px-4 py-3 text-sm text-slate-400">${part ? '' : ++n}</td>
               <td class="px-4 py-3 text-sm ${stored ? 'font-mono text-slate-700' : 'text-slate-300'}"
                   data-hsn-for="${esc(a['Model'])}" ${stored ? 'data-hsn-fixed="1"' : ''}>${stored ? esc(stored) : '…'}</td>
-              <td class="px-4 py-3 text-sm text-slate-800">${esc(a['Model']) || '<span class="text-slate-400 italic">Model not recorded</span>'}</td>
-              <td class="px-4 py-3 text-sm font-mono text-slate-700">${a['Serial Number'] ? esc(a['Serial Number']) : '<span class="font-sans text-slate-400 italic">not recorded</span>'}</td>
+              <td class="px-4 py-3 text-sm text-slate-800 ${part ? 'pl-9' : ''}">${part ? '<span class="text-slate-300 mr-1">↳</span>' : ''}${esc(a['Model']) || '<span class="text-slate-400 italic">Model not recorded</span>'}${isBundle(a) ? ` <span class="ml-1 px-1.5 py-px rounded border text-[10px] font-medium bg-violet-50 text-violet-700 border-violet-200">Kit · ${parts} part${parts === 1 ? '' : 's'}</span>` : ''}</td>
+              <td class="px-4 py-3 text-sm font-mono text-slate-700">${a['Serial Number'] ? esc(a['Serial Number']) : isBundle(a) ? '<span class="font-sans text-slate-400">serials on the parts</span>' : '<span class="font-sans text-slate-400 italic">not recorded</span>'}</td>
               ${coverCell(a)}
               <td class="px-4 py-3 text-sm text-slate-600 whitespace-nowrap">${term ? esc(`${term} ${Number(term) === 1 ? 'year' : 'years'}`) : '—'}${sourceBadge(a)}</td>
+              ${amcCell(a)}
               <td class="px-4 py-3">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}">${esc(a['Status'] || style.label)}</span>
               </td>
@@ -634,41 +674,56 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       function renderEdit() {
         const body = document.getElementById('assetBody') as HTMLTableSectionElement;
         if (!draft.length) {
-          body.innerHTML = '<tr><td colspan="8" class="px-6 py-8 text-center text-sm text-slate-500">No products yet — use “Add product”.</td></tr>';
+          body.innerHTML = '<tr><td colspan="9" class="px-6 py-8 text-center text-sm text-slate-500">No products yet — use “Add product”.</td></tr>';
           return;
         }
 
-        body.innerHTML = draft.map((a, i) => `
-          <tr data-row="${i}">
-            <td class="px-4 py-2 text-sm text-slate-400">${i + 1}</td>
+        let n = 0;
+        body.innerHTML = displayOrder(draft).map((i) => {
+          const a = draft[i];
+          const part = isComponent(a);
+          // A kit's price lives on its Bundle row, and the kit goes only as a whole.
+          const hasParts = isBundle(a) && draft.some((p) => isComponent(p) && p['Bundle Asset Id'] === a.Id);
+          return `
+          <tr data-row="${i}" class="${isBundle(a) ? 'bg-violet-50/40' : ''}">
+            <td class="px-4 py-2 text-sm text-slate-400">${part ? '↳' : ++n}</td>
             <td class="px-4 py-2"><input class="${INPUT}" data-f="Model" value="${esc(a['Model'])}" placeholder="Model"></td>
-            <td class="px-4 py-2"><input class="${INPUT} font-mono" data-f="Serial Number" value="${esc(a['Serial Number'])}" placeholder="Serial"></td>
+            <td class="px-4 py-2">${isBundle(a)
+              ? '<span class="text-xs text-slate-400">Kit — serials on the parts</span>'
+              : `<input class="${INPUT} font-mono" data-f="Serial Number" value="${esc(a['Serial Number'])}" placeholder="Serial">`}</td>
             <td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="Start Date" value="${esc(dateInputValue(a['Start Date']))}"></td>
             <td class="px-4 py-2"><select class="${INPUT}" data-f="Term Years">${termOptions(a['Term Years'])}</select></td>
             <td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="End Date" value="${esc(dateInputValue(a['End Date']))}"></td>
+            <td class="px-4 py-2">${part
+              ? '<span class="block text-xs text-slate-400 text-right">in kit</span>'
+              : `<input type="number" min="0" step="0.01" class="${INPUT} text-right" data-f="Unit Price" value="${esc(a['Unit Price'] ?? '')}" placeholder="—">`}</td>
             <td class="px-4 py-2">
               <select class="${INPUT}" data-f="Status">
                 ${STATUSES.map((s) => `<option value="${s}" ${String(a['Status'] || 'Active') === s ? 'selected' : ''}>${s}</option>`).join('')}
               </select>
             </td>
-            <td class="px-4 py-2 text-center">
+            <td class="px-4 py-2 text-center">${hasParts ? '' : `
               <button type="button" data-remove="${i}" class="text-slate-400 hover:text-red-600 transition-colors" title="Remove this product">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                 </svg>
-              </button>
+              </button>`}
             </td>
-          </tr>`).join('');
+          </tr>`;
+        }).join('');
       }
 
       function renderAssets() {
         renderHead();
         if (editing) renderEdit(); else renderView();
-        set('assetCount', (editing ? draft : assets).length ? `(${(editing ? draft : assets).length})` : '');
+        const count = devicesOf(editing ? draft : assets).length;
+        set('assetCount', count ? `(${count})` : '');
       }
 
       /** Header, cover mix, reminder panel — everything derived from the products. */
       function renderSummary() {
+        // Counted in devices: a kit's Bundle row is its price, not another product.
+        const assets = devicesOf(allAssets());
         const f = parent.fields || {};
         const next = nextExpiry(assets);
         const nextDate = next ? toDate(next.iso) : null;
@@ -877,6 +932,9 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         if (field === 'Term Years') {
           row['Term Years'] = input.value === '' ? null : Number(input.value);
+        } else if (field === 'Unit Price') {
+          row['Unit Price'] = input.value === '' ? null : Number(input.value);
+          return;
         } else {
           row[field] = input.value;
         }
@@ -918,7 +976,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       });
 
       /** Fields the asset table owns; anything else on the row is left alone. */
-      const EDITABLE = ['Model', 'Serial Number', 'Start Date', 'Term Years', 'End Date', 'Expiry Source', 'Status'];
+      const EDITABLE = ['Model', 'Serial Number', 'Start Date', 'Term Years', 'End Date', 'Expiry Source', 'Status', 'Unit Price'];
 
       function changed(before: any, after: any): boolean {
         return EDITABLE.some((k) => {
@@ -930,8 +988,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       function fieldsOf(row: any) {
         const f = parent.fields || {};
+        const price = row['Unit Price'];
         return {
-          'Title': [row['Model'], row['Serial Number']].filter(Boolean).join(' ') || '(unnamed asset)',
+          'Title': isBundle(row)
+            ? row['Title'] || row['Model'] || '(unnamed kit)'
+            : [row['Model'], row['Serial Number']].filter(Boolean).join(' ') || '(unnamed asset)',
+          // The AMC for one year — per device, or per kit on its Bundle row.
+          'Unit Price': price === '' || price === undefined || price === null || !isFinite(Number(price)) ? null : Number(price),
           'Warranty Id': Number(id),
           'Invoice No': f['Invoice No'] || '',
           'Customer Name': f['Customer Name'] || '',
@@ -1015,6 +1078,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
        * the reminder email renders it.
        */
       async function syncParent() {
+        const assets = devicesOf(allAssets());
         const next = nextExpiry(assets);
         const sources = new Set(assets.map((a) => String(a['Expiry Source'] ?? 'computed').toLowerCase()));
         // The parent's own select only knows ams and computed, and its expiry is

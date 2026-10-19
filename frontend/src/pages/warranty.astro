@@ -542,7 +542,8 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const byParent = new Map<string, any[]>();
           for (const a of rows) {
             const key = String(a['Warranty Id'] ?? '');
-            if (!key) continue;
+            // A kit's Bundle row is its price; the kit's parts are the devices.
+            if (!key || a['Kind'] === 'Bundle') continue;
             if (!byParent.has(key)) byParent.set(key, []);
             byParent.get(key)!.push(a);
           }
