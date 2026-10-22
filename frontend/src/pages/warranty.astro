@@ -10,18 +10,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         <h1 class="text-2xl font-semibold text-slate-800">Warranty &amp; AMC</h1>
         <p class="text-sm text-slate-500 mt-0.5">Every product under cover, soonest to expire first</p>
       </div>
-
-      <!-- Sends the next due reminder to the signed-in admin only, and says who the real one goes to. -->
-      <div id="testReminderBox" class="hidden flex-col sm:items-end gap-1.5">
-        <button id="testReminderBtn"
-          class="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 bg-white text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-          </svg>
-          Send me a test reminder
-        </button>
-        <p id="testReminderStatus" class="text-xs text-slate-500 sm:text-right max-w-sm"></p>
-      </div>
     </div>
   </div>
 
@@ -160,7 +148,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
   <script>
     import { getToken, logout, safeJsonParse } from '../lib/api';
-    import { requireAdmin, isAdmin } from '../utils/jwt';
+    import { requireAdmin } from '../utils/jwt';
 
     // Admin-only for now, matching the nav link: the backfilled rows have no
     // "Assigned To", so a rep's ownership-scoped read would return an empty
@@ -603,44 +591,6 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           applyFilters();
         });
       });
-
-      // Mails the reminder for the next due cover to the caller alone. It never
-      // stamps "Last Reminded", so it cannot use up a product's real reminder.
-      const testBox = document.getElementById('testReminderBox') as HTMLDivElement;
-      const testBtn = document.getElementById('testReminderBtn') as HTMLButtonElement;
-      const testStatus = document.getElementById('testReminderStatus') as HTMLParagraphElement;
-
-      if (isAdmin()) {
-        testBox.classList.remove('hidden');
-        testBox.classList.add('flex');
-
-        testBtn.addEventListener('click', async () => {
-          testBtn.disabled = true;
-          testStatus.className = 'text-xs text-slate-500 sm:text-right max-w-sm';
-          testStatus.textContent = 'Sending...';
-          try {
-            const res = await fetch(`${API_BASE_URL}/api/admin/warranty-reminder-test`, {
-              method: 'POST',
-              headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (res.status === 401) { logout(); return; }
-            const data = await safeJsonParse(res);
-            if (!res.ok || data?.error) {
-              console.error('warranty reminder test failed', res.status, data);
-              throw new Error(data?.error || `The test email could not be sent (error ${res.status}).`);
-            }
-            const real: string[] = data.would_go_to || [];
-            testStatus.className = 'text-xs text-emerald-700 sm:text-right max-w-sm';
-            testStatus.textContent = `Sent the reminder for “${data.row}” to ${data.to}. ` +
-              (real.length ? `The real one goes to ${real.join(', ')}.` : 'The real one would reach nobody — assign the cover to someone.');
-          } catch (error) {
-            testStatus.className = 'text-xs text-red-700 sm:text-right max-w-sm';
-            testStatus.textContent = error instanceof Error ? error.message : 'The test email could not be sent.';
-          } finally {
-            testBtn.disabled = false;
-          }
-        });
-      }
 
       searchInput.addEventListener('input', applyFilters);
       bandFilter.addEventListener('change', applyFilters);
