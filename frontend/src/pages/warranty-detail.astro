@@ -545,21 +545,27 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       const TH = 'px-4 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider';
 
+      /** An AMS unit: End Date is the portal date, Invoice End Date its warranty end. */
+      const isAmsRow = (a: any) => String(a?.['Expiry Source'] ?? '').toLowerCase() === 'ams';
+      // The editor shows the AMS column only when the cover has an AMS unit.
+      const showAmsColumn = () => draft.some(isAmsRow);
+
       function renderHead() {
         const head = document.getElementById('assetHead') as HTMLTableRowElement;
         head.innerHTML = editing
           ? `<th class="${TH} w-10">#</th>
              <th class="${TH}">Model</th>
              <th class="${TH}">Serial Number</th>
-             <th class="${TH} w-40">Starts</th>
-             <th class="${TH} w-40">Ends</th>
+             <th class="${TH} w-40">Invoice date</th>
+             <th class="${TH} w-40">Warranty Expires</th>
+             ${showAmsColumn() ? `<th class="${TH} w-40" title="Expiry per the Yealink AMS portal">AMS expires</th>` : ''}
              <th class="${TH} w-40">Status</th>
              <th class="${TH} w-12"></th>`
           : `<th class="${TH} w-10">#</th>
              <th class="${TH} w-28">HSN/SAC</th>
              <th class="${TH}">Model</th>
              <th class="${TH}">Serial Number</th>
-             <th class="${TH} w-64">Cover period</th>
+             <th class="${TH} w-[28rem] min-w-[22rem]">Cover period</th>
              <th class="${TH} w-36">Status</th>`;
       }
 
@@ -578,8 +584,40 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const used = Math.max(0, Math.min(total, daysBetween(start, TODAY)));
         const pct = Math.round((used / total) * 100);
 
+        // An AMS unit's End Date runs past its term; the term end sits on the
+        // bar at its true distance, so a short AMS extension reads as a short gap.
+        const termIso = remindOn(a);
+        const term = termIso !== dateInputValue(a['End Date']) ? toDate(termIso) : null;
+        if (term && term.getTime() > start.getTime()) {
+          const at = (daysBetween(start, term) / total) * 100;
+          // Keep the label on the bar near either edge instead of centring it off the end.
+          const anchor = at > 75 ? 'right:' + (100 - at) + '%' : at < 25 ? 'left:' + at + '%' : `left:${at}%;transform:translateX(-50%)`;
+          return `
+          <td class="px-4 py-3 min-w-[22rem]">
+            <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1">
+              <span>${esc(fmtDate(a['Start Date']))}</span>
+              <span class="font-medium text-sky-700" title="AMS expiry — the date registered on the Yealink AMS portal">AMS ${esc(fmtDate(a['End Date']))}</span>
+            </div>
+            <div class="relative h-1.5">
+              <div class="absolute inset-0 rounded-full overflow-hidden flex">
+                <div class="h-full bg-slate-100" style="width:${at}%"></div>
+                <div class="h-full flex-1 bg-sky-100"></div>
+              </div>
+              <div class="absolute inset-y-0 left-0 rounded-full ${style.bar} opacity-90" style="width:${pct}%"></div>
+              <div class="absolute -top-0.5 -bottom-0.5 w-0.5 bg-slate-600 rounded" style="left:calc(${at}% - 1px)"
+                   title="Term ends ${esc(fmtDate(termIso))}"></div>
+            </div>
+            <div class="relative h-4 mt-0.5">
+              <span class="absolute top-0 text-[11px] text-slate-600 whitespace-nowrap" style="${anchor}"
+                    title="Warranty end as per the invoice term. The renewal reminder is timed to this date.">Term ends ${esc(fmtDate(termIso))}</span>
+            </div>
+            <div class="text-[11px] ${style.text}">${esc(daysLabel(a))}</div>
+            ${sourceBadge(a)}
+          </td>`;
+        }
+
         return `
-          <td class="px-4 py-3">
+          <td class="px-4 py-3 min-w-[22rem]">
             <div class="flex items-center justify-between text-[11px] text-slate-500 mb-1">
               <span>${esc(fmtDate(a['Start Date']))}</span>
               <span class="font-medium text-slate-700">${esc(fmtDate(a['End Date']))}</span>
@@ -646,11 +684,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       function renderEdit() {
         const body = document.getElementById('assetBody') as HTMLTableSectionElement;
         if (!draft.length) {
-          body.innerHTML = '<tr><td colspan="7" class="px-6 py-8 text-center text-sm text-slate-500">No products yet — use “Add product”.</td></tr>';
+          body.innerHTML = `<tr><td colspan="${showAmsColumn() ? 8 : 7}" class="px-6 py-8 text-center text-sm text-slate-500">No products yet — use “Add product”.</td></tr>`;
           return;
         }
 
         let n = 0;
+        const amsCol = showAmsColumn();
         body.innerHTML = displayOrder(draft).map((i) => {
           const a = draft[i];
           const part = isComponent(a);
@@ -664,7 +703,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               ? '<span class="text-xs text-slate-400">Kit — serials on the parts</span>'
               : `<input class="${INPUT} font-mono" data-f="Serial Number" value="${esc(a['Serial Number'])}" placeholder="Serial">`}</td>
             <td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="Start Date" value="${esc(dateInputValue(a['Start Date']))}"></td>
-            <td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="End Date" value="${esc(dateInputValue(a['End Date']))}"></td>
+            ${isAmsRow(a)
+              ? `<td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="Invoice End Date" value="${esc(dateInputValue(a['Invoice End Date']))}" title="Warranty end as per the invoice term. The renewal reminder is timed to this date."></td>`
+              : `<td class="px-4 py-2"><input type="date" class="${INPUT}" data-f="End Date" value="${esc(dateInputValue(a['End Date']))}"></td>`}
+            ${!amsCol ? '' : isAmsRow(a)
+              ? `<td class="px-4 py-2"><input type="date" class="${INPUT} border-sky-300" data-f="ams" value="${esc(dateInputValue(a['End Date']))}" title="Expiry per the Yealink AMS portal. Clear it to drop the AMS date."></td>`
+              : '<td class="px-4 py-2 text-sm text-slate-400">—</td>'}
             <td class="px-4 py-2">
               <select class="${INPUT}" data-f="Status">
                 ${STATUSES.map((s) => `<option value="${s}" ${String(a['Status'] || 'Active') === s ? 'selected' : ''}>${s}</option>`).join('')}
@@ -898,7 +942,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const row = draft[Number(tr.dataset.row)];
         if (!row) return;
 
+        // The AMS date is the row's End Date; clearing it is handled on change.
+        if (field === 'ams') {
+          if (input.value) row['End Date'] = input.value;
+          return;
+        }
+
         row[field] = input.value;
+        if (field === 'Invoice End Date') return;
 
         const endInput = tr.querySelector('[data-f="End Date"]') as HTMLInputElement;
 
@@ -925,6 +976,18 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       body.addEventListener('change', (e) => {
         if (!editing) return;
+        // A cleared AMS date: the warranty end becomes the row's end date again.
+        const el = e.target as HTMLInputElement;
+        if (el.dataset.f === 'ams' && !el.value) {
+          const row = draft[Number((el.closest('tr') as HTMLTableRowElement).dataset.row)];
+          if (!row) return;
+          row['End Date'] = dateInputValue(row['Invoice End Date']);
+          row['Invoice End Date'] = null;
+          row['Term Years'] = termBetween(dateInputValue(row['Start Date']), row['End Date']);
+          row['Expiry Source'] = row['Term Years'] ? 'computed' : 'manual';
+          renderAssets();
+          return;
+        }
         const sel = e.target as HTMLSelectElement;
         if (sel.tagName !== 'SELECT' || sel.dataset.f !== 'Status') return;
         const tr = sel.closest('tr') as HTMLTableRowElement;
@@ -933,7 +996,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       });
 
       /** Fields the asset table owns; anything else on the row is left alone. */
-      const EDITABLE = ['Model', 'Serial Number', 'Start Date', 'Term Years', 'End Date', 'Expiry Source', 'Status'];
+      const EDITABLE = ['Model', 'Serial Number', 'Start Date', 'Term Years', 'End Date', 'Invoice End Date', 'Expiry Source', 'Status'];
 
       function changed(before: any, after: any): boolean {
         return EDITABLE.some((k) => {
@@ -957,6 +1020,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           'Start Date': dateInputValue(row['Start Date']) || null,
           'Term Years': row['Term Years'] === '' || row['Term Years'] === undefined ? null : row['Term Years'],
           'End Date': dateInputValue(row['End Date']) || null,
+          'Invoice End Date': dateInputValue(row['Invoice End Date']) || null,
           'Expiry Source': row['Expiry Source'] || 'computed',
           'Status': row['Status'] || 'Active',
           'Assigned To': f['Assigned To'] || null,
@@ -986,6 +1050,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const blank = draft.findIndex((r) => !String(r['Model'] ?? '').trim() && !String(r['Serial Number'] ?? '').trim());
         if (blank >= 0) {
           saveError.textContent = `Row ${blank + 1} has neither a model nor a serial number. Fill one in, or remove the row.`;
+          saveError.classList.remove('hidden');
+          return;
+        }
+
+        // Same rule as create-cover: the portal date cannot be before the warranty end.
+        const badAms = draft.findIndex((r) => isAmsRow(r) && dateInputValue(r['End Date']) < dateInputValue(r['Invoice End Date']));
+        if (badAms >= 0) {
+          saveError.textContent = `Row ${badAms + 1}: the AMS expiry cannot be before its warranty expiry.`;
           saveError.classList.remove('hidden');
           return;
         }

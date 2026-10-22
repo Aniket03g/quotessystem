@@ -96,6 +96,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           </h2>
           <span class="text-xs text-slate-500 max-w-xl">
             Pick the term for each line. AMC total = AMC per year × years × qty. A price typed where the cover has none is saved back to the cover.
+            Tick <strong>AMS</strong> for a unit registered on the Yealink AMS portal and enter its AMS date; it is saved to the cover.
           </span>
         </div>
         <div class="overflow-x-auto">
@@ -108,6 +109,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Warranty Start</th>
                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-28">Term</th>
                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Warranty End</th>
+                <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-44" title="Registered on the Yealink AMS portal">AMS date</th>
                 <th class="px-3 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider w-20">Qty</th>
                 <th class="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-32">AMC / year</th>
                 <th class="px-3 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">AMC Total Price</th>
@@ -182,6 +184,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return isoOf(out);
       }
 
+      /** Whole years from start to end on warranty-detail's convention (no day off), or null. */
+      function termBetween(start: string, end: string): number | null {
+        if (!start || !end) return null;
+        for (let y = 1; y <= 10; y++) if (addYears(start, y) === end) return y;
+        return null;
+      }
+
       /** 01 Sep 2026 + 1 year ends 31 Aug 2027 — the AMC Quote Format's convention. */
       const periodEnd = (start: string, years: number) => (start ? addDays(addYears(start, years), -1) : '');
 
@@ -247,6 +256,12 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         amcTouched: boolean;        // typed over, so rate x years x qty no longer drives it
         nameTouched: boolean;
         partIds: number[];          // a kit's parts, quoted (and marked) with it
+        // The devices an AMS date lands on: the unit itself, or a kit's parts
+        // (its Bundle row is a price carrier with no dates of its own).
+        amsUnits: { id: number; start: string; termEnd: string }[];
+        ams: boolean;
+        amsDate: string;
+        amsWas: string;             // the AMS date already on the cover, '' if none
       };
 
       let parent: any = {};
@@ -261,6 +276,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       // --- rendering -----------------------------------------------------------
 
       const INPUT = 'w-full px-2 py-1.5 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500';
+
+      /** The latest warranty end the AMS date must not fall before. */
+      const amsFloor = (l: Line) => l.amsUnits.map((u) => u.termEnd).filter(Boolean).sort().pop() || '';
+
+      /** Why a line's AMS date is unusable, or '' when it is fine (or not AMS). Same rule as create-cover. */
+      function amsProblem(l: Line): string {
+        if (!l.ams) return '';
+        if (!l.amsDate) return 'Enter the AMS date';
+        const floor = amsFloor(l);
+        if (floor && l.amsDate < floor) return `The AMS date cannot be before the warranty end (${floor})`;
+        return '';
+      }
+
+      const AMS_HINT = 'Expiry per the Yealink AMS portal — saved to the cover; reminders still follow the warranty end';
+
+      function amsCell(l: Line): string {
+        const toggle = `<label class="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer mt-2" title="Registered on the Yealink AMS portal">
+            <input type="checkbox" data-lf="ams" ${l.ams ? 'checked' : ''} class="w-4 h-4 accent-emerald-600">AMS</label>`;
+        if (!l.ams) return toggle;
+        const problem = amsProblem(l);
+        return `${toggle}<input type="date" data-lf="amsDate" value="${esc(l.amsDate)}" min="${esc(amsFloor(l))}"
+            class="${INPUT} mt-1 ${problem && l.amsDate ? 'border-red-400' : 'border-emerald-400'}" title="${esc(problem || AMS_HINT)}">`;
+      }
 
       /** rate x years x qty, unless the total was typed over. */
       function autoAmc(l: Line) {
@@ -277,7 +315,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       function renderLines() {
         const body = $<HTMLTableSectionElement>('lineBody');
         if (!lines.length) {
-          body.innerHTML = '<tr><td colspan="9" class="px-6 py-8 text-center text-sm text-slate-500">This cover has no products recorded.</td></tr>';
+          body.innerHTML = '<tr><td colspan="10" class="px-6 py-8 text-center text-sm text-slate-500">This cover has no products recorded.</td></tr>';
           return;
         }
         body.innerHTML = lines.map((l, i) => `
@@ -293,6 +331,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             <td class="px-3 py-2"><input type="date" data-lf="start" value="${esc(l.start)}" class="${INPUT}"></td>
             <td class="px-3 py-2"><select data-lf="term" class="${INPUT}">${TERMS.map((y) => `<option value="${y}" ${y === l.term ? 'selected' : ''}>${y} year${y === 1 ? '' : 's'}</option>`).join('')}</select></td>
             <td class="px-3 py-2"><input type="date" data-lf="end" value="${esc(l.end)}" class="${INPUT} ${l.manualEnd ? 'border-blue-400' : ''}" title="${l.manualEnd ? 'Entered by hand' : 'Start date plus this line\'s term'}"></td>
+            <td class="px-3 py-2">${amsCell(l)}</td>
             <td class="px-3 py-2"><input type="number" min="1" data-lf="qty" value="${l.qty}" class="${INPUT}"></td>
             <td class="px-3 py-2">${rateCell(l)}</td>
             <td class="px-3 py-2"><input type="number" min="0" step="0.01" data-lf="amc" value="${l.amc ?? ''}" placeholder="0.00" class="${INPUT} text-right tabular-nums ${l.amcTouched ? 'border-blue-400' : ''}" title="${l.amcTouched ? 'Typed by hand — clear it to go back to AMC per year × years × qty' : 'AMC per year × years × qty'}"></td>
@@ -338,6 +377,14 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             el.classList.toggle('border-blue-400', l.amcTouched);
             renderTotals();
             break;
+          case 'amsDate': {
+            l.amsDate = el.value;
+            const problem = amsProblem(l);
+            el.classList.toggle('border-red-400', !!problem && !!l.amsDate);
+            el.classList.toggle('border-emerald-400', !problem || !l.amsDate);
+            el.title = problem || AMS_HINT;
+            break;
+          }
           case 'end':
             l.end = el.value; l.manualEnd = !!el.value;
             el.classList.toggle('border-blue-400', l.manualEnd);
@@ -374,6 +421,13 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           if (!l.manualEnd) l.end = periodEnd(l.start, l.term);
           if (!l.nameTouched) l.name = defaultName(l);
           autoAmc(l);
+          renderLines();
+          return;
+        }
+        if (el.dataset.lf === 'ams') {
+          const l = lines[Number((el.closest('tr') as HTMLTableRowElement).dataset.line)];
+          l.ams = el.checked;
+          if (l.ams && !l.amsDate) l.amsDate = l.amsWas;
           renderLines();
           return;
         }
@@ -517,6 +571,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         if (backwards) return fail(`Row ${n(backwards)} ends on or before it starts.`);
         const noPrice = ticked.find((l) => !(l.amc && l.amc > 0));
         if (noPrice) return fail(`Row ${n(noPrice)} has no AMC total price.`);
+        const badAms = ticked.find((l) => amsProblem(l));
+        if (badAms) return fail(!badAms.amsDate
+          ? `Row ${n(badAms)} is marked AMS but has no AMS date.`
+          : `Row ${n(badAms)}: the AMS date cannot be before its warranty end (${amsFloor(badAms)}).`);
 
         saveBtn.disabled = true;
         saveBtn.textContent = 'Creating...';
@@ -607,13 +665,58 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           // The reminder panel and list should show these units are being worked;
           // a kit's parts with it. An AMC price typed here is kept on the cover
           // so the next quote starts from it.
+          // An AMS date ticked or changed here is written the way create-cover
+          // writes one; unticking a saved one puts the warranty end back.
+          let amsChanged = false;
           for (const l of ticked) {
-            const fields: Record<string, any> = { 'Status': 'Renewal Quoted' };
-            if (!l.rateOnCover && l.rate != null) fields['Unit Price'] = l.rate;
-            await send('PATCH', '/proxy/warranty_assets/records', { id: l.assetId, fields });
-            for (const partId of l.partIds) {
-              await send('PATCH', '/proxy/warranty_assets/records', { id: partId, fields: { 'Status': 'Renewal Quoted' } });
+            const patches = new Map<number, Record<string, any>>();
+            patches.set(l.assetId, { 'Status': 'Renewal Quoted' });
+            for (const partId of l.partIds) patches.set(partId, { 'Status': 'Renewal Quoted' });
+            if (!l.rateOnCover && l.rate != null) patches.get(l.assetId)!['Unit Price'] = l.rate;
+
+            const amsNow = l.ams ? l.amsDate : '';
+            if (amsNow !== l.amsWas) {
+              amsChanged = true;
+              for (const u of l.amsUnits) {
+                const term = termBetween(u.start, u.termEnd);
+                Object.assign(patches.get(u.id)!, amsNow
+                  ? {
+                      'End Date': amsNow,
+                      // The warranty's own end; reminders keep following it.
+                      'Invoice End Date': u.termEnd || null,
+                      'Expiry Source': 'ams',
+                      // A portal date is not start + term, so the term must not move it.
+                      'Term Years': null,
+                    }
+                  : {
+                      'End Date': u.termEnd || null,
+                      'Invoice End Date': null,
+                      'Term Years': term,
+                      'Expiry Source': term ? 'computed' : 'manual',
+                    });
+              }
             }
+            for (const [assetId, fields] of patches) {
+              await send('PATCH', '/proxy/warranty_assets/records', { id: assetId, fields });
+            }
+          }
+
+          // The cover's expiry is its soonest live unit's, and so is its source,
+          // exactly as warranty-detail's syncParent keeps it.
+          if (amsChanged) {
+            const devices = rowsOf(await get(`/proxy/warranty_assets/records?where=${encodeURIComponent(`(Warranty Id,eq,${coverId})`)}&limit=1000`))
+              .map(flat)
+              .filter((a: any) => a['Kind'] !== 'Bundle');
+            const live = devices.filter((a: any) => !['renewed', 'replaced'].includes(String(a['Status'] ?? '').toLowerCase()) && a['End Date']);
+            const soonest = live.map((a: any) => dateOnly(a['End Date'])).sort()[0];
+            const lead = live.find((a: any) => dateOnly(a['End Date']) === soonest);
+            await send('PATCH', '/proxy/warranty_reminders/records', {
+              id: coverId,
+              fields: {
+                'Expiry Date': soonest || null,
+                'Expiry Source': String(lead?.['Expiry Source'] ?? '').toLowerCase() === 'ams' ? 'ams' : 'computed',
+              },
+            });
           }
 
           window.location.replace(`/quote-detail?id=${quoteId}`);
@@ -696,6 +799,17 @@ import AdminLayout from '../layouts/AdminLayout.astro';
             // lapsed: it can only start from today.
             const end = dateOnly(a['End Date']);
             const start = end && end >= today ? addDays(end, 1) : today;
+            // A unit (or a kit's parts) already on the AMS portal: End Date is the
+            // portal date and Invoice End Date the warranty end it replaced.
+            const isAms = (d: any) => String(d['Expiry Source'] ?? '').toLowerCase() === 'ams';
+            const devices = parts.length ? parts : [a];
+            const amsUnits = devices.map((d: any) => ({
+              id: Number(d.Id),
+              start: dateOnly(d['Start Date']),
+              termEnd: (isAms(d) && dateOnly(d['Invoice End Date'])) || dateOnly(d['End Date']),
+            }));
+            const amsDev = devices.find(isAms);
+            const amsWas = amsDev ? dateOnly(amsDev['End Date']) : '';
             const l: Line = {
               assetId: Number(a.Id),
               include: status !== 'renewed' && status !== 'replaced',
@@ -718,6 +832,10 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               amcTouched: false,
               nameTouched: false,
               partIds: parts.map((x: any) => Number(x.Id)),
+              amsUnits,
+              ams: !!amsWas,
+              amsDate: amsWas,
+              amsWas,
             };
             l.name = defaultName(l);
             autoAmc(l);

@@ -244,15 +244,19 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         const counts: Record<string, number> = { lapsed: 0, due: 0, active: 0, closed: 0 };
         const sources = new Set<string>();
         let next: string | null = null;
+        // The soonest end date within each band, so a tile shows its own products.
+        const nextBy: Record<string, string | null> = { lapsed: null, due: null, active: null };
 
         for (const a of assets) {
           sources.add(String(a['Expiry Source'] ?? 'computed').toLowerCase());
           const end = a['End Date'] ? String(a['End Date']).slice(0, 10) : '';
           if (CLOSED.has(String(a['Status'] ?? '').toLowerCase())) { counts.closed++; continue; }
-          counts[bandOf(daysLeft(end))]++;
+          const band = bandOf(daysLeft(end));
+          counts[band]++;
           if (end && (next === null || end < next)) next = end;
+          if (end && (nextBy[band] === null || end < nextBy[band]!)) nextBy[band] = end;
         }
-        return { id, assets, counts, sources, next, total: assets.length };
+        return { id, assets, counts, sources, next, nextBy, total: assets.length };
       }
 
       /** Falls back to the parent row while a record has no product rows yet. */
@@ -267,7 +271,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
         return {
           id: String(record.id), assets: [], counts,
           sources: new Set([String(f['Expiry Source'] ?? 'computed').toLowerCase()]),
-          next: end || null, total: n,
+          next: end || null, nextBy: { [bandOf(daysLeft(end))]: end || null }, total: n,
         };
       }
 
@@ -323,10 +327,29 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
       const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
+      /**
+       * The date a row shows: with a tile picked, the soonest product in THAT
+       * band, so a mixed invoice under Active is not shown by its lapsed unit.
+       */
+      function shownNext(r: any): string {
+        const band = bandFilter.value;
+        return (band && r.nextBy?.[band]) || r.next || '';
+      }
+
+      const BAND_WORD: Record<string, string> = { lapsed: 'lapsed', due: 'expiring', active: 'active' };
+
       /** "3 of 10 expiring" — only worth saying when the invoice is not uniform. */
       function mixNote(r: any): string {
         const live = r.counts.lapsed + r.counts.due + r.counts.active;
         if (!r.total || live === 0) return '';
+        // With a tile picked: its own count first, then what else the invoice holds.
+        const band = bandFilter.value;
+        if (band) {
+          if (r.counts[band] === live) return '';
+          const order = [band, ...['active', 'due', 'lapsed'].filter((b) => b !== band)];
+          const parts = order.filter((b) => r.counts[b]).map((b) => `${r.counts[b]} ${BAND_WORD[b]}`);
+          return `<div class="text-xs text-slate-400 mt-1">${parts.join(' · ')} of ${r.total}</div>`;
+        }
         if (r.counts.lapsed === live) return '';
         if (r.counts.due === live) return '';
         const parts: string[] = [];
@@ -368,7 +391,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
         filtered = [...filtered].sort((a, b) => {
           const af = a.fields || {}, bf = b.fields || {};
-          const an = rollupFor(a).next || '', bn = rollupFor(b).next || '';
+          const an = shownNext(rollupFor(a)), bn = shownNext(rollupFor(b));
           switch (sort) {
             case 'expiry-desc':  return bn.localeCompare(an);
             case 'value-desc':   return (parseFloat(bf['Value']) || 0) - (parseFloat(af['Value']) || 0);
@@ -424,7 +447,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const id = String(record.id);
           const href = detailHref(id);
           const roll = rollupFor(record);
-          const days = daysLeft(roll.next || '');
+          const days = daysLeft(shownNext(roll));
           const accent = days === null ? 'border-l-4 border-l-transparent'
             : days < 0 ? 'border-l-4 border-l-red-400'
             : days <= LEAD_DAYS ? 'border-l-4 border-l-amber-400'
@@ -442,7 +465,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
                 <a href="${esc(href)}" class="text-slate-900 hover:text-blue-700 hover:underline">${esc(f['Customer Name'] || f['Title'] || 'Unknown customer')}</a>
               </td>
               <td class="px-4 py-4 text-sm text-slate-600 truncate max-w-0">${esc(f['Location'] || '—')}</td>
-              <td class="px-4 py-4 text-sm text-slate-700 whitespace-nowrap">${fmtDate(roll.next || '')}</td>
+              <td class="px-4 py-4 text-sm text-slate-700 whitespace-nowrap">${fmtDate(shownNext(roll))}</td>
               <td class="px-4 py-4 whitespace-nowrap align-top">${statusCell(days)}${mixNote(roll)}</td>
               <td class="px-4 py-4 text-sm text-slate-600">${esc(roll.total)}</td>
               <td class="px-4 py-4 text-sm text-slate-700 text-right whitespace-nowrap">${fmtMoney(f['Value'])}</td>
@@ -455,7 +478,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           const f = record.fields || {};
           const href = detailHref(String(record.id));
           const roll = rollupFor(record);
-          const days = daysLeft(roll.next || '');
+          const days = daysLeft(shownNext(roll));
           return `
             <a href="${esc(href)}" class="block p-4 hover:bg-slate-50 transition-colors">
               <div class="flex items-start justify-between gap-2 mb-1">
@@ -464,7 +487,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               </div>
               ${accountOf(f) ? `<div class="text-xs text-slate-700 mb-0.5">${esc(accountOf(f))}</div>` : ''}
               <div class="text-xs text-slate-500 mb-1">
-                ${esc(f['Location'] || '')}${f['Location'] ? ' · ' : ''}next expiry ${fmtDate(roll.next || '')}
+                ${esc(f['Location'] || '')}${f['Location'] ? ' · ' : ''}next expiry ${fmtDate(shownNext(roll))}
               </div>
               <div class="flex flex-wrap items-center gap-2">
                 <span class="text-sm text-slate-700">${plural(roll.total, 'product')}</span>
