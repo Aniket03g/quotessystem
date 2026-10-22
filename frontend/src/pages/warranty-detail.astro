@@ -605,11 +605,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
               </div>
               <div class="absolute inset-y-0 left-0 rounded-full ${style.bar} opacity-90" style="width:${pct}%"></div>
               <div class="absolute -top-0.5 -bottom-0.5 w-0.5 bg-slate-600 rounded" style="left:calc(${at}% - 1px)"
-                   title="Term ends ${esc(fmtDate(termIso))}"></div>
+                   title="Warranty ends ${esc(fmtDate(termIso))}"></div>
             </div>
             <div class="relative h-4 mt-0.5">
               <span class="absolute top-0 text-[11px] text-slate-600 whitespace-nowrap" style="${anchor}"
-                    title="Warranty end as per the invoice term. The renewal reminder is timed to this date.">Term ends ${esc(fmtDate(termIso))}</span>
+                    title="Warranty end as per the invoice term. The renewal reminder is timed to this date.">Warranty ends ${esc(fmtDate(termIso))}</span>
             </div>
             <div class="text-[11px] ${style.text}">${esc(daysLabel(a))}</div>
             ${sourceBadge(a)}
