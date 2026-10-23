@@ -677,7 +677,7 @@ import AdminLayout from '../layouts/AdminLayout.astro';
 
     async function deleteContact(id: string, name: string) {
       const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
-      if (userInfo.role !== 'admin') {
+      if (userInfo.role !== 'admin' && userInfo.role !== 'super_admin') {
         showToast('Only administrators can delete contacts.', 'error');
         return;
       }
