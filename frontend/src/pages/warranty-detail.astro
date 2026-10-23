@@ -653,24 +653,34 @@ import AdminLayout from '../layouts/AdminLayout.astro';
           return;
         }
 
-        let n = 0;
-        body.innerHTML = displayOrder(assets).map((i) => {
+        // A kit reads as one row: its model, with the parts' serials stacked beside it.
+        const bundleIds = new Set(assets.filter(isBundle).map((a) => a.Id));
+        const inKit = (a: any) => isComponent(a) && bundleIds.has(a['Bundle Asset Id']);
+        const partsOf = (a: any) => assets.filter((p) => isComponent(p) && p['Bundle Asset Id'] === a.Id);
+
+        body.innerHTML = displayOrder(assets).filter((i) => !inKit(assets[i])).map((i, n) => {
           const a = assets[i];
-          const b = bandOf(a);
+          const parts = isBundle(a) ? partsOf(a) : [];
+          // The Bundle row has no dates of its own; the kit's cover is its part expiring first.
+          const dated = parts.length
+            ? [...parts].sort((x, y) => dateInputValue(x['End Date']).localeCompare(dateInputValue(y['End Date'])))[0]
+            : a;
+          const b = bandOf(dated);
           const style = BANDS[b];
           const stored = String(a['HSN/SAC'] ?? '').trim();
-          const part = isComponent(a);
-          const parts = isBundle(a) ? assets.filter((p) => isComponent(p) && p['Bundle Asset Id'] === a.Id).length : 0;
+          const serials = parts.length ? parts.map((p) => p['Serial Number']).filter(Boolean) : [a['Serial Number']].filter(Boolean);
           return `
-            <tr class="hover:bg-slate-50 transition-colors ${isBundle(a) ? 'bg-violet-50/40' : ''}">
-              <td class="px-4 py-3 text-sm text-slate-400">${part ? '' : ++n}</td>
-              <td class="px-4 py-3 text-sm ${stored ? 'font-mono text-slate-700' : 'text-slate-300'}"
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-3 text-sm text-slate-400 align-top">${n + 1}</td>
+              <td class="px-4 py-3 text-sm align-top ${stored ? 'font-mono text-slate-700' : 'text-slate-300'}"
                   data-hsn-for="${esc(a['Model'])}" ${stored ? 'data-hsn-fixed="1"' : ''}>${stored ? esc(stored) : '…'}</td>
-              <td class="px-4 py-3 text-sm text-slate-800 ${part ? 'pl-9' : ''}">${part ? '<span class="text-slate-300 mr-1">↳</span>' : ''}${esc(a['Model']) || '<span class="text-slate-400 italic">Model not recorded</span>'}${isBundle(a) ? ` <span class="ml-1 px-1.5 py-px rounded border text-[10px] font-medium whitespace-nowrap bg-violet-50 text-violet-700 border-violet-200">Kit · ${parts} part${parts === 1 ? '' : 's'}</span>` : ''}</td>
-              <td class="px-4 py-3 text-sm font-mono text-slate-700">${a['Serial Number'] ? esc(a['Serial Number']) : isBundle(a) ? '<span class="font-sans text-slate-400">serials on the parts</span>' : '<span class="font-sans text-slate-400 italic">not recorded</span>'}</td>
-              ${coverCell(a)}
-              <td class="px-4 py-3">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}">${esc(a['Status'] || style.label)}</span>
+              <td class="px-4 py-3 text-sm text-slate-800 align-top">${esc(a['Model']) || '<span class="text-slate-400 italic">Model not recorded</span>'}</td>
+              <td class="px-4 py-3 text-sm font-mono text-slate-700 align-top">${serials.length
+                ? serials.map((s) => `<div>${esc(s)}</div>`).join('')
+                : '<span class="font-sans text-slate-400 italic">not recorded</span>'}</td>
+              ${coverCell(dated)}
+              <td class="px-4 py-3 align-top">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}">${esc(dated['Status'] || style.label)}</span>
               </td>
             </tr>`;
         }).join('');
@@ -728,7 +738,11 @@ import AdminLayout from '../layouts/AdminLayout.astro';
       function renderAssets() {
         renderHead();
         if (editing) renderEdit(); else renderView();
-        const count = devicesOf(editing ? draft : assets).length;
+        // The view shows a kit as one product; the editor lists its parts.
+        const bundleIds = new Set(assets.filter(isBundle).map((a) => a.Id));
+        const count = editing
+          ? devicesOf(draft).length
+          : assets.filter((a) => !(isComponent(a) && bundleIds.has(a['Bundle Asset Id']))).length;
         set('assetCount', count ? `(${count})` : '');
       }
 
